@@ -1,6 +1,6 @@
 <?php
-
 use App\Http\Controllers\ProfileController;
+use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -14,6 +14,18 @@ Route::get('/dashboard', function () {
 Route::get('/wagers', function () {
     return view('wagers');
 })->middleware(['auth', 'verified'])->name('wagers');
+
+Route::get('/friends', function () {
+    return view('friends');
+})->middleware(['auth', 'verified'])->name('friends');
+
+Route::get('/balance', function () {
+    return view('balance');
+})->middleware(['auth', 'verified'])->name('balance');
+
+Route::get('/admin', function () {
+    return view('admin/admin');
+})->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
