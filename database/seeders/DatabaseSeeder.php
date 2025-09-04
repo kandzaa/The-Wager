@@ -21,5 +21,13 @@ class DatabaseSeeder extends Seeder
             'role'     => 'admin',
             'balance'  => 1000,
         ]);
+
+        User::factory()->create([
+            'name'     => 'user',
+            'email'    => 'user@gmail.com',
+            'password' => bcrypt('user1234'),
+            'role'     => 'user',
+            'balance'  => 500,
+        ]);
     }
 }

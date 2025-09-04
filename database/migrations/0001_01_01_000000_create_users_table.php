@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->decimal('balance', 12, 2)->default(0);
+            $table->integer('balance')->default(500);
             $table->json('friends')->nullable();
             $table->json('wager_history')->nullable();
             $table->json('games_played')->nullable();

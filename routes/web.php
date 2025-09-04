@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WagerController;
 use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -11,9 +12,9 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/wagers', function () {
-    return view('wagers');
-})->middleware(['auth', 'verified'])->name('wagers');
+Route::get('/wagers', [WagerController::class, 'index'])->middleware(['auth', 'verified'])->name('wagers');
+
+Route::post('/wagers', [WagerController::class, 'create'])->middleware(['auth', 'verified'])->name('wager.create');
 
 Route::get('/friends', function () {
     return view('friends');
