@@ -1,5 +1,5 @@
 <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=group" />
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_balance_wallet" />
 
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
 
@@ -24,11 +24,13 @@
             <div class="hidden sm:flex sm:items-center sm:space-x-4">
                 <div class="flex space-x-1">
                     <a href="{{ route('balance') }}"
-                        class="px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md
+                        class="px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md flex items-center gap-1
                         {{ request()->routeIs('balance')
                             ? 'bg-amber-100 text-green-600'
                             : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50' }}">
-                        {{ Auth::user()->balance }} Coins
+                        {{ Auth::user()->balance }} <span class="material-symbols-outlined">
+                            account_balance_wallet
+                        </span>
                     </a>
 
                     <a href="{{ route('friends') }}"
