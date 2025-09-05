@@ -46,4 +46,15 @@ class WagerController extends Controller
                 ->with('error', 'Error creating wager: ' . $e->getMessage());
         }
     }
+
+    // public function show($id)
+    // {
+    //     $wager = Wager::with('creator')->findOrFail($id);
+    //     return view('wager.show', compact('wager'));
+    // }
+
+    public function search($query)
+    {
+        return Wager::where('name', 'like', '%' . $query . '%')->get();
+    }
 }

@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\FriendsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WagerController;
 use App\Http\Middleware\AdminMiddleware;
@@ -13,12 +14,12 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/wagers', [WagerController::class, 'index'])->middleware(['auth', 'verified'])->name('wagers');
-
 Route::post('/wagers', [WagerController::class, 'create'])->middleware(['auth', 'verified'])->name('wager.create');
 
-Route::get('/friends', function () {
-    return view('friends');
-})->middleware(['auth', 'verified'])->name('friends');
+Route::get('/friends', [FriendsController::class, 'index'])->middleware(['auth', 'verified'])->name('friends');
+Route::get('/friends/search', [FriendsController::class, 'searchUsers'])->name('friends.search');
+Route::post('/friends/add', [FriendsController::class, 'addFriend'])->name('friends.add');
+Route::get('/user/{id}', [FriendsController::class, 'showUser'])->middleware(['auth', 'verified'])->name('user.show');
 
 Route::get('/balance', function () {
     return view('balance');

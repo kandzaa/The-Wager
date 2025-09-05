@@ -31,7 +31,7 @@
                         @csrf
                         <div class="space-y-4">
                             <div>
-                                <input type="text" name="name" placeholder="Name" required
+                                <input type="text" name="name" placeholder="Theme" required
                                     class="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                             </div>
 
