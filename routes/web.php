@@ -15,10 +15,15 @@ Route::get('/dashboard', function () {
 
 Route::get('/wagers', [WagerController::class, 'index'])->middleware(['auth', 'verified'])->name('wagers');
 Route::post('/wagers', [WagerController::class, 'create'])->middleware(['auth', 'verified'])->name('wager.create');
+Route::get('/wagers/search', [WagerController::class, 'search'])->middleware(['auth', 'verified'])->name('wagers.search');
+Route::put('/wagers/{wager}', [WagerController::class, 'update'])->middleware(['auth', 'verified'])->name('wagers.update');
+Route::delete('/wagers/{wager}', [WagerController::class, 'destroy'])->middleware(['auth', 'verified'])->name('wagers.destroy');
 
 Route::get('/friends', [FriendsController::class, 'index'])->middleware(['auth', 'verified'])->name('friends');
 Route::get('/friends/search', [FriendsController::class, 'searchUsers'])->name('friends.search');
 Route::post('/friends/add', [FriendsController::class, 'addFriend'])->name('friends.add');
+Route::post('/friends/remove', [FriendsController::class, 'removeFriend'])->name('friends.remove');
+
 Route::get('/user/{id}', [FriendsController::class, 'showUser'])->middleware(['auth', 'verified'])->name('user.show');
 
 Route::get('/balance', function () {

@@ -6,12 +6,13 @@
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
 
             <div
-                class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg
+                class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl
                 ring-1 ring-gray-300 ring-opacity-50">
 
                 <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold text-gray-900 tracking-tight">Create Wager</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 tracking-tight"
+                            x-text="editId ? 'Edit Wager' : 'Create Wager'"></h3>
                         <button @click="showModal = false" class="text-gray-400 hover:text-gray-500">
                             <span class="sr-only">Close</span>
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -27,33 +28,31 @@
                             <span class="block sm:inline">{{ session('error') }}</span>
                         </div>
                     @endif
-                    <form action="{{ route('wager.create') }}" method="POST" class="mt-4">
+                    <form :action="editId ? '{{ url('/wagers') }}/' + editId : '{{ route('wager.create') }}'"
+                        method="POST" class="mt-4">
                         @csrf
+                        <template x-if="editId"><input type="hidden" name="_method" value="PUT"></template>
                         <div class="space-y-4">
                             <div>
-                                <input type="text" name="name" placeholder="Theme" required
+                                <input type="text" name="name" placeholder="Theme" required x-model="form.name"
                                     class="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                             </div>
 
                             <div>
-                                <textarea name="description" placeholder="Description" rows="3"
+                                <textarea name="description" placeholder="Description" rows="3" x-model="form.description"
                                     class="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm resize-none"></textarea>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <input type="number" name="max_players" placeholder="Max players" min="2"
-                                        required
-                                        class="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                                </div>
-                                <div>
-                                    <input type="number" name="entry_fee" placeholder="Entry fee (optional)"
-                                        min="0" required
+                                        x-model="form.max_players" required
                                         class="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                                 </div>
                             </div>
 
-                            <div x-data="{ isPrivate: false }" class="flex items-center justify-between p-2 rounded-lg">
+                            <div x-data="{ isPrivate: false }" x-init="isPrivate = form.visibility === 'private'"
+                                class="flex items-center justify-between p-2 rounded-lg">
                                 <input type="hidden" name="visibility" :value="isPrivate ? 'private' : 'public'">
                                 <div class="flex items-center gap-3">
                                     <span class="text-sm font-medium text-gray-700">Visibility:</span>
@@ -98,11 +97,57 @@
                                     </div>
                                 </div>
                             </div>
+                            <div>
+
+                                <div>Invite friends:</div>
+                                <div class="space-y-4">
+                                    @foreach ($friends as $friend)
+                                        <div class="p-4 border rounded-lg hover:shadow-md transition-all duration-300 bg-green-50 border-green-200"
+                                            data-friend-id="{{ $friend->id }}">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center ">
+                                                    <div
+                                                        class="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">
+                                                        <span class="text-xl font-semibold text-green-700">
+                                                            {{ strtoupper(substr($friend->name, 0, 1)) }}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="text-lg font-semibold text-gray-800">
+                                                            {{ $friend->name }}
+                                                        </h3>
+
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div x-data="{ choices: form.choices && form.choices.length ? [...form.choices] : [''] }" class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">Choices:</label>
+                                <template x-for="(choice, index) in choices" :key="index">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <input type="text" :name="'choices[]'" x-model="choices[index]"
+                                            placeholder="Choice"
+                                            class="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" />
+                                        <button type="button" @click="choices.splice(index, 1)"
+                                            x-show="choices.length > 1"
+                                            class="px-2 py-2 text-red-600 border border-red-600 rounded hover:bg-red-50">Remove</button>
+                                    </div>
+                                </template>
+                                <button type="button" @click="choices.push('')"
+                                    class="px-3 py-2 text-sm text-green-700 border border-green-700 rounded hover:bg-green-50">Add
+                                    choice</button>
+                            </div>
 
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">End time:</label>
                                 <div>
                                     <input type="datetime-local" name="ending_time" required
+                                        x-model="form.ending_time_local"
                                         class="p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                                 </div>
                             </div>
@@ -112,7 +157,7 @@
                 <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <button type="submit"
                         class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto">
-                        Create Wager
+                        <span x-text="editId ? 'Save Changes' : 'Create Wager'"></span>
                     </button>
                     </form>
                     <button type="button" @click = " showModal = false "

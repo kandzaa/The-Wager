@@ -13,7 +13,6 @@ class Wager extends Model
         'description',
         'creator_id',
         'max_players',
-        'entry_fee',
         'status',
         'players',
         'game_history',
@@ -32,5 +31,10 @@ class Wager extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    public function choices()
+    {
+        return $this->hasMany(WagerChoice::class);
     }
 }

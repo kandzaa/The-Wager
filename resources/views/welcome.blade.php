@@ -14,8 +14,7 @@
             Make It <span class="text-green-500">Interesting</span>
         </h1>
         <p class="text-lg md:text-xl mb-12 text-gray-300 max-w-3xl mx-auto">
-            Welcome to The Wager - where friendly competition meets excitement. Create or join wagers, compete with
-            friends, and make every moment count.
+            Welcome to The Wager
         </p>
         @guest
             <div class="flex flex-col md:flex-row justify-center gap-4">

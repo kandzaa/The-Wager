@@ -1,8 +1,8 @@
 <div class="flex justify-center mb-8">
     <div class="relative w-full max-w-md">
-        <input type="text" id="user-search-input"
+        <input type="text" id="wager-search-input"
             class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-            placeholder="Search other users" autocomplete="off" />
+            placeholder="Search wagers" autocomplete="off" />
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-3.5" viewBox="0 0 20 20"
             fill="currentColor">
             <path fill-rule="evenodd"
@@ -10,7 +10,7 @@
                 clip-rule="evenodd" />
         </svg>
 
-        <div id="search-loading" class="hidden absolute right-3 top-3.5">
+        <div id="wager-search-loading" class="hidden absolute right-3 top-3.5">
             <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -23,17 +23,17 @@
     </div>
 </div>
 
-<div id="search-results" class="hidden max-w-2xl mx-auto mb-8">
+<div id="wager-search-results" class="hidden max-w-2xl mx-auto mb-8">
     <h3 class="text-lg font-semibold mb-4 text-gray-800">Search Results</h3>
-    <div id="search-results-list" class="space-y-4"></div>
+    <div id="wager-search-results-list" class="space-y-4"></div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('user-search-input');
-        const searchResults = document.getElementById('search-results');
-        const searchResultsList = document.getElementById('search-results-list');
-        const searchLoading = document.getElementById('search-loading');
+        const searchInput = document.getElementById('wager-search-input');
+        const searchResults = document.getElementById('wager-search-results');
+        const searchResultsList = document.getElementById('wager-search-results-list');
+        const searchLoading = document.getElementById('wager-search-loading');
         let searchTimeout;
 
         searchInput.addEventListener('input', function() {
@@ -54,7 +54,7 @@
         });
 
         function performSearch(query) {
-            fetch(`/friends/search?query=${encodeURIComponent(query)}`, {
+            fetch(`/wagers/search?query=${encodeURIComponent(query)}`, {
                     method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
@@ -74,39 +74,32 @@
                 .catch(error => {
                     hideLoading();
                     searchResultsList.innerHTML =
-                        '<div class="text-center py-4 text-red-600">Unable to search users. Please try again.</div>';
+                        '<div class="text-center py-4 text-red-600">Unable to search wagers. Please try again.</div>';
                     searchResults.classList.remove('hidden');
                 });
         }
 
-        function displaySearchResults(users) {
-            if (users.length === 0) {
-                searchResultsList.innerHTML = '<p class="text-gray-500 text-center py-4">No users found.</p>';
+        function displaySearchResults(wagers) {
+            if (wagers.length === 0) {
+                searchResultsList.innerHTML = '<p class="text-gray-500 text-center py-4">No wagers found.</p>';
             } else {
-                searchResultsList.innerHTML = users.map(user => `
-                <div class="p-4 border rounded-lg hover:shadow-md transition-shadow bg-blue-50 border-blue-200" data-user-id="${user.id}">
+                searchResultsList.innerHTML = wagers.map(wager => `
+                <div class="p-4 border rounded-lg hover:shadow-md transition-shadow bg-blue-50 border-blue-200" data-wager-id="${wager.id}">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-4">
                             <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
                                 <span class="text-xl font-semibold text-gray-600">
-                                    ${user.initial}
+                                    ${wager.name?.substring(0,1)?.toUpperCase() ?? ''}
                                 </span>
                             </div>
                             <div>
-                                <h3 class="text-lg font-semibold">${user.name}</h3>
-                                <p class="text-gray-600">${user.email}</p>
-                                <p class="text-sm text-gray-500">Joined ${user.joined}</p>
+                                <h3 class="text-lg font-semibold">${wager.name}</h3>
+                                <p class="text-gray-600 text-sm">${wager.description ?? ''}</p>
+                                <p class="text-sm text-gray-500">Ends ${wager.ends_human ?? ''}</p>
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            <button onclick="addFriend(${user.id})" 
-                                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors add-friend-btn">
-                                Add Friend
-                            </button>
-                            <a href="/user/${user.id}" 
-                               class="px-4 py-2 text-blue-600 hover:text-blue-700 transition-colors border border-blue-600 rounded hover:bg-blue-50 inline-block">
-                                View Profile
-                            </a>
+                            <button class="px-3 py-2 text-sm text-green-700 border border-green-700 rounded hover:bg-green-50">View</button>
                         </div>
                     </div>
                 </div>
