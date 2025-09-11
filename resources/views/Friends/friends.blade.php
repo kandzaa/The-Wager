@@ -1,69 +1,142 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Friends activity') }}
-        </h2>
+        <div
+            class="bg-gradient-to-r from-slate-200 to-slate-300 dark:from-gray-600 dark:to-gray-700 rounded-xl p-6 shadow-lg">
+            <h2 class="font-bold text-2xl text-white leading-tight flex items-center">
+                {{ __('Friends Network') }}
+            </h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    @include('Friends.user-search')
+    <div
+        class="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <div class="py-8">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div
+                    class="bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-300/60 dark:border-slate-800 overflow-hidden">
+                    <div class="p-8">
+                        @include('Friends.user-search')
 
-                    <div class="max-w-2xl mx-auto">
-                        @if ($friends->isEmpty())
-                            <div class="text-center py-8">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4"
-                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
-                                <p class="text-gray-600 text-lg">You have no friends added yet.</p>
-                                <p class="text-gray-500 text-sm mt-2">Use the search above to find and add friends!</p>
-                            </div>
-                        @else
-                            <div class="mb-6">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                                    Your Friends ({{ $friends->count() }})
-                                </h3>
-                            </div>
-
-                            <div class="space-y-4">
-                                @foreach ($friends as $friend)
-                                    <div class="p-4 border rounded-lg hover:shadow-md transition-all duration-300 bg-green-50 border-green-200"
-                                        data-friend-id="{{ $friend->id }}">
-                                        <div class="flex items-center justify-between">
-                                            <div class="flex items-center space-x-4">
-                                                <div
-                                                    class="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">
-                                                    <span class="text-xl font-semibold text-green-700">
-                                                        {{ strtoupper(substr($friend->name, 0, 1)) }}
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <h3 class="text-lg font-semibold text-gray-800">{{ $friend->name }}
-                                                    </h3>
-                                                    <p class="text-gray-600">{{ $friend->email }}</p>
-                                                    <p class="text-sm text-gray-500">Joined
-                                                        {{ $friend->created_at->diffForHumans() }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex space-x-2">
-                                                <a href="{{ route('user.show', $friend->id) }}"
-                                                    class="px-4 py-2 text-green-600 hover:text-green-700 transition-colors border border-green-600 rounded hover:bg-green-100">
-                                                    View Profile
-                                                </a>
-                                                <button onclick="removeFriend({{ $friend->id }})"
-                                                    class="px-4 py-2 text-red-600 hover:text-red-700 transition-colors border border-red-600 rounded hover:bg-red-50">
-                                                    Remove
-                                                </button>
-                                            </div>
+                        <div class="max-w-4xl mx-auto">
+                            @if ($friends->isEmpty())
+                                <div class="text-center py-16">
+                                    <div class="relative inline-block">
+                                        <div
+                                            class="w-32 h-32 bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-full flex items-center justify-center mb-6 mx-auto shadow-inner">
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                class="h-16 w-16 text-emerald-400 dark:text-emerald-500" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                            </svg>
                                         </div>
                                     </div>
-                                @endforeach
-                            </div>
-                        @endif
+                                    <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3">
+                                        Your Network Awaits
+                                    </h3>
+                                    <p class="text-slate-500 dark:text-slate-400 text-sm">
+                                        Use the search above to discover and add friends!
+                                    </p>
+                                </div>
+                            @else
+                                <div class="mb-8">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <h3
+                                            class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-400 dark:to-emerald-500 bg-clip-text text-transparent">
+                                            Your Circle
+                                        </h3>
+                                        <div
+                                            class="flex items-center space-x-2 bg-emerald-100 dark:bg-emerald-900/30 px-4 py-2 rounded-full border border-emerald-300 dark:border-emerald-800">
+                                            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                            <span class="text-sm font-semibold text-emerald-700 dark:text-emerald-200">
+                                                {{ $friends->count() }}
+                                                {{ $friends->count() === 1 ? 'Friend' : 'Friends' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="grid gap-4 md:gap-6">
+                                    @foreach ($friends as $friend)
+                                        <div class="group relative overflow-hidden bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-300/60 dark:border-slate-800 hover:bg-white/80 dark:hover:bg-slate-900/60 hover:border-slate-400/60 dark:hover:border-slate-700"
+                                            data-friend-id="{{ $friend->id }}">
+
+                                            <!-- Animated background gradient -->
+                                            <div
+                                                class="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-50/0 to-emerald-100/0 dark:via-emerald-900/0 dark:to-emerald-800/0 group-hover:via-emerald-50/30 group-hover:to-emerald-100/30 dark:group-hover:via-emerald-900/20 dark:group-hover:to-emerald-800/20 transition-all duration-500">
+                                            </div>
+
+                                            <div class="relative p-6">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center space-x-5">
+                                                        <!-- Avatar with status indicator -->
+                                                        <div class="relative">
+                                                            <div
+                                                                class="w-16 h-16 bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 dark:from-emerald-500 dark:via-emerald-600 dark:to-emerald-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
+                                                                <span class="text-2xl font-bold text-white">
+                                                                    {{ strtoupper(substr($friend->name, 0, 1)) }}
+                                                                </span>
+                                                            </div>
+                                                            <div
+                                                                class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 dark:bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="flex-1">
+                                                            <h3
+                                                                class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">
+                                                                {{ $friend->name }}
+                                                            </h3>
+                                                            <p class="text-slate-600 dark:text-slate-300 mb-2">
+                                                                {{ $friend->email }}
+                                                            </p>
+                                                            <div
+                                                                class="flex items-center text-sm text-slate-500 dark:text-slate-400">
+                                                                <svg class="w-4 h-4 mr-1" fill="currentColor"
+                                                                    viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd"
+                                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                                                        clip-rule="evenodd" />
+                                                                </svg>
+                                                                Joined {{ $friend->created_at->diffForHumans() }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="flex items-center space-x-3">
+                                                        <a href="{{ route('user.show', $friend->id) }}"
+                                                            class="group/btn flex items-center px-5 py-2.5 text-slate-600 dark:text-slate-300 hover:text-white border-2 border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-600 dark:hover:bg-slate-600 hover:border-slate-600 transition-all duration-200 font-medium">
+                                                            <svg class="w-4 h-4 mr-2" fill="currentColor"
+                                                                viewBox="0 0 20 20">
+                                                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                                <path fill-rule="evenodd"
+                                                                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                                                                    clip-rule="evenodd" />
+                                                            </svg>
+                                                            View Profile
+                                                        </a>
+
+                                                        <button onclick="removeFriend({{ $friend->id }})"
+                                                            class="group/btn flex items-center px-5 py-2.5 text-rose-500 dark:text-rose-400 hover:text-white border-2 border-rose-300 dark:border-rose-700 rounded-lg hover:bg-rose-500 dark:hover:bg-rose-600 hover:border-rose-500 transition-all duration-200 font-medium">
+                                                            <svg class="w-4 h-4 mr-2" fill="currentColor"
+                                                                viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd"
+                                                                    d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+                                                                    clip-rule="evenodd" />
+                                                                <path fill-rule="evenodd"
+                                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                                    clip-rule="evenodd" />
+                                                            </svg>
+                                                            Remove
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -73,6 +146,12 @@
     <script>
         function removeFriend(friendId) {
             if (confirm('Are you sure you want to remove this friend?')) {
+                const friendCard = document.querySelector(`[data-friend-id="${friendId}"]`);
+
+                // Add loading state
+                friendCard.style.opacity = '0.5';
+                friendCard.style.pointerEvents = 'none';
+
                 fetch('/friends/remove', {
                         method: 'POST',
                         headers: {
@@ -86,12 +165,18 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.message) {
-                            alert(data.message);
-                            location.reload(); // Refresh the page to update the friends list
+                            // Smooth removal animation
+                            friendCard.style.transform = 'translateX(-100%)';
+                            friendCard.style.opacity = '0';
+                            setTimeout(() => {
+                                location.reload();
+                            }, 300);
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                        friendCard.style.opacity = '1';
+                        friendCard.style.pointerEvents = 'auto';
                         alert('An error occurred while removing the friend.');
                     });
             }

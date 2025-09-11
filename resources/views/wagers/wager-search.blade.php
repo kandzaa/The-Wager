@@ -1,9 +1,9 @@
 <div class="flex justify-center mb-8">
     <div class="relative w-full max-w-md">
         <input type="text" id="wager-search-input"
-            class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+            class="w-full p-3 pl-10 bg-slate-900/40 backdrop-blur border border-slate-800 text-slate-100 placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
             placeholder="Search wagers" autocomplete="off" />
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-3.5" viewBox="0 0 20 20"
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 absolute left-3 top-3.5" viewBox="0 0 20 20"
             fill="currentColor">
             <path fill-rule="evenodd"
                 d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -11,7 +11,7 @@
         </svg>
 
         <div id="wager-search-loading" class="hidden absolute right-3 top-3.5">
-            <svg class="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+            <svg class="animate-spin h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
                 </circle>
@@ -24,7 +24,7 @@
 </div>
 
 <div id="wager-search-results" class="hidden max-w-2xl mx-auto mb-8">
-    <h3 class="text-lg font-semibold mb-4 text-gray-800">Search Results</h3>
+    <h3 class="text-lg font-semibold mb-4 text-slate-100">Search Results</h3>
     <div id="wager-search-results-list" class="space-y-4"></div>
 </div>
 
@@ -74,32 +74,33 @@
                 .catch(error => {
                     hideLoading();
                     searchResultsList.innerHTML =
-                        '<div class="text-center py-4 text-red-600">Unable to search wagers. Please try again.</div>';
+                        '<div class="text-center py-4 bg-rose-900/40 border border-rose-800 rounded-lg text-rose-400">Unable to search wagers. Please try again.</div>';
                     searchResults.classList.remove('hidden');
                 });
         }
 
         function displaySearchResults(wagers) {
             if (wagers.length === 0) {
-                searchResultsList.innerHTML = '<p class="text-gray-500 text-center py-4">No wagers found.</p>';
+                searchResultsList.innerHTML =
+                    '<p class="text-slate-400 text-center py-8 bg-slate-900/40 border border-slate-800 rounded-lg">No wagers found.</p>';
             } else {
                 searchResultsList.innerHTML = wagers.map(wager => `
-                <div class="p-4 border rounded-lg hover:shadow-md transition-shadow bg-blue-50 border-blue-200" data-wager-id="${wager.id}">
-                    <div class="flex items-center justify-between">
+                <div class="rounded-xl p-5 shadow-sm hover:shadow-md transition bg-slate-900/40 border border-slate-800 backdrop-blur" data-wager-id="${wager.id}">
+                    <div class="flex items-start justify-between">
                         <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                                <span class="text-xl font-semibold text-gray-600">
-                                    ${wager.name?.substring(0,1)?.toUpperCase() ?? ''}
+                            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-md">
+                                <span class="text-xl font-semibold text-white">
+                                    ${wager.name?.substring(0,1)?.toUpperCase() ?? 'W'}
                                 </span>
                             </div>
                             <div>
-                                <h3 class="text-lg font-semibold">${wager.name}</h3>
-                                <p class="text-gray-600 text-sm">${wager.description ?? ''}</p>
-                                <p class="text-sm text-gray-500">Ends ${wager.ends_human ?? ''}</p>
+                                <h3 class="text-lg font-semibold text-slate-100">${wager.name}</h3>
+                                ${wager.description ? `<p class="text-slate-300 text-sm mt-1">${wager.description}</p>` : ''}
+                                <p class="text-xs text-slate-400 mt-1">Ends ${wager.ends_human ?? ''}</p>
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            <button class="px-3 py-2 text-sm text-green-700 border border-green-700 rounded hover:bg-green-50">View</button>
+                            <button class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 transition text-sm">Join</button>
                         </div>
                     </div>
                 </div>
@@ -154,8 +155,8 @@
 
                 if (response.ok) {
                     addButton.textContent = 'Added!';
-                    addButton.classList.remove('bg-green-600', 'hover:bg-green-700');
-                    addButton.classList.add('bg-green-800', 'cursor-not-allowed');
+                    addButton.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+                    addButton.classList.add('bg-emerald-700', 'cursor-not-allowed');
 
                     if (typeof showToast === 'function') {
                         showToast(data.message || 'Friend added successfully!', 'success');

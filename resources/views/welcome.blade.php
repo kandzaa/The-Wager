@@ -35,25 +35,7 @@
         @endguest
     </section>
 
-    {{-- <section class="container mx-auto px-6 py-16">
-        <div class="grid md:grid-cols-3 gap-8 text-center">
-            <div class="p-6 bg-gray-800 rounded-lg">
-                <div class="text-green-500 text-4xl mb-4">🎲</div>
-                <h3 class="text-xl font-bold mb-4">Create Wagers</h3>
-                <p class="text-gray-400">Set up custom wagers and invite your friends to join the excitement.</p>
-            </div>
-            <div class="p-6 bg-gray-800 rounded-lg">
-                <div class="text-green-500 text-4xl mb-4">🤝</div>
-                <h3 class="text-xl font-bold mb-4">Compete</h3>
-                <p class="text-gray-400">Challenge your friends in fair, transparent competitions.</p>
-            </div>
-            <div class="p-6 bg-gray-800 rounded-lg">
-                <div class="text-green-500 text-4xl mb-4">🏆</div>
-                <h3 class="text-xl font-bold mb-4">Win Big</h3>
-                <p class="text-gray-400">Emerge victorious and claim your rewards.</p>
-            </div>
-        </div>
-    </section> --}}
+
 </body>
 
 </html>
