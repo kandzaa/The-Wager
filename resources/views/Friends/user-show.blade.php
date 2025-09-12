@@ -15,10 +15,9 @@
                 <div
                     class="bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-sm rounded-3xl shadow-2xl border border-slate-300/60 dark:border-slate-800 overflow-hidden">
 
-                    <!-- Profile Header Section -->
                     <div
                         class="relative bg-gradient-to-br from-emerald-700 via-emerald-800 to-teal-800 dark:from-emerald-800 dark:via-emerald-900 dark:to-teal-900 p-8 pb-24">
-                        <!-- Background Pattern -->
+
                         <div class="absolute inset-0 opacity-10">
                             <svg class="w-full h-full" viewBox="0 0 100 100" fill="none">
                                 <defs>
@@ -42,7 +41,6 @@
                                 </div>
                             </div>
 
-                            <!-- User Info -->
                             <div class="text-center md:text-left text-white flex-1">
                                 <h1 class="text-4xl md:text-5xl font-bold mb-3 drop-shadow-lg">
                                     {{ $user->name }}
@@ -70,26 +68,19 @@
                         </div>
                     </div>
 
-                    <!-- Profile Details Section -->
                     <div class="p-8 -mt-16 relative">
                         <div
                             class="bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-300/60 dark:border-slate-700/60 p-8">
 
-                            <!-- Section Header -->
                             <div class="mb-8 text-center">
                                 <h2
                                     class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-400 dark:to-emerald-500 bg-clip-text text-transparent mb-2">
                                     Profile Information
                                 </h2>
-                                <p class="text-slate-600 dark:text-slate-400">
-                                    Complete member details and account information
-                                </p>
                             </div>
 
-                            <!-- Info Cards Grid -->
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
 
-                                <!-- Name Card -->
                                 <div
                                     class="group relative overflow-hidden bg-slate-100/80 dark:bg-slate-800/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-300/60 dark:border-slate-700 hover:shadow-lg hover:bg-white/80 dark:hover:bg-slate-800/60 hover:border-slate-400/60 dark:hover:border-slate-600 transition-all duration-300">
                                     <div
@@ -116,7 +107,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Email Card -->
                                 <div
                                     class="group relative overflow-hidden bg-slate-100/80 dark:bg-slate-800/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-300/60 dark:border-slate-700 hover:shadow-lg hover:bg-white/80 dark:hover:bg-slate-800/60 hover:border-slate-400/60 dark:hover:border-slate-600 transition-all duration-300">
                                     <div
@@ -144,7 +134,6 @@
                                 </div>
                             </div>
 
-                            <!-- Actions -->
                             <div
                                 class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 pt-8 border-t border-slate-300 dark:border-slate-700">
                                 <a href="{{ route('friends') }}"

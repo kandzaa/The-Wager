@@ -21,9 +21,18 @@ class FriendsController extends Controller
             return response()->json([]);
         }
 
+        $user = Auth::user();
+        
+        // Get IDs of current friends
+        $friendIds = $user->friends()->pluck('friend_id')->toArray();
+        
+        // Add current user's ID to exclude self from results
+        $excludeIds = array_merge($friendIds, [$user->id]);
+
         $users = User::where('name', 'like', '%' . $query . '%')
+            ->whereNotIn('id', $excludeIds)
             ->limit(10)
-            ->get(['id', 'name', 'email', 'created_at']); // Added 'id' here
+            ->get(['id', 'name', 'email', 'created_at']);
 
         return response()->json($users->map(function ($user) {
             return [

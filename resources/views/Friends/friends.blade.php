@@ -3,7 +3,7 @@
         <div
             class="bg-gradient-to-r from-slate-200 to-slate-300 dark:from-gray-600 dark:to-gray-700 rounded-xl p-6 shadow-lg">
             <h2 class="font-bold text-2xl text-white leading-tight flex items-center">
-                {{ __('Friends Network') }}
+                {{ __('Friends') }}
             </h2>
         </div>
     </x-slot>
@@ -61,7 +61,6 @@
                                         <div class="group relative overflow-hidden bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-300/60 dark:border-slate-800 hover:bg-white/80 dark:hover:bg-slate-900/60 hover:border-slate-400/60 dark:hover:border-slate-700"
                                             data-friend-id="{{ $friend->id }}">
 
-                                            <!-- Animated background gradient -->
                                             <div
                                                 class="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-50/0 to-emerald-100/0 dark:via-emerald-900/0 dark:to-emerald-800/0 group-hover:via-emerald-50/30 group-hover:to-emerald-100/30 dark:group-hover:via-emerald-900/20 dark:group-hover:to-emerald-800/20 transition-all duration-500">
                                             </div>
@@ -69,7 +68,6 @@
                                             <div class="relative p-6">
                                                 <div class="flex items-center justify-between">
                                                     <div class="flex items-center space-x-5">
-                                                        <!-- Avatar with status indicator -->
                                                         <div class="relative">
                                                             <div
                                                                 class="w-16 h-16 bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 dark:from-emerald-500 dark:via-emerald-600 dark:to-emerald-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
@@ -148,7 +146,6 @@
             if (confirm('Are you sure you want to remove this friend?')) {
                 const friendCard = document.querySelector(`[data-friend-id="${friendId}"]`);
 
-                // Add loading state
                 friendCard.style.opacity = '0.5';
                 friendCard.style.pointerEvents = 'none';
 
@@ -165,7 +162,6 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.message) {
-                            // Smooth removal animation
                             friendCard.style.transform = 'translateX(-100%)';
                             friendCard.style.opacity = '0';
                             setTimeout(() => {

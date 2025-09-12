@@ -1,6 +1,6 @@
 <x-app-layout>
 
-    <div x-data="{ showModal: false, editId: null, form: { id: null, name: '', description: '', max_players: 2, visibility: 'public', ending_time_local: '', choices: [] } }" x-on:edit-wager.window="form = $event.detail; editId = form.id; showModal = true"
+    <div x-data="{ showModal: false, editId: null, form: { id: null, name: '', description: '', max_players: 2, visibility: 'public', ending_time_local: '' } }" x-on:edit-wager.window="form = $event.detail; editId = form.id; showModal = true"
         x-effect="document.body.classList.toggle('overflow-hidden', showModal)" class="max-w-full mx-auto">
 
         <div

@@ -1,5 +1,4 @@
 <div class="mb-10">
-    <!-- Search Header -->
     <div class="text-center mb-8">
         <h2
             class="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-400 dark:to-emerald-500 bg-clip-text text-transparent mb-2">
@@ -10,10 +9,8 @@
         </p>
     </div>
 
-    <!-- Search Input -->
     <div class="flex justify-center mb-8">
         <div class="relative w-full max-w-lg">
-            <!-- Animated background -->
             <div
                 class="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 dark:from-emerald-500/10 dark:to-emerald-600/10 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300">
             </div>
@@ -24,7 +21,6 @@
                     class="w-full p-4 pl-14 pr-14 bg-transparent text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 rounded-2xl focus:outline-none text-lg"
                     placeholder="Search for people..." autocomplete="off" />
 
-                <!-- Search Icon -->
                 <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400 dark:text-slate-500"
                         viewBox="0 0 20 20" fill="currentColor">
@@ -34,7 +30,6 @@
                     </svg>
                 </div>
 
-                <!-- Loading Spinner -->
                 <div id="search-loading" class="hidden absolute right-4 top-1/2 transform -translate-y-1/2">
                     <svg class="animate-spin h-6 w-6 text-emerald-500 dark:text-emerald-400"
                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -46,7 +41,6 @@
                     </svg>
                 </div>
 
-                <!-- Clear Button -->
                 <button id="clear-search"
                     class="hidden absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -59,7 +53,6 @@
         </div>
     </div>
 
-    <!-- Search Results -->
     <div id="search-results" class="hidden max-w-4xl mx-auto">
         <div class="mb-6">
             <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
@@ -86,7 +79,6 @@
             const query = this.value.trim();
             clearTimeout(searchTimeout);
 
-            // Show/hide clear button
             if (query.length > 0) {
                 clearButton.classList.remove('hidden');
             } else {
@@ -226,7 +218,6 @@
             }
         }
 
-        // Hide results when clicking outside
         document.addEventListener('click', function(event) {
             if (!searchInput.contains(event.target) && !searchResults.contains(event.target)) {
                 if (searchInput.value.trim() === '') {
@@ -241,7 +232,6 @@
         const addButton = userCard.querySelector('.add-friend-btn');
         const originalContent = addButton.innerHTML;
 
-        // Loading state
         addButton.disabled = true;
         addButton.innerHTML = `
             <svg class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
@@ -265,7 +255,6 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Success state
                     addButton.innerHTML = `
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -274,7 +263,6 @@
                     addButton.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
                     addButton.classList.add('bg-emerald-700', 'cursor-not-allowed');
 
-                    // Animate out the card
                     setTimeout(() => {
                         userCard.style.transform = 'translateY(-20px)';
                         userCard.style.opacity = '0';
@@ -287,12 +275,10 @@
                 }
             })
             .catch(error => {
-                // Error state
                 addButton.disabled = false;
                 addButton.innerHTML = originalContent;
                 addButton.classList.remove('opacity-70', 'cursor-not-allowed');
 
-                // Show error message
                 const errorDiv = document.createElement('div');
                 errorDiv.className =
                     'absolute top-full left-0 right-0 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 p-2 rounded-lg text-sm mt-1 z-10';

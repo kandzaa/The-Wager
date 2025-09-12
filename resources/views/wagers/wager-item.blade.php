@@ -13,17 +13,6 @@
         <p class="text-slate-300 mt-3 text-sm leading-relaxed">{{ $wager->description }}</p>
     @endif
 
-    @if ($wager->choices && $wager->choices->count())
-        <div class="mt-4">
-            <h4 class="text-xs font-medium text-slate-400 mb-2">Choices</h4>
-            <div class="flex flex-wrap gap-2">
-                @foreach ($wager->choices as $choice)
-                    <span
-                        class="text-2xs border rounded-md px-2 py-1 bg-slate-800 text-slate-200 border-slate-700">{{ $choice->label }}</span>
-                @endforeach
-            </div>
-        </div>
-    @endif
 
     <div class="mt-4 flex items-center justify-between text-sm text-slate-400">
         <span>Max players: {{ $wager->max_players }}</span>
