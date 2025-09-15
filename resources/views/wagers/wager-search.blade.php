@@ -85,7 +85,7 @@
                     '<p class="text-slate-400 text-center py-8 bg-slate-900/40 border border-slate-800 rounded-lg">No wagers found.</p>';
             } else {
                 searchResultsList.innerHTML = wagers.map(wager => `
-                <div class="rounded-xl p-5 shadow-sm hover:shadow-md transition bg-slate-900/40 border border-slate-800 backdrop-blur" data-wager-id="${wager.id}">
+                <div class="rounded-xl p-5 shadow-sm bg-slate-900/40 border border-slate-800 backdrop-blur transition transform duration-200 ease-out cursor-pointer group hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-500/50" data-wager-id="${wager.id}" role="button" tabindex="0">
                     <div class="flex items-start justify-between">
                         <div class="flex items-center space-x-4">
                             <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-md">
@@ -99,12 +99,17 @@
                                 <p class="text-xs text-slate-400 mt-1">Ends ${wager.ends_human ?? ''}</p>
                             </div>
                         </div>
-                        <div class="flex space-x-2">
-                            <button class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 transition text-sm">Join</button>
-                        </div>
+                        <div class="hidden sm:block text-emerald-400/70 text-xs">Open ▶</div>
                     </div>
                 </div>
             `).join('');
+            // Make cards clickable to open the wager
+            searchResultsList.querySelectorAll('[data-wager-id]').forEach(card => {
+                const id = card.getAttribute('data-wager-id');
+                const open = () => { window.location = `/wagers/${id}`; };
+                card.addEventListener('click', open);
+                card.addEventListener('keydown', (e) => { if (e.key === 'Enter') { open(); }});
+            });
             }
             searchResults.classList.remove('hidden');
         }

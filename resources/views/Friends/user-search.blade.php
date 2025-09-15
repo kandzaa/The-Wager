@@ -176,12 +176,12 @@
                                 </div>
                                 
                                 <div class="flex items-center space-x-3">
-                                    <button onclick="addFriend(${user.id})" 
+                                    <button onclick="requestFriend(${user.id})" 
                                             class="add-friend-btn flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg hover:shadow-xl hover:scale-105">
                                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"/>
                                         </svg>
-                                        Add Friend
+                                        Request
                                     </button>
                                     
                                     <a href="/user/${user.id}" 
@@ -227,7 +227,7 @@
         });
     });
 
-    function addFriend(userId) {
+    function requestFriend(userId) {
         const userCard = document.querySelector(`[data-user-id="${userId}"]`);
         const addButton = userCard.querySelector('.add-friend-btn');
         const originalContent = addButton.innerHTML;
@@ -241,14 +241,14 @@
             Adding...`;
         addButton.classList.add('opacity-70', 'cursor-not-allowed');
 
-        fetch('/friends/add', {
+        fetch('/friends/request', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
                 body: JSON.stringify({
-                    friend_id: userId
+                    recipient_id: userId
                 })
             })
             .then(async response => {
@@ -259,7 +259,7 @@
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                         </svg>
-                        Added!`;
+                        Requested!`;
                     addButton.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
                     addButton.classList.add('bg-emerald-700', 'cursor-not-allowed');
 
@@ -271,7 +271,7 @@
                         }, 300);
                     }, 1500);
                 } else {
-                    throw new Error(data.message || 'Failed to add friend');
+                    throw new Error(data.message || 'Failed to send request');
                 }
             })
             .catch(error => {
@@ -282,7 +282,7 @@
                 const errorDiv = document.createElement('div');
                 errorDiv.className =
                     'absolute top-full left-0 right-0 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 p-2 rounded-lg text-sm mt-1 z-10';
-                errorDiv.textContent = 'Failed to add friend. Please try again.';
+                errorDiv.textContent = 'Failed to send friend request. Please try again.';
                 userCard.style.position = 'relative';
                 userCard.appendChild(errorDiv);
 

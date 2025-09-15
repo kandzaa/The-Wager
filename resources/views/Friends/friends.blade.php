@@ -17,6 +17,38 @@
                     <div class="p-8">
                         @include('Friends.user-search')
 
+                        @if(isset($incomingRequests) && $incomingRequests->isNotEmpty())
+                            <div class="max-w-4xl mx-auto mb-10">
+                                <div class="mb-4 flex items-center justify-between">
+                                    <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                                        <svg class="w-5 h-5 mr-2 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Pending Friend Requests
+                                    </h3>
+                                </div>
+                                <div class="space-y-3">
+                                    @foreach($incomingRequests as $req)
+                                        <div class="flex items-center justify-between p-4 rounded-xl border border-slate-300/60 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/40">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
+                                                    {{ strtoupper(substr($req->requester->name, 0, 1)) }}
+                                                </div>
+                                                <div>
+                                                    <div class="text-slate-800 dark:text-slate-100 font-semibold">{{ $req->requester->name }}</div>
+                                                    <div class="text-slate-500 dark:text-slate-400 text-sm">wants to be your friend</div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <button onclick="acceptRequest({{ $req->id }})"
+                                                    class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition">Accept</button>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="max-w-4xl mx-auto">
                             @if ($friends->isEmpty())
                                 <div class="text-center py-16">
@@ -40,11 +72,7 @@
                                 </div>
                             @else
                                 <div class="mb-8">
-                                    <div class="flex items-center justify-between mb-6">
-                                        <h3
-                                            class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-400 dark:to-emerald-500 bg-clip-text text-transparent">
-                                            Your Circle
-                                        </h3>
+                                    <div class="flex items-center gap-3 mb-6">
                                         <div
                                             class="flex items-center space-x-2 bg-emerald-100 dark:bg-emerald-900/30 px-4 py-2 rounded-full border border-emerald-300 dark:border-emerald-800">
                                             <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -53,6 +81,10 @@
                                                 {{ $friends->count() === 1 ? 'Friend' : 'Friends' }}
                                             </span>
                                         </div>
+                                        <h3
+                                            class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-400 dark:to-emerald-500 bg-clip-text text-transparent">
+                                            Your Circle
+                                        </h3>
                                     </div>
                                 </div>
 
@@ -142,6 +174,23 @@
     </div>
 
     <script>
+        function acceptRequest(requestId) {
+            fetch('/friends/accept', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ request_id: requestId })
+            }).then(async (res) => {
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.message || 'Failed to accept');
+                location.reload();
+            }).catch(err => {
+                alert(err.message || 'Failed to accept request');
+            });
+        }
+
         function removeFriend(friendId) {
             if (confirm('Are you sure you want to remove this friend?')) {
                 const friendCard = document.querySelector(`[data-friend-id="${friendId}"]`);

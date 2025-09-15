@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Wager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class WagerController extends Controller
 {
@@ -14,6 +15,95 @@ class WagerController extends Controller
         return view('wagers.wagers', compact('wagers', 'friends'));
     }
 
+    public function stats(Wager $wager)
+    {
+        $wager->load('choices');
+        return response()->json([
+            'labels' => $wager->choices->pluck('label')->values(),
+            'data'   => $wager->choices->pluck('total_bet')->map(fn($v) => (int) $v)->values(),
+            'pot'    => (int) $wager->pot,
+        ]);
+    }
+
+    public function bet(Request $request, Wager $wager)
+    {
+        $validated = $request->validate([
+            'choice_id' => 'required|integer',
+            'amount'    => 'required|integer|min:1',
+        ]);
+
+        $players  = collect($wager->players ?? []);
+        $isJoined = $players->contains(function ($p) {
+            return is_array($p) && ($p['user_id'] ?? null) === Auth::id();
+        });
+        if (! $isJoined) {
+            return redirect()->back()->with('error', 'Please join this wager before placing a bet.');
+        }
+
+        $choice = $wager->choices()->where('id', $validated['choice_id'])->first();
+        if (! $choice) {
+            return redirect()->back()->with('error', 'Invalid choice selected for this wager.');
+        }
+
+        try {
+            DB::transaction(function () use ($wager, $choice, $validated) {
+                $amount = (int) $validated['amount'];
+
+                $user = Auth::user();
+                $user->refresh();
+                if ((int) ($user->balance ?? 0) < $amount) {
+                    throw new \RuntimeException('Insufficient balance to place this bet.');
+                }
+
+                $user->balance = (int) $user->balance - $amount;
+                $user->save();
+
+                $wager->pot = (int) $wager->pot + $amount;
+
+                $players = collect($wager->players ?? []);
+                $players->push([
+                    'user_id' => $user->id,
+                    'name'    => $user->name,
+                    'choice'  => $choice->label,
+                    'amount'  => $amount,
+                    'time'    => now()->toDateTimeString(),
+                ]);
+                $wager->players = $players->toArray();
+                $wager->save();
+
+                $choice->total_bet = (int) $choice->total_bet + $amount;
+                $choice->save();
+            });
+
+            return redirect()->route('wager.show', ['id' => $wager->id])->with('success', 'Bet placed successfully!');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Failed to place bet: ' . $e->getMessage());
+        }
+    }
+
+    public function join(Wager $wager)
+    {
+        $players = collect($wager->players ?? []);
+        $already = $players->contains(function ($p) {
+            return is_array($p) && ($p['user_id'] ?? null) === Auth::id();
+        });
+
+        if (! $already) {
+            $players->push([
+                'user_id' => Auth::id(),
+                'name'    => optional(Auth::user())->name,
+                'choice'  => null,
+                'amount'  => 0,
+                'joined'  => true,
+                'time'    => now()->toDateTimeString(),
+            ]);
+            $wager->players = $players->toArray();
+            $wager->save();
+        }
+
+        return redirect()->route('wager.show', ['id' => $wager->id])->with('success', 'You joined this wager.');
+    }
+
     public function create(Request $request)
     {
         try {
@@ -21,19 +111,17 @@ class WagerController extends Controller
                 'name'        => 'required|string|max:255',
                 'description' => 'nullable|string|max:1000',
                 'max_players' => 'required|integer|min:2|max:100',
-                // entry_fee removed
                 'visibility'  => 'required|in:public,private',
                 'ending_time' => 'required|date|after:now',
                 'choices'     => 'nullable|array|min:1',
                 'choices.*'   => 'nullable|string|max:255',
             ]);
 
-            $wager              = new Wager();
-            $wager->name        = $request->input('name');
-            $wager->creator_id  = Auth::id();
-            $wager->description = $request->input('description');
-            $wager->max_players = $request->input('max_players');
-            // entry_fee removed
+            $wager                = new Wager();
+            $wager->name          = $request->input('name');
+            $wager->creator_id    = Auth::id();
+            $wager->description   = $request->input('description');
+            $wager->max_players   = $request->input('max_players');
             $wager->status        = $request->input('visibility') === 'public' ? 'public' : 'private';
             $wager->players       = json_encode([]);
             $wager->game_history  = json_encode([]);
@@ -42,7 +130,6 @@ class WagerController extends Controller
             $wager->pot           = 0;
             $wager->save();
 
-            // Store choices if provided
             $choices = collect($request->input('choices', []))
                 ->filter(fn($c) => ! is_null($c) && trim($c) !== '')
                 ->values();
@@ -61,11 +148,12 @@ class WagerController extends Controller
         }
     }
 
-    // public function show($id)
-    // {
-    //     $wager = Wager::with('creator')->findOrFail($id);
-    //     return view('wager.show', compact('wager'));
-    // }
+    public function showWager($id)
+    {
+        $wager   = Wager::with(['creator', 'choices'])->findOrFail($id);
+        $friends = Auth::user() ? Auth::user()->friends()->get() : collect();
+        return view('wagers.wager_detail', compact('wager', 'friends'));
+    }
 
     public function search(Request $request)
     {
@@ -119,7 +207,6 @@ class WagerController extends Controller
         $wager->ending_time = date('Y-m-d H:i:s', strtotime($request->input('ending_time')));
         $wager->save();
 
-        // Replace choices: simple approach - delete and recreate
         $choices = collect($request->input('choices', []))
             ->filter(fn($c) => ! is_null($c) && trim($c) !== '')
             ->values();

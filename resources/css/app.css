@@ -1,1 +1,18 @@
 @import 'tailwindcss';
+
+/* Tailwind v4: enable class-based dark mode by defining the dark variant */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    /* Let the browser render native form controls correctly in both schemes */
+    color-scheme: light dark;
+  }
+  body {
+    @apply bg-white text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased;
+  }
+  hr,
+  .border-base {
+    @apply border-slate-200 dark:border-slate-800;
+  }
+}

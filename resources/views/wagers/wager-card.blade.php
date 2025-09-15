@@ -16,14 +16,53 @@
 
             @include('wagers.wager-search')
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                @foreach ($wagers as $wager)
-                    @if ($wager->status == 'public')
-                        @include('wagers.wager-item', ['wager' => $wager])
-                    @endif
-                @endforeach
-            </div>
+            @php
+                $userId = Auth::user()->id ?? null;
+                $joinedWagers = $wagers->filter(function ($w) use ($userId) {
+                    $players = collect($w->players ?? []);
+                    return $players->contains(function ($p) use ($userId) {
+                        return is_array($p) && ($p['user_id'] ?? null) === $userId;
+                    });
+                });
 
+                $joinedNonOwned = $joinedWagers->filter(fn($w) => $w->creator_id !== $userId);
+
+                $publicWagers = $wagers->filter(function ($w) use ($userId, $joinedWagers) {
+                    return $w->status === 'public'
+                        && ! $joinedWagers->contains('id', $w->id)
+                        && $w->creator_id !== $userId; // avoid showing your own wagers here
+                });
+            @endphp
+
+            @if ($publicWagers->isEmpty())
+                <div class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-600 dark:text-slate-300">
+                    <p class="text-base">No public wagers are available right now.</p>
+                    <p class="text-sm mt-2">Be the first to create one!</p>
+                </div>
+            @else
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    @foreach ($publicWagers as $wager)
+                        @include('wagers.wager-item', ['wager' => $wager])
+                    @endforeach
+                </div>
+            @endif
+
+        </div>
+
+        <div class="mt-4">
+            <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-6">Joined Wagers</h2>
+            @if ($joinedNonOwned->isEmpty())
+                <div class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-600 dark:text-slate-300">
+                    <p class="text-base">You haven't joined any wagers yet.</p>
+                    <p class="text-sm mt-2">Browse available wagers above to join one.</p>
+                </div>
+            @else
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    @foreach ($joinedNonOwned as $wager)
+                        @include('wagers.wager-item', ['wager' => $wager])
+                    @endforeach
+                </div>
+            @endif
         </div>
 
         <div>

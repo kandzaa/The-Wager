@@ -17,4 +17,43 @@ class AdminMiddleware
         }
         abort(403, 'Unauthorized');
     }
+
+    //izdzēš user
+    public function userDelete()
+    {
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            return true;
+        }
+        return false;
+    }
+
+    //edit user
+    public function userEdit()
+    {
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            return true;
+
+        }
+        return false;
+    }
+
+    //izdzēš wager
+    public function wagerDelete()
+    {
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            return true;
+        }
+        return false;
+    }
+
+    //edit wager
+    public function wagerEdit()
+    {
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            return true;
+
+        }
+        return false;
+    }
+
 }

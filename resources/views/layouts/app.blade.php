@@ -8,19 +8,30 @@
     <title>{{ 'The Wager' }}</title>
     <script>
         (function() {
-            const saved = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (saved === 'dark' || (!saved && prefersDark)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
+            const html = document.documentElement;
+            const media = window.matchMedia('(prefers-color-scheme: dark)');
+
+            function applyTheme() {
+                const saved = localStorage.getItem('theme');
+                const shouldDark = saved ? saved === 'dark' : media.matches;
+                html.classList.toggle('dark', shouldDark);
             }
+
+            // Initial apply before paint
+            applyTheme();
+
+            // React to system theme changes when no explicit choice is stored
+            media.addEventListener('change', () => {
+                if (!localStorage.getItem('theme')) {
+                    applyTheme();
+                }
+            });
         })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased bg-white dark:bg-slate-950 transition-colors duration-300">
+<body class="font-sans antialiased bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">
     <div
         class="min-h-screen bg-gradient-to-br from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         @include('layouts.navigation')

@@ -20,31 +20,28 @@
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:space-x-4">
-                <div class="flex space-x-1">
+                <div class="flex space-x-1 ms-auto">
                     <a href="{{ route('balance') }}"
-                        class="px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md flex items-center gap-1
-                        {{ request()->routeIs('balance')
-                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                            : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 border border-transparent' }}">
+                        class="px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md flex items-center gap-1 text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 border border-transparent">
                         Balance
                     </a>
 
                     <a href="{{ route('friends') }}"
-                        class="px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md
-                        {{ request()->routeIs('friends')
-                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                            : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 border border-transparent' }}">
+                        class="px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 border border-transparent">
                         Friends
                     </a>
-
-                    <div class="h-8 w-px bg-slate-300 dark:bg-slate-700 mx-2"></div>
+                    <a href="{{ route('profile') }}"
+                        class="px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 border border-transparent">
+                        Profile
+                    </a>
 
                     @if (Auth::check() && Auth::user()->role === 'admin')
+                        <div class="h-8 w-px bg-slate-300 dark:bg-slate-700 mx-2"></div>
                         <a href="{{ route('admin') }}"
                             class="px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-md
-                            {{ request()->routeIs('admin')
-                                ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
-                                : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 border border-transparent' }}">
+                        {{ request()->routeIs('admin')
+                            ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+                            : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 border border-transparent' }}">
                             Admin
                         </a>
                     @endif
