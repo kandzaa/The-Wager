@@ -20,6 +20,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'balance',
+        'role',
     ];
 
     /**
@@ -42,7 +44,16 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
+            'balance'           => 'integer',
         ];
+    }
+
+    /**
+     * Get all wagers created by this user.
+     */
+    public function wagers()
+    {
+        return $this->hasMany(Wager::class, 'creator_id');
     }
 
     public function friends()

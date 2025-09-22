@@ -1,8 +1,11 @@
 <?php
+
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\FriendsController;
 use App\Http\Controllers\WagerController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Models\User;
+use App\Models\Wager;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -34,14 +37,21 @@ Route::post('/wagers/{wager}/bet', [WagerController::class, 'bet'])->middleware(
 Route::get('/wagers/{wager}/stats', [WagerController::class, 'stats'])->middleware(['auth', 'verified'])->name('wagers.stats');
 Route::post('/wagers/{wager}/join', [WagerController::class, 'join'])->middleware(['auth', 'verified'])->name('wagers.join');
 
-Route::get('/admin/edit/{id}', [AdminControll::class, 'edit'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin.edit');
-Route::get('/admin/delete/{id}', [AdminControll::class, 'delete'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin.delete');
+// Admin User Routes
+Route::prefix('admin/users')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
+    Route::get('/edit/{id}', [AdminController::class, 'editUser'])->name('admin.users.edit');
+    Route::put('/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+    Route::delete('/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.destroy');
+});
 
-Route::get('/admin', function () {
-    $users  = User::orderBy('id')->get(['id', 'name', 'email', 'created_at']);
-    $wagers = Wagers::orderBy('id')->get(['id', 'name', 'creator_id', 'created_at']);
-    return view('Admin.admin', compact('users', 'wagers'));
-})->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
+// Admin Wager Routes
+Route::prefix('admin/wagers')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
+    Route::get('/edit/{id}', [AdminController::class, 'editWager'])->name('admin.wagers.edit');
+    Route::put('/{id}', [AdminController::class, 'updateWager'])->name('admin.wagers.update');
+    Route::delete('/{id}', [AdminController::class, 'deleteWager'])->name('admin.wagers.destroy');
+});
+
+Route::get('/admin', [AdminController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
 
 Route::get('/balance', function () {
     return view('balance');

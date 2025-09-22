@@ -49,6 +49,28 @@ class FriendsController extends Controller
             ];
         }));
     }
+    
+    /**
+     * Get a list of the user's friends for AJAX requests.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listFriends()
+    {
+        $friends = Auth::user()->friends()->get();
+        
+        return response()->json([
+            'success' => true,
+            'friends' => $friends->map(function ($friend) {
+                return [
+                    'id' => $friend->id,
+                    'name' => $friend->name,
+                    'email' => $friend->email,
+                    'initial' => substr($friend->name, 0, 1),
+                ];
+            })
+        ]);
+    }
 
     public function addFriend(Request $request)
     {

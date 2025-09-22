@@ -238,12 +238,15 @@
     </div>
     </div>
 
+    <!-- Ievieto Chart.js bibliotēku, kas tiek izmantota diagrammu zīmēšanai -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
+        // DOMContentLoaded laikā izpildīts kods 
         document.addEventListener('DOMContentLoaded', () => {
             const ctx = document.getElementById('wagerPieChart');
             if (!ctx) return;
 
+            // Gaišās tēmas krāsas priekš sektoru diagrammas
             const lightThemeColors = [
                 '#1f77b4', // blue
                 '#ff7f0e', // orange
@@ -255,7 +258,7 @@
                 '#17becf' // cyan
             ];
 
-            // Dark theme: vivid tones tailored for dark backgrounds
+            // Tumšās tēmas krāsas priekš sektoru diagrammas
             const darkThemeColors = [
                 '#4CC9F0', // sky blue
                 '#F72585', // magenta
@@ -267,6 +270,7 @@
                 '#E07A5F' // coral
             ];
 
+            // Funkcija kas atgriež tēmas krāsas
             const getThemeColors = (isDarkTheme) => {
                 return isDarkTheme ? darkThemeColors : lightThemeColors;
             };
@@ -294,10 +298,13 @@
   --color-8: #F472B6;
 }
 `;
+            // Pārbauda vai lietotājs izmanto tumšo tēmu
             const isDarkTheme = () => document.documentElement.classList.contains('dark') || document
                 .documentElement.getAttribute('data-theme') === 'dark';
 
+            // Iegūst krāsu paleti atkarībā no tēmas (tumšās/gaisas)
             let bgColors = getThemeColors(isDarkTheme());
+            // Izveido tādu pašu krāsu masivu apmales krāsām
             let borderColors = bgColors.map(c => c);
 
             try {
@@ -312,16 +319,19 @@
 
             let chart;
 
+            // Funkcija, kas iegūst datus par derībām no servera
             async function fetchStats() {
                 try {
+                    // Nosūta pieprasījumu, lai iegūtu datus
                     const res = await fetch("{{ route('wagers.stats', ['wager' => $wager->id]) }}", {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
-                    if (!res.ok) throw new Error('Failed to load stats');
-                    return await res.json();
+                    if (!res.ok) throw new Error('Neizdevās ielādēt statistiku');
+                    return await res.json(); // Atgriež datus JSON formātā
                 } catch (e) {
+                    // Atgriež tukšus datus, ja radusies kļūda
                     return {
                         labels: [],
                         data: [],
@@ -330,53 +340,63 @@
                 }
             }
 
+            // Nav parādīta pilna koda implementācija
+            // Inicializē un parāda diagrammu ar norādītajiem datiem
             function initChart(labels, data) {
+                // Izveido jaunu diagrammas (pie chart) instanci
                 chart = new Chart(ctx, {
-                    type: 'pie',
+                    type: 'pie', // Norāda diagrammas tipu - sektora diagramma
                     data: {
                         labels,
                         datasets: [{
                             data,
+                            // Pielieto krāsas no masīva, cikliski atkārtojot tās, ja nepieciešams
                             backgroundColor: labels.map((_, i) => bgColors[i % bgColors.length]),
+                            // Tās pašas krāsas tiek izmantotas apmalēm
                             borderColor: labels.map((_, i) => borderColors[i % borderColors
                                 .length]),
-                            borderWidth: 2,
-                            hoverOffset: 6,
+                            borderWidth: 2, // Apmales platums pikseļos
+                            hoverOffset: 6, // Cik tālu izvirzīt daļu, kad uz tās novieto kursoru
                         }]
                     },
+                    // Diagrammas konfigurācijas opcijas
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: false,
+                        responsive: true, // Diagramma automātiski pielāgojas izmēram
+                        maintainAspectRatio: false, // Neuztur malu attiecību
+                        animation: false, // Atspējo animācijas veiktspējas labad
                         animations: {
-                            colors: false,
-                            x: false,
-                            y: false,
+                            colors: false, // Atspējo krāsu animācijas
+                            x: false, // Atspējo x ass animācijas
+                            y: false, // Atspējo y ass animācijas
                             radius: {
-                                duration: 0
+                                duration: 0 // Atspējo rādiusa animācijas
                             },
                         },
                         transitions: {
                             active: {
                                 animation: {
-                                    duration: 0
+                                    duration: 0 // Atspējo pāreju animācijas
                                 }
                             },
                         },
                         plugins: {
+                            // Leģendas konfigurācija
                             legend: {
-                                position: 'bottom',
+                                position: 'bottom', // Novieto leģendu zem diagrammas
                                 labels: {
+                                    // Izmanto pielāgotu krāsu no CSS mainīgajiem vai noklusējuma krāsu
                                     color: getComputedStyle(document.documentElement).getPropertyValue(
                                         '--tw-prose-body') || '#475569'
                                 }
                             },
+                            // Uzvedņu (tooltip) konfigurācija
                             tooltip: {
                                 callbacks: {
+                                    // Pielāgo tekstu, kas parādās, kad kursors novietots virs diagrammas daļas
                                     label: (ctx) => {
-                                        const label = ctx.label || '';
-                                        const value = ctx.parsed || 0;
-                                        return `${label}: ${value}`;
+                                        const label = ctx.label || ''; // Iegūst etiķeti
+                                        const value = ctx.parsed || 0; // Iegūst skaitlisko vērtību
+                                        return `${label}: ${value}`; // Atgriež formatētu tekstu
                                     }
                                 }
                             }
@@ -385,15 +405,23 @@
                 });
             }
 
+            // Atjauno diagrammas krāsas, mainoties tēmai (tumšā/gaisā)
             function updateColorsForTheme() {
+                // Iegūst jaunās krāsas atbilstoši pašreizējai tēmai
                 bgColors = getThemeColors(isDarkTheme());
                 borderColors = bgColors.map(c => c);
+
+                // Ja diagramma jau ir izveidota, atjauno tās krāsas
                 if (chart) {
-                    chart.data.datasets[0].backgroundColor = chart.data.labels.map((_, i) => bgColors[i % bgColors
-                        .length]);
-                    chart.data.datasets[0].borderColor = chart.data.labels.map((_, i) => borderColors[i %
-                        borderColors.length]);
-                    chart.update('none');
+                    // Atjauno fona krāsas katram datu punktam
+                    chart.data.datasets[0].backgroundColor = chart.data.labels.map((_, i) =>
+                        bgColors[i % bgColors.length]);
+
+                    // Atjauno apmales krāsas katram datu punktam
+                    chart.data.datasets[0].borderColor = chart.data.labels.map((_, i) =>
+                        borderColors[i % borderColors.length]);
+
+                    // Atjauno diagrammu bez animācijas ('none' nozīmē bez animācijas)
                 }
             }
 
@@ -412,11 +440,16 @@
                 return true;
             }
 
+            // Atjauno diagrammu ar jaunākajiem datiem no servera
             async function refreshChart() {
+                // Iegūst jaunākos datus
                 const stats = await fetchStats();
+
+                // Ja diagramma vēl nav izveidota, izveido to
                 if (!chart) {
                     initChart(stats.labels, stats.data);
                 } else {
+                    // Pretējā gadījumā atjauno esošās diagrammas datus
                     // Only update if changed to avoid flicker
                     const sameLabels = shallowEqualArray(chart.data.labels, stats.labels);
                     const sameData = shallowEqualArray(chart.data.datasets[0].data, stats.data);

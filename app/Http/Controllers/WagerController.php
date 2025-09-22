@@ -104,36 +104,46 @@ class WagerController extends Controller
         return redirect()->route('wager.show', ['id' => $wager->id])->with('success', 'You joined this wager.');
     }
 
+    /**
+     * Izveido jaunu derību, pamatojoties uz lietotāja ievadītajiem datiem.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function create(Request $request)
     {
         try {
+            // Validē ievadītos datus
             $validated = $request->validate([
-                'name'        => 'required|string|max:255',
-                'description' => 'nullable|string|max:1000',
-                'max_players' => 'required|integer|min:2|max:100',
-                'visibility'  => 'required|in:public,private',
-                'ending_time' => 'required|date|after:now',
-                'choices'     => 'nullable|array|min:1',
-                'choices.*'   => 'nullable|string|max:255',
+                'name'        => 'required|string|max:255',          // Obligāts derības nosaukums (max 255 simboli)
+                'description' => 'nullable|string|max:1000',         // Neobligāts apraksts (max 1000 simboli)
+                'max_players' => 'required|integer|min:2|max:100',   // Spēlētāju skaits (starp 2 un 100)
+                'visibility'  => 'required|in:public,private',       // Vai derība ir publiska vai privāta
+                'ending_time' => 'required|date|after:now',          // Beigu laikam jābūt nākotnē
+                'choices'     => 'nullable|array|min:1',             // Izvēlnes (masīvs ar vismaz 1 elementu)
+                'choices.*'   => 'nullable|string|max:255',          // Katra izvēlne (max 255 simboli)
             ]);
 
-            $wager                = new Wager();
-            $wager->name          = $request->input('name');
-            $wager->creator_id    = Auth::id();
-            $wager->description   = $request->input('description');
-            $wager->max_players   = $request->input('max_players');
-            $wager->status        = $request->input('visibility') === 'public' ? 'public' : 'private';
-            $wager->players       = json_encode([]);
-            $wager->game_history  = json_encode([]);
-            $wager->starting_time = now();
-            $wager->ending_time   = date('Y-m-d H:i:s', strtotime($request->input('ending_time')));
-            $wager->pot           = 0;
-            $wager->save();
+            // Izveido jaunu Wager modeli un aizpilda ar datiem no pieprasījuma
+            $wager = new Wager();
+            $wager->name = $request->input('name');
+            $wager->creator_id = Auth::id();  // Iestata pašreizējo lietotāju kā derības veidotāju
+            $wager->description = $request->input('description');
+            $wager->max_players = $request->input('max_players');
+            $wager->status = $request->input('visibility') === 'public' ? 'public' : 'private';
+            $wager->players = json_encode([]);  // Inicializē tukšu spēlētāju masīvu
+            $wager->game_history = json_encode([]);  // Inicializē tukšu vēstures masīvu
+            $wager->starting_time = now();  // Iestata pašreizējo laiku kā sākuma laiku
+            $wager->ending_time = date('Y-m-d H:i:s', strtotime($request->input('ending_time')));
+            $wager->pot = 0;  // Sākotnējā derību summa ir 0
+            $wager->save();  // Saglabā derību datubāzē
 
+            // Apstrādā iespējas (izvēlnes), ja tādas ir norādītas
             $choices = collect($request->input('choices', []))
-                ->filter(fn($c) => ! is_null($c) && trim($c) !== '')
-                ->values();
+                ->filter(fn($c) => ! is_null($c) && trim($c) !== '')  // Noņem tukšus vai null vērtības
+                ->values();  // Pārindeksē masīvu
 
+            // Ja ir norādītas derību iespējas, tās saglabā ar saistību izmantošanu
             if ($choices->isNotEmpty()) {
                 $wager->choices()->createMany(
                     $choices->map(fn($label) => ['label' => $label, 'total_bet' => 0])->all()

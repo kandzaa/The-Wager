@@ -13,6 +13,7 @@
         <h1 class="text-5xl md:text-6xl font-extrabold mb-8">
             Make It <span class="text-green-500">Interesting</span>
         </h1>
+        <!-- Sākuma teksts kur ir liels, pelēks teksts-->
         <p class="text-lg md:text-xl mb-12 text-gray-300 max-w-3xl mx-auto">
             Welcome to The Wager
         </p>

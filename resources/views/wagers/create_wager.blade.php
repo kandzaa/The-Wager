@@ -1,4 +1,4 @@
-<div class="fixed inset-0 z-50 select-none">
+<div class="fixed inset-0 z-50 ">
 
     <div class="fixed inset-0 backdrop-blur-sm bg-slate-950/50" @click="showModal = false"></div>
 
