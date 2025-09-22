@@ -1,8 +1,6 @@
-<div
-    class="rounded-xl p-5 shadow-sm bg-slate-900/40 border border-slate-800 backdrop-blur transition transform duration-200 ease-out cursor-pointer group hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-500/50"
+<div class="rounded-xl p-5 shadow-sm bg-slate-900/40 border border-slate-800 backdrop-blur transition transform duration-200 ease-out cursor-pointer group hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-500/50"
     @click="window.location='{{ route('wager.show', ['id' => $wager->id]) }}'"
-    @keydown.enter.prevent="window.location='{{ route('wager.show', ['id' => $wager->id]) }}'"
-    role="button"
+    @keydown.enter.prevent="window.location='{{ route('wager.show', ['id' => $wager->id]) }}'" role="button"
     tabindex="0">
     <div class="flex items-start justify-between">
         <div>
@@ -31,8 +29,7 @@
             <form action="{{ route('wagers.destroy', $wager) }}" method="POST">
                 @csrf
                 @method('DELETE')
-                <button type="submit"
-                    @click.stop
+                <button type="submit" @click.stop
                     class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-500 transition">Delete</button>
             </form>
 

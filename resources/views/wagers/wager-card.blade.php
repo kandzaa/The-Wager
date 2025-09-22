@@ -1,8 +1,10 @@
-<div class="min-h-screen bg-gradient-to-br from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors">
+<div
+    class="min-h-screen bg-gradient-to-br from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors">
     <div class="container mx-auto px-4 py-10">
         <div class="mb-12">
 
-            <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-6">Available Wagers</h2>
+            <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-6">Available Wagers
+            </h2>
 
             <div x-data="{ showModal: false }" x-effect="document.body.classList.toggle('overflow-hidden', showModal)">
                 <button @click="showModal = true"
@@ -28,14 +30,15 @@
                 $joinedNonOwned = $joinedWagers->filter(fn($w) => $w->creator_id !== $userId);
 
                 $publicWagers = $wagers->filter(function ($w) use ($userId, $joinedWagers) {
-                    return $w->status === 'public'
-                        && ! $joinedWagers->contains('id', $w->id)
-                        && $w->creator_id !== $userId; // avoid showing your own wagers here
+                    return $w->status === 'public' &&
+                        !$joinedWagers->contains('id', $w->id) &&
+                        $w->creator_id !== $userId; // avoid showing your own wagers here
                 });
             @endphp
 
             @if ($publicWagers->isEmpty())
-                <div class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-600 dark:text-slate-300">
+                <div
+                    class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-600 dark:text-slate-300">
                     <p class="text-base">No public wagers are available right now.</p>
                     <p class="text-sm mt-2">Be the first to create one!</p>
                 </div>
@@ -52,7 +55,8 @@
         <div class="mt-4">
             <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-6">Joined Wagers</h2>
             @if ($joinedNonOwned->isEmpty())
-                <div class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-600 dark:text-slate-300">
+                <div
+                    class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-600 dark:text-slate-300">
                     <p class="text-base">You haven't joined any wagers yet.</p>
                     <p class="text-sm mt-2">Browse available wagers above to join one.</p>
                 </div>

@@ -55,7 +55,7 @@
                                                 {{ $user->role }}</td>
 
                                             <td class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
-                                                <form action="{{ route('admin.users.destroy', $user->id) }}"
+                                                <form action="{{ route('admin.Manage.users.destroy', $user->id) }}"
                                                     method="POST" class="inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -66,7 +66,7 @@
                                                     </button>
                                                 </form>
                                                 <span class="mx-1">|</span>
-                                                <a href="{{ route('admin.users.edit', $user->id) }}"
+                                                <a href="{{ route('admin.Manage.users.edit', $user->id) }}"
                                                     class="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400">Edit</a>
                                             </td>
 
@@ -155,18 +155,17 @@
                                         <td class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
                                             {{ $wagerItem->status }}</td>
                                         <td class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
-                                            <form action="{{ route('admin.wagers.destroy', $wagerItem->id) }}"
+                                            <form action="{{ route('admin.Manage.wagers.destroy', $wagerItem->id) }}"
                                                 method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
-                                                    class="text-red-500 hover:text-red-700 dark:hover:text-red-400 mx-1"
-                                                    onclick="return confirm('Are you sure you want to delete this wager?')">
+                                                    class="text-red-500 hover:text-red-700 dark:hover:text-red-400 mx-1">
                                                     Delete
                                                 </button>
                                             </form>
                                             <span class="mx-1">|</span>
-                                            <a href="{{ route('admin.wagers.edit', $wagerItem->id) }}"
+                                            <a href="{{ route('admin.Manage.wagers.edit', $wagerItem->id) }}"
                                                 class="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 mx-1">Edit</a>
                                             <span class="mx-1">|</span>
                                             <a href="{{ route('wager.show', $wagerItem->id) }}"

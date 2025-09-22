@@ -11,7 +11,7 @@
                         </div>
 
 
-                        <form method="POST" action="{{ route('admin.wagers.update', $wager->id) }}">
+                        <form method="POST" action="{{ route('admin.Manage.wagers.update', $wager->id) }}">
                             @csrf
                             @method('PUT')
 

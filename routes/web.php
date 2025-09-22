@@ -14,6 +14,14 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/balance', function () {
+    return view('balance');
+})->middleware(['auth', 'verified'])->name('balance');
+
+Route::get('/profile', function () {
+    return view('profile');
+})->middleware(['auth', 'verified'])->name('profile');
+
 //viss ar derībām
 Route::get('/wagers', [WagerController::class, 'index'])->middleware(['auth', 'verified'])->name('wagers');
 Route::post('/wagers', [WagerController::class, 'create'])->middleware(['auth', 'verified'])->name('wager.create');
@@ -35,26 +43,17 @@ Route::post('/friends/accept', [FriendsController::class, 'acceptRequest'])->mid
 Route::get('/user/{id}', [FriendsController::class, 'showUser'])->middleware(['auth', 'verified'])->name('user.show');
 
 // viss ar admin
-Route::prefix('admin/wagers')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
-    Route::get('/edit/{id}', [AdminController::class, 'editWager'])->name('admin.wagers.edit');
-    Route::put('/{id}', [AdminController::class, 'updateWager'])->name('admin.wagers.update');
-    Route::delete('/{id}', [AdminController::class, 'deleteWager'])->name('admin.wagers.destroy');
+Route::prefix('admin/Manage/wagers')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
+    Route::get('/edit/{id}', [AdminController::class, 'editWager'])->name('admin.Manage.wagers.edit');
+    Route::put('/{id}', [AdminController::class, 'updateWager'])->name('admin.Manage.wagers.update');
+    Route::delete('/{id}', [AdminController::class, 'deleteWager'])->name('admin.Manage.wagers.destroy');
 });
 
-Route::prefix('admin/users')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
-    Route::get('/edit/{id}', [AdminController::class, 'editUser'])->name('admin.users.edit');
-    Route::put('/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
-    Route::delete('/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.destroy');
+Route::prefix('admin/Manage/users')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
+    Route::get('/edit/{id}', [AdminController::class, 'editUser'])->name('admin.Manage.users.edit');
+    Route::put('/{id}', [AdminController::class, 'updateUser'])->name('admin.Manage.users.update');
+    Route::delete('/{id}', [AdminController::class, 'deleteUser'])->name('admin.Manage.users.destroy');
 });
 Route::get('/admin', [AdminController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
-
-//viss ar profilu
-Route::get('/balance', function () {
-    return view('balance');
-})->middleware(['auth', 'verified'])->name('balance');
-
-Route::get('/profile', function () {
-    return view('profile');
-})->middleware(['auth', 'verified'])->name('profile');
 
 require __DIR__ . '/auth.php';

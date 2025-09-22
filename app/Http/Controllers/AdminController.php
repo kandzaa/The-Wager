@@ -24,7 +24,7 @@ class AdminController extends Controller
     public function editUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
-        return view('Admin.editUser', compact('user'));
+        return view('Admin.Manage.editUser', compact('user'));
     }
 
     public function updateUser(Request $request, $id)
@@ -110,7 +110,7 @@ class AdminController extends Controller
 
         $wager->players = $players;
 
-        return view('Admin.editWager', [
+        return view('Admin.Manage.editWager', [
             'wager'          => $wager,
             'playersDisplay' => $playersDisplay,
         ]);

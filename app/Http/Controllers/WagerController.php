@@ -10,9 +10,12 @@ class WagerController extends Controller
 {
     public function index()
     {
-        $wagers  = Wager::with(['creator', 'choices'])->orderBy('created_at', 'desc')->get();
+        $wagers  = Wager::with(['creator', 'choices'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
         $friends = Auth::user() ? Auth::user()->friends()->get() : collect();
-        return view('wagers.wagers', compact('wagers', 'friends'));
+        return view('wagers.lobby', compact('wagers', 'friends'));
     }
 
     public function stats(Wager $wager)
