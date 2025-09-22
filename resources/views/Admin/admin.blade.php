@@ -160,7 +160,8 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
-                                                    class="text-red-500 hover:text-red-700 dark:hover:text-red-400 mx-1">
+                                                    class="text-red-500 hover:text-red-700 dark:hover:text-red-400 mx-1"
+                                                    onclick="return confirm('Are you sure you want to delete this wager?')">
                                                     Delete
                                                 </button>
                                             </form>

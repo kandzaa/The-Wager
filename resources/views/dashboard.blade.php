@@ -23,12 +23,7 @@
                                     </h3>
                                     <div
                                         class="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
-                                        <div
-                                            class="w-8 h-8 bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-full flex items-center justify-center shadow-inner">
-                                            <link rel="stylesheet"
-                                                href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=person" />
-                                            <span class="material-symbols-outlined">person</span>
-                                        </div>
+                                        <ion-icon name="people-circle"></ion-icon>
                                         {{ Auth::user()->count() }}
                                     </div>
                                 </div>
