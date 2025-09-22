@@ -1,17 +1,12 @@
 <aside
-    class="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0"
+    class="select-none fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0"
     :class="{ 'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen }">
 
-    <!-- Header -->
     <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800">
         <a href="{{ route('dashboard') }}" class="text-base font-medium text-slate-900 dark:text-white">
             The Wager
         </a>
-        <button @click="sidebarOpen = false" class="lg:hidden text-slate-500 dark:text-slate-400">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </button>
+        @include('components.theme-switch')
     </div>
 
     <!-- Navigation Rows -->
@@ -48,7 +43,7 @@
                 {{ __('Admin') }}
             </x-nav-link>
         @endif
-        <!-- Izrakstīšanās poga -->
+
         <div
             class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
             <form method="POST" action="{{ route('logout') }}" class="w-full">

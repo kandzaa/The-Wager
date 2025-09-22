@@ -1,8 +1,8 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\FriendRequest;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -10,7 +10,7 @@ class FriendsController extends Controller
 {
     public function index()
     {
-        $friends = Auth::user()->friends()->get();
+        $friends          = Auth::user()->friends()->get();
         $incomingRequests = FriendRequest::with('requester')
             ->where('recipient_id', Auth::id())
             ->where('status', 'pending')
@@ -27,11 +27,9 @@ class FriendsController extends Controller
         }
 
         $user = Auth::user();
-        
-        // Get IDs of current friends
+
         $friendIds = $user->friends()->pluck('friend_id')->toArray();
-        
-        // Add current user's ID to exclude self from results
+
         $excludeIds = array_merge($friendIds, [$user->id]);
 
         $users = User::where('name', 'like', '%' . $query . '%')
@@ -49,26 +47,21 @@ class FriendsController extends Controller
             ];
         }));
     }
-    
-    /**
-     * Get a list of the user's friends for AJAX requests.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
+
     public function listFriends()
     {
         $friends = Auth::user()->friends()->get();
-        
+
         return response()->json([
             'success' => true,
             'friends' => $friends->map(function ($friend) {
                 return [
-                    'id' => $friend->id,
-                    'name' => $friend->name,
-                    'email' => $friend->email,
+                    'id'      => $friend->id,
+                    'name'    => $friend->name,
+                    'email'   => $friend->email,
                     'initial' => substr($friend->name, 0, 1),
                 ];
-            })
+            }),
         ]);
     }
 
@@ -111,7 +104,6 @@ class FriendsController extends Controller
             return redirect()->route('friends')->with('error', 'User not found.');
         }
 
-        // Fixed: Match the actual view file location
         return view('Friends.user-show', compact('user'));
     }
 
@@ -144,12 +136,11 @@ class FriendsController extends Controller
             return response()->json(['message' => 'You cannot send a request to yourself.'], 400);
         }
 
-        // Already friends?
+        //vai jau ir draugi?
         if (Auth::user()->friends()->where('friend_id', $recipientId)->exists()) {
             return response()->json(['message' => 'You are already friends.'], 400);
         }
 
-        // Existing request either direction
         $existing = FriendRequest::where(function ($q) use ($userId, $recipientId) {
             $q->where('requester_id', $userId)->where('recipient_id', $recipientId);
         })->orWhere(function ($q) use ($userId, $recipientId) {
@@ -160,7 +151,7 @@ class FriendsController extends Controller
             if ($existing->status === 'pending') {
                 return response()->json(['message' => 'A request is already pending.'], 400);
             }
-            // If previously declined, allow resending by updating to pending
+            // ja iepriekš declined, tad aizsuta velreiz kā pending
             $existing->status = 'pending';
             $existing->save();
             return response()->json(['message' => 'Friend request re-sent.']);
@@ -191,14 +182,19 @@ class FriendsController extends Controller
             return response()->json(['message' => 'This request is not pending.'], 400);
         }
 
-        // Approve: attach friendship and mark accepted
         $requesterId = $friendRequest->requester_id;
         $recipientId = $friendRequest->recipient_id;
+        $recipient   = Auth::user();
+        $requester   = User::find($requesterId);
 
-        // Attach both directions if pivot is non-symmetric
-        $recipient = Auth::user();
+        // pievieno draugu abiem lietotajiem
         if (! $recipient->friends()->where('friend_id', $requesterId)->exists()) {
             $recipient->friends()->attach($requesterId);
+        }
+
+        // pievieno atpakaļ otram leitotajam draugu
+        if (! $requester->friends()->where('friend_id', $recipientId)->exists()) {
+            $requester->friends()->attach($recipientId);
         }
 
         $friendRequest->status = 'accepted';

@@ -10,11 +10,12 @@
                             <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Edit Wager</h2>
                         </div>
 
+
                         <form method="POST" action="{{ route('admin.wagers.update', $wager->id) }}">
                             @csrf
                             @method('PUT')
 
-                            <!-- Name -->
+                            <!-- derību vārds -->
                             <div class="mb-4">
                                 <x-input-label for="name" :value="__('Name')" />
                                 <x-text-input id="name" class="block mt-1 w-full px-3 py-2" type="text"
@@ -22,7 +23,7 @@
                                 <x-input-error :messages="$errors->get('name')" class="mt-2" />
                             </div>
 
-                            <!-- Description -->
+                            <!-- apraksts -->
                             <div class="mb-4">
                                 <x-input-label for="description" :value="__('Description')" />
                                 <textarea id="description" name="description" rows="3"
@@ -30,7 +31,7 @@
                                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
                             </div>
 
-                            <!-- Max Players -->
+                            <!-- Max spēlētāji -->
                             <div class="mb-4">
                                 <x-input-label for="max_players" :value="__('Maximum Players')" />
                                 <x-text-input id="max_players" class="block mt-1 w-full px-3 py-2" type="number"
@@ -53,50 +54,25 @@
                                 <x-input-error :messages="$errors->get('status')" class="mt-2" />
                             </div>
 
-                            <!-- Players (comma-separated) -->
+                            <!-- Choices -->
                             <div class="mb-4">
-                                <x-input-label for="players" :value="__('Players (comma-separated usernames or IDs)')" />
-                                <div class="relative">
-                                    <textarea id="players" name="players" rows="3"
-                                        class="block w-full mt-1 px-3 py-2 border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-                                        placeholder="username1, username2, username3">{{ old('players', $playersDisplay) }}</textarea>
-                                    <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                        Enter usernames or IDs separated by commas
-                                    </div>
-                                    <div class="mt-2">
-                                        <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Current
-                                            players:</div>
-                                        <div class="flex flex-wrap gap-1">
-                                            @if (count($wager->players ?? []) > 0)
-                                                @foreach ($wager->players as $player)
-                                                    @if (!empty($player['name']))
-                                                        <span
-                                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                                            {{ $player['name'] }}
-                                                        </span>
-                                                    @endif
-                                                @endforeach
-                                            @else
-                                                <span class="text-xs text-gray-400 dark:text-gray-500">No players added
-                                                    yet</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                                <x-input-error :messages="$errors->get('players')" class="mt-2" />
+                                <x-choices-container 
+                                    :choices="$wager->choices->pluck('label')->toArray()"
+                                    label="Choices"
+                                    name="choices"
+                                />
                             </div>
-
 
                             <!-- Ending Time -->
                             <div class="mb-4">
                                 <x-input-label for="ending_time" :value="__('Ending Time')" />
                                 <x-text-input id="ending_time" class="block mt-1 w-full px-3 py-2" type="datetime-local"
-                                    name="ending_time" :value="old(
-                                        'ending_time',
-                                        \Carbon\Carbon::parse($wager->ending_time)->format('Y-m-d\TH:i'),
-                                    )" required />
+                                    name="ending_time"
+                                    value="{{ old('ending_time', \Carbon\Carbon::parse($wager->ending_time)->format('Y-m-d\TH:i')) }}"
+                                    required />
                                 <x-input-error :messages="$errors->get('ending_time')" class="mt-2" />
                             </div>
+
 
                             <div class="flex items-center justify-end mt-6">
                                 <a href="{{ route('admin') }}"

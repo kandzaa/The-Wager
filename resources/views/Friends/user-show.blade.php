@@ -17,19 +17,6 @@
 
                     <div
                         class="relative bg-gradient-to-br from-emerald-700 via-emerald-800 to-teal-800 dark:from-emerald-800 dark:via-emerald-900 dark:to-teal-900 p-8 pb-24">
-
-                        <div class="absolute inset-0 opacity-10">
-                            <svg class="w-full h-full" viewBox="0 0 100 100" fill="none">
-                                <defs>
-                                    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor"
-                                            stroke-width="0.5" />
-                                    </pattern>
-                                </defs>
-                                <rect width="100" height="100" fill="url(#grid)" />
-                            </svg>
-                        </div>
-
                         <div
                             class="relative flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
                             <div class="relative">
