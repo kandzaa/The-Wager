@@ -54,14 +54,6 @@
                                 <x-input-error :messages="$errors->get('status')" class="mt-2" />
                             </div>
 
-                            <!-- Choices -->
-                            <div class="mb-4">
-                                <x-choices-container 
-                                    :choices="$wager->choices->pluck('label')->toArray()"
-                                    label="Choices"
-                                    name="choices"
-                                />
-                            </div>
 
                             <!-- Ending Time -->
                             <div class="mb-4">
