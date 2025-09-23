@@ -53,7 +53,9 @@ Route::prefix('admin/Manage/users')->middleware(['auth', 'verified', AdminMiddle
     Route::get('/edit/{id}', [AdminController::class, 'editUser'])->name('admin.Manage.users.edit');
     Route::put('/{id}', [AdminController::class, 'updateUser'])->name('admin.Manage.users.update');
     Route::delete('/{id}', [AdminController::class, 'deleteUser'])->name('admin.Manage.users.destroy');
+    Route::get('/{id}', [AdminController::class, 'showUser'])->name('admin.Manage.users.show');
 });
 Route::get('/admin', [AdminController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
 
+Route::get('/statistics', [AdminController::class, 'statistics'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('statistics');
 require __DIR__ . '/auth.php';

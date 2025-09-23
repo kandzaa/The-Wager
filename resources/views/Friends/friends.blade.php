@@ -85,10 +85,6 @@
                                             {{ $friends->count() === 1 ? 'Friend' : 'Friends' }}
                                         </span>
                                     </div>
-                                    <h3
-                                        class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-400 dark:to-emerald-500 bg-clip-text text-transparent">
-                                        Your Circle
-                                    </h3>
                                 </div>
                             </div>
 

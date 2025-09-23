@@ -38,72 +38,88 @@
                 class="bg-white/90 dark:bg-slate-900/60 backdrop-blur-md shadow-2xl rounded-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
 
                 <div
-                    class="relative px-8 py-8 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-b border-slate-200/50 dark:border-slate-700/50">
+                    class="relative px-4 sm:px-6 lg:px-8 py-6 sm:py-8 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border-b border-slate-200/50 dark:border-slate-700/50">
                     <div
                         class="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-blue-500/5 dark:from-emerald-400/5 dark:to-blue-400/5">
                     </div>
-                    <div class="relative">
-                        <h1
-                            class="text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-slate-100 dark:via-slate-300 dark:to-slate-100 bg-clip-text text-transparent">
-                            {{ $wager->name }}
-                        </h1>
-                        <p class="mt-3 text-lg text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-                            {{ $wager->description }}
-                        </p>
 
-                        <div class="absolute top-8 right-8">
-                            <span
-                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-white/80 dark:bg-slate-800/70 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-200 shadow-sm">
-                                <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5.121 17.804A4 4 0 018 16h8a4 4 0 012.879 1.804M15 11a3 3 0 10-6 0 3 3 0 006 0z" />
-                                </svg>
-                                <span>Created by: <strong
-                                        class="font-semibold">{{ optional($wager->creator)->name ?? 'Unknown' }}</strong></span>
-                            </span>
+                    <div class="relative max-w-7xl mx-auto">
+                        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div class="flex-1">
+                                <h1
+                                    class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r  from-slate-900 via-slate-700 to-slate-900 dark:from-slate-100 dark:via-slate-300 dark:to-slate-100 bg-clip-text text-transparent">
+                                    {{ $wager->name }}
+                                </h1>
+                                <p
+                                    class="mt-2 sm:mt-3 text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
+                                    {{ $wager->description }}
+                                </p>
+                            </div>
+
+                            <div class="flex-shrink-0 mt-2 sm:mt-0">
+                                <div
+                                    class="inline-flex items-center gap-2 px-3 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium bg-white/80 dark:bg-slate-800/70 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-200 shadow-sm">
+                                    <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5.121 17.804A4 4 0 018 16h8a4 4 0 012.879 1.804M15 11a3 3 0 10-6 0 3 3 0 006 0z" />
+                                    </svg>
+                                    <span>Created by: <strong
+                                            class="font-semibold text-slate-800 dark:text-slate-100">{{ optional($wager->creator)->name ?? 'Unknown' }}</strong></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                            <!-- Ends -->
                             <div
-                                class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-4 border border-slate-200/50 dark:border-slate-700/50">
+                                class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-slate-200/50 dark:border-slate-700/50 transition-all hover:shadow-sm">
                                 <div
-                                    class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                                    Ends</div>
-                                <div class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                    class="text-[10px] xs:text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                    Ends
+                                </div>
+                                <div class="mt-1 text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">
                                     {{ optional($wager->ending_time)?->diffForHumans() ?? 'N/A' }}
                                 </div>
                             </div>
 
+                            <!-- Status -->
                             <div
-                                class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-4 border border-slate-200/50 dark:border-slate-700/50">
+                                class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-slate-200/50 dark:border-slate-700/50 transition-all hover:shadow-sm">
                                 <div
-                                    class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                                    Status</div>
+                                    class="text-[10px] xs:text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                    Status
+                                </div>
                                 <div class="mt-1 flex items-center gap-2">
                                     <span
-                                        class="w-2 h-2 rounded-full {{ $wager->status === 'public' ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30' : 'bg-slate-400' }}"></span>
+                                        class="w-2 h-2 rounded-full flex-shrink-0 {{ $wager->status === 'public' ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30' : 'bg-slate-400' }}"></span>
                                     <span
-                                        class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ ucfirst($wager->status) }}</span>
+                                        class="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 truncate">
+                                        {{ ucfirst($wager->status) }}
+                                    </span>
                                 </div>
                             </div>
 
+                            <!-- Max Players -->
                             <div
-                                class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-4 border border-slate-200/50 dark:border-slate-700/50">
+                                class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-slate-200/50 dark:border-slate-700/50 transition-all hover:shadow-sm">
                                 <div
-                                    class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                                    Max Players</div>
-                                <div class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                    class="text-[10px] xs:text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                    Max Players
+                                </div>
+                                <div class="mt-1 text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">
                                     {{ $wager->max_players }}
                                 </div>
                             </div>
 
+                            <!-- Total Pot -->
                             <div
-                                class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 backdrop-blur-sm rounded-lg p-4 border border-emerald-200/50 dark:border-emerald-700/50">
+                                class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-emerald-200/50 dark:border-emerald-700/50 transition-all hover:shadow-sm">
                                 <div
-                                    class="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
-                                    Total Pot</div>
-                                <div class="mt-1 text-lg font-bold text-emerald-800 dark:text-emerald-200">
+                                    class="text-[10px] xs:text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
+                                    Total Pot
+                                </div>
+                                <div class="mt-1 text-base sm:text-lg font-bold text-emerald-800 dark:text-emerald-200">
                                     {{ number_format($wager->pot, 0) }}
                                 </div>
                             </div>
@@ -198,8 +214,8 @@
                                                 placeholder="Enter coins">
                                             <div
                                                 class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                                                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
+                                                <svg class="w-5 h-5 text-slate-400" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">

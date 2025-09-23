@@ -14,6 +14,14 @@ class AdminController extends Controller
         return view('Admin.admin', compact('users', 'wager'));
     }
 
+    public function statistics()
+    {
+        $users = User::orderBy('id')->get();
+        $wager = Wager::with('creator')->orderBy('id')->get();
+        return view('Admin.statistics', compact('users', 'wager'));
+    }
+
+    //funkcijas ar user
     public function deleteUser(Request $request, $id)
     {
         $user = \App\Models\User::findOrFail($id);

@@ -1,11 +1,7 @@
 <div class="mb-10">
     <div class="text-center mb-8">
-        <h2
-            class="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-400 dark:to-emerald-500 bg-clip-text text-transparent mb-2">
-            Discover New Friends
-        </h2>
-        <p class="text-slate-600 dark:text-slate-300">
-            Connect with amazing people in your community
+        <p class="text-xl font-bold text-slate-800 dark:text-slate-100">
+            Connect with amazing people
         </p>
     </div>
 

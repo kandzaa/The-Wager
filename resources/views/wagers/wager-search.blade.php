@@ -1,9 +1,9 @@
 <div class="flex justify-center mb-8">
     <div class="relative w-full max-w-md">
         <input type="text" id="wager-search-input"
-            class="w-full p-3 pl-10 bg-slate-900/40 backdrop-blur border border-slate-800 text-slate-100 placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            class="w-full p-3 pl-10 bg-white dark:bg-slate-900/40 backdrop-blur border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
             placeholder="Search wagers" autocomplete="off" />
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 absolute left-3 top-3.5" viewBox="0 0 20 20"
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 dark:text-slate-400 absolute left-3 top-3.5" viewBox="0 0 20 20"
             fill="currentColor">
             <path fill-rule="evenodd"
                 d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -24,7 +24,7 @@
 </div>
 
 <div id="wager-search-results" class="hidden max-w-2xl mx-auto mb-8">
-    <h3 class="text-lg font-semibold mb-4 text-slate-100">Search Results</h3>
+    <h3 class="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Search Results</h3>
     <div id="wager-search-results-list" class="space-y-4"></div>
 </div>
 
