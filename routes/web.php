@@ -22,18 +22,26 @@ Route::get('/profile', function () {
     return view('profile');
 })->middleware(['auth', 'verified'])->name('profile');
 
-//viss ar derībām
-Route::get('/wagers', [WagerController::class, 'index'])->middleware(['auth', 'verified'])->name('wagers');
-Route::post('/wagers', [WagerController::class, 'create'])->middleware(['auth', 'verified'])->name('wager.create');
-Route::get('/wagers/search', [WagerController::class, 'search'])->middleware(['auth', 'verified'])->name('wagers.search');
-Route::put('/wagers/{wager}', [WagerController::class, 'update'])->middleware(['auth', 'verified'])->name('wagers.update');
-Route::delete('/wagers/{wager}', [WagerController::class, 'destroy'])->middleware(['auth', 'verified'])->name('wagers.destroy');
-Route::get('/wagers/{id}', [WagerController::class, 'showWager'])->middleware(['auth', 'verified'])->name('wager.show');
-Route::post('/wagers/{wager}/bet', [WagerController::class, 'bet'])->middleware(['auth', 'verified'])->name('wagers.bet');
-Route::get('/wagers/{wager}/stats', [WagerController::class, 'stats'])->middleware(['auth', 'verified'])->name('wagers.stats');
-Route::post('/wagers/{wager}/join', [WagerController::class, 'join'])->middleware(['auth', 'verified'])->name('wagers.join');
+// WAGER ROUTES - IMPORTANT: Specific routes MUST come before dynamic routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/wagers', [WagerController::class, 'index'])->name('wagers');
+    Route::post('/wagers', [WagerController::class, 'store'])->name('wagers.store');
 
-//viss ar draugiem
+    // CRITICAL: These specific routes must come BEFORE /wagers/{id}
+    Route::get('/wagers/search', [WagerController::class, 'search'])->name('wagers.search');
+
+    // Dynamic route comes after specific routes
+    Route::get('/wagers/{id}', [WagerController::class, 'show'])->name('wagers.show');
+
+    // Other wager routes
+    Route::post('/wagers/{wager}/join', [WagerController::class, 'join'])->name('wagers.join');
+    Route::post('/wagers/{wager}/bet', [WagerController::class, 'bet'])->name('wagers.bet');
+    Route::get('/wagers/{wager}/stats', [WagerController::class, 'stats'])->name('wagers.stats');
+    Route::put('/wagers/{wager}', [WagerController::class, 'update'])->name('wagers.update');
+    Route::delete('/wagers/{wager}', [WagerController::class, 'destroy'])->name('wagers.destroy');
+});
+
+// FRIENDS ROUTES
 Route::get('/friends', [FriendsController::class, 'index'])->middleware(['auth', 'verified'])->name('friends');
 Route::get('/friends/search', [FriendsController::class, 'searchUsers'])->name('friends.search');
 Route::post('/friends/add', [FriendsController::class, 'addFriend'])->name('friends.add');
@@ -42,7 +50,7 @@ Route::post('/friends/request', [FriendsController::class, 'requestFriend'])->mi
 Route::post('/friends/accept', [FriendsController::class, 'acceptRequest'])->middleware(['auth', 'verified'])->name('friends.accept');
 Route::get('/user/{id}', [FriendsController::class, 'showUser'])->middleware(['auth', 'verified'])->name('user.show');
 
-// viss ar admin
+// ADMIN ROUTES
 Route::prefix('admin/Manage/wagers')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
     Route::get('/edit/{id}', [AdminController::class, 'editWager'])->name('admin.Manage.wagers.edit');
     Route::put('/{id}', [AdminController::class, 'updateWager'])->name('admin.Manage.wagers.update');
@@ -55,7 +63,8 @@ Route::prefix('admin/Manage/users')->middleware(['auth', 'verified', AdminMiddle
     Route::delete('/{id}', [AdminController::class, 'deleteUser'])->name('admin.Manage.users.destroy');
     Route::get('/{id}', [AdminController::class, 'showUser'])->name('admin.Manage.users.show');
 });
-Route::get('/admin', [AdminController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
 
+Route::get('/admin', [AdminController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
 Route::get('/statistics', [AdminController::class, 'statistics'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('statistics');
+
 require __DIR__ . '/auth.php';

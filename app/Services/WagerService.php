@@ -17,47 +17,13 @@ class WagerService
     public function getValidationRules(): array
     {
         return [
-            'name'        => [
-                'required',
-                'string',
-                'min:3',
-                'max:255',
-                'regex:/^[a-zA-Z0-9\s\-_.,!?]+$/',
-            ],
-            'description' => [
-                'nullable',
-                'string',
-                'max:1000',
-            ],
-            'max_players' => [
-                'required',
-                'integer',
-                'min:2',
-                'max:100',
-            ],
-            'visibility'  => [
-                'required',
-                'in:public,private',
-            ],
-            'ending_time' => [
-                'required',
-                'date',
-                'after:' . now()->addHour()->format('Y-m-d H:i:s'),
-                'before:' . now()->addYear()->format('Y-m-d H:i:s'),
-            ],
-            'choices'     => [
-                'required',
-                'array',
-                'min:1',
-                'max:10',
-            ],
-            'choices.*'   => [
-                'required',
-                'string',
-                'min:1',
-                'max:255',
-                'distinct', // nav vienādas izvēles
-            ],
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'max_players' => 'required|integer|min:2|max:100',
+            'ending_time' => 'required|date|after:now',
+            'status'      => 'required|in:public,private',
+            'choices'     => 'required|array|min:2|max:10',
+            'choices.*'   => 'required|string|max:255|distinct',
         ];
     }
 
@@ -112,7 +78,7 @@ class WagerService
      */
     public function validateWagerData(array $validated): void
     {
-        // Validate ending time more thoroughly
+
         $endTime = Carbon::parse($validated['ending_time']);
         $now     = now();
 
@@ -124,7 +90,6 @@ class WagerService
             throw new Exception('Wager cannot be scheduled more than 1 year in advance.', 422);
         }
 
-        // Validate choices for appropriate content and uniqueness
         $choices = collect($validated['choices'])
             ->map(fn($choice) => trim($choice))
             ->filter(fn($choice) => ! empty($choice));
@@ -206,9 +171,6 @@ class WagerService
         }
     }
 
-    /**
-     * Update an existing wager
-     */
     public function updateWager(Wager $wager, array $validated): Wager
     {
         DB::beginTransaction();

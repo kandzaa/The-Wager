@@ -1,8 +1,7 @@
 <x-app-layout>
-    <div
+    <div x-data="{ showModal: false }"
         class="min-h-screen bg-gradient-to-br from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors">
-        <div class="container mx-auto px-4 py-10" x-data="{ showModal: false }"
-            x-effect="document.body.classList.toggle('overflow-hidden', showModal)">
+        <div class="container mx-auto px-4 py-10" x-effect="document.body.classList.toggle('overflow-hidden', showModal)">
 
             <div class="flex items-center justify-between mb-8">
                 <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Wagers Lobby</h1>
@@ -12,8 +11,8 @@
                 </button>
             </div>
 
-            <div x-show="showModal">
-                @include('wagers.create_wager', ['friends' => $friends ?? collect()])
+            <div x-show="showModal" @close-create-wager-modal.window="showModal = false">
+                @include('wagers.create_wager')
             </div>
 
             @include('wagers.wager-search')

@@ -4,125 +4,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wager Form with Real-time Validation</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ionicons/7.1.0/ionicons/ionicons.esm.js" type="module"></script>
-    <script nomodule src="https://cdnjs.cloudflare.com/ajax/libs/ionicons/7.1.0/ionicons/ionicons.js"></script>
+    <title>Create Wager Form</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .error-shake {
-            animation: shake 0.5s ease-in-out;
-        }
-
-        @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            25% {
-                transform: translateX(-5px);
-            }
-
-            75% {
-                transform: translateX(5px);
-            }
-        }
-
-        .success-pulse {
-            animation: pulse-green 0.5s ease-in-out;
-        }
-
-        @keyframes pulse-green {
-            0% {
-                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-            }
-
-            70% {
-                box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-            }
-        }
-    </style>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body class="bg-gray-100 dark:bg-slate-950">
 
-    <div x-data="wagerFormHandler()" class="fixed inset-0 z-50">
-        <!-- Backdrop -->
-        <div class="fixed inset-0 backdrop-blur-sm bg-slate-950/50" @click="showModal = false"></div>
+    <div x-data="createWagerForm()" class="fixed inset-0 z-50" x-show="showModal">
+
+        <div class="fixed inset-0 backdrop-blur-sm bg-slate-950/50" @click="closeModal()"></div>
 
         <div class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex min-h-full items-center justify-center text-center sm:p-0">
-                <div
-                    class="relative transform overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-900 text-left shadow-2xl transition-all sm:w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto ring-1 ring-slate-300 dark:ring-slate-700 backdrop-blur-sm">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <divd
+                    class="relative transform overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-900 text-left shadow-2xl transition-all sm:w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto ring-1 ring-slate-300 dark:ring-slate-700">
 
-                    <div class="bg-slate-50 dark:bg-slate-900 px-4 sm:pb-4">
-                        <!-- Global Error Display -->
+                    <div class="bg-slate-50 dark:bg-slate-900 px-6 pt-6 pb-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Create New Wager
+                                </h3>
+                                <div x-show="isSubmitting" class="flex items-center">
+                                    <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-emerald-500"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                        </path>
+                                    </svg>
+                                    <span class="text-sm text-slate-500 dark:text-slate-400">Creating...</span>
+                                </div>
+                            </div>
+                            <button @click="closeModal()"
+                                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                                :disabled="isSubmitting">
+                                <ion-icon name="close" class="w-6 h-6"></ion-icon>
+                            </button>
+                        </div>
+
                         <div x-show="globalError" x-text="globalError"
-                            class="bg-rose-100 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-400 px-4 py-3 rounded-lg relative mb-4 mt-4"
-                            role="alert">
+                            class="mx-6 bg-rose-100 dark:bg-rose-900/30 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-400 px-4 py-3 rounded-lg relative mb-4"
+                            role="alert" x-transition>
                         </div>
 
-                        <!-- Success Message -->
                         <div x-show="successMessage" x-text="successMessage"
-                            class="bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 px-4 py-3 rounded-lg relative mb-4 mt-4"
-                            role="alert">
+                            class="mx-6 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 px-4 py-3 rounded-lg relative mb-4"
+                            role="alert" x-transition>
                         </div>
 
-                        <form @submit.prevent="submitForm" class="mt-4">
+                        <form @submit.prevent="submitForm" class="px-6 pb-4">
                             <div class="space-y-6">
 
-                                <!-- Theme/Name Field -->
                                 <div>
-                                    <label
-                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Theme
-                                        *</label>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Theme *
+                                    </label>
                                     <input type="text" x-model="form.name" @input="validateField('name')"
-                                        @blur="validateField('name')" :class="getFieldClass('name')"
-                                        placeholder="Enter wager theme"
-                                        class="p-3 mt-1 block w-full rounded-lg border transition-all duration-200 text-sm">
+                                        :class="getFieldClass('name')" placeholder="Enter wager theme"
+                                        class="p-3 block w-full rounded-lg border transition-all duration-200 text-sm"
+                                        maxlength="255">
                                     <div x-show="errors.name" x-text="errors.name"
-                                        class="text-rose-600 dark:text-rose-400 text-xs mt-1"></div>
+                                        class="text-rose-600 dark:text-rose-400 text-xs mt-1" x-transition>
+                                    </div>
                                     <div class="text-xs text-slate-500 mt-1">
                                         <span x-text="form.name.length"></span>/255 characters
                                     </div>
                                 </div>
 
-                                <!-- Description Field -->
                                 <div>
-                                    <label
-                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
-                                    <textarea x-model="form.description" @input="validateField('description')" @blur="validateField('description')"
-                                        :class="getFieldClass('description')" placeholder="Optional description" rows="3"
-                                        class="p-3 mt-1 block w-full rounded-lg border transition-all duration-200 text-sm resize-none"></textarea>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Description
+                                    </label>
+                                    <textarea x-model="form.description" @input="validateField('description')" :class="getFieldClass('description')"
+                                        placeholder="Optional description" rows="3" maxlength="1000"
+                                        class="p-3 block w-full rounded-lg border transition-all duration-200 text-sm resize-none">
+                            </textarea>
                                     <div x-show="errors.description" x-text="errors.description"
-                                        class="text-rose-600 dark:text-rose-400 text-xs mt-1"></div>
+                                        class="text-rose-600 dark:text-rose-400 text-xs mt-1" x-transition>
+                                    </div>
                                     <div class="text-xs text-slate-500 mt-1">
                                         <span x-text="form.description.length"></span>/1000 characters
                                     </div>
                                 </div>
 
-                                <!-- Max Players Field -->
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label
-                                            class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Max
-                                            Players *</label>
+                                            class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                            Max Players *
+                                        </label>
                                         <input type="number" x-model.number="form.max_players"
-                                            @input="validateField('max_players')" @blur="validateField('max_players')"
-                                            :class="getFieldClass('max_players')" placeholder="Min: 2, Max: 100"
-                                            min="2" max="100"
-                                            class="p-3 mt-1 block w-full rounded-lg border transition-all duration-200 text-sm">
+                                            @input="validateField('max_players')" :class="getFieldClass('max_players')"
+                                            placeholder="Min: 2, Max: 100" min="2" max="100"
+                                            class="p-3 block w-full rounded-lg border transition-all duration-200 text-sm">
                                         <div x-show="errors.max_players" x-text="errors.max_players"
-                                            class="text-rose-600 dark:text-rose-400 text-xs mt-1"></div>
+                                            class="text-rose-600 dark:text-rose-400 text-xs mt-1" x-transition>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Visibility Toggle -->
                                 <div
                                     class="flex items-center justify-between p-4 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
                                     <div class="flex items-center gap-3">
@@ -130,30 +115,30 @@
                                             class="text-sm font-medium text-slate-700 dark:text-slate-300">Visibility:</span>
                                         <div class="flex items-center gap-3">
                                             <div class="flex items-center gap-2">
-                                                <ion-icon name="lock-open" class="size-5 mr-2"></ion-icon>
+                                                <ion-icon name="lock-open" class="w-5 h-5"></ion-icon>
                                                 <span
-                                                    :class="!form.isPrivate ?
+                                                    :class="form.status === 'public' ?
                                                         'font-medium text-emerald-600 dark:text-emerald-400' :
                                                         'text-slate-400'"
                                                     class="text-sm transition-colors duration-200">Public</span>
                                             </div>
 
-                                            <button
-                                                @click="form.isPrivate = !form.isPrivate; validateField('visibility')"
-                                                type="button"
+                                            <button @click="toggleVisibility()" type="button"
                                                 class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                                                :class="form.isPrivate ? 'bg-rose-200 dark:bg-rose-800' :
+                                                :class="form.status === 'private' ? 'bg-rose-200 dark:bg-rose-800' :
                                                     'bg-emerald-200 dark:bg-emerald-800'">
                                                 <span class="sr-only">Toggle lobby visibility</span>
                                                 <span aria-hidden="true"
                                                     class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                                                    :class="form.isPrivate ? 'translate-x-5' : 'translate-x-0'"></span>
+                                                    :class="form.status === 'private' ? 'translate-x-5' : 'translate-x-0'">
+                                                </span>
                                             </button>
 
                                             <div class="flex items-center gap-2">
-                                                <ion-icon name="lock-closed"></ion-icon>
+                                                <ion-icon name="lock-closed" class="w-5 h-5"></ion-icon>
                                                 <span
-                                                    :class="form.isPrivate ? 'font-medium text-rose-600 dark:text-rose-400' :
+                                                    :class="form.status === 'private' ?
+                                                        'font-medium text-rose-600 dark:text-rose-400' :
                                                         'text-slate-400'"
                                                     class="text-sm transition-colors duration-200">Private</span>
                                             </div>
@@ -161,27 +146,26 @@
                                     </div>
                                 </div>
 
-                                <!-- Choices Section -->
                                 <div class="space-y-3">
                                     <div class="flex items-center justify-between">
-                                        <label
-                                            class="block text-sm font-medium text-slate-700 dark:text-slate-300">Choices
-                                            *</label>
+                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            Choices *
+                                        </label>
                                         <span class="text-xs text-slate-500">
-                                            <span x-text="form.choices.filter(c => c.trim()).length"></span> choices
+                                            <span x-text="getValidChoices().length"></span> choices
                                         </span>
                                     </div>
 
-                                    <div class="grid grid-cols-2 gap-3">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <template x-for="(choice, index) in form.choices" :key="index">
                                             <div class="flex items-center gap-2">
                                                 <input type="text" x-model="form.choices[index]"
-                                                    @input="validateField('choices')" @blur="validateField('choices')"
+                                                    @input="validateField('choices')"
                                                     :class="getChoiceFieldClass(index)"
                                                     :placeholder="'Choice ' + (index + 1)" maxlength="255"
                                                     class="p-3 block w-full rounded-lg border transition-all duration-200 text-sm">
                                                 <button type="button" @click="removeChoice(index)"
-                                                    x-show="form.choices.length > 1"
+                                                    x-show="form.choices.length > 2"
                                                     class="px-2 py-2 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-700 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-sm">
                                                     ×
                                                 </button>
@@ -198,89 +182,55 @@
                                     </div>
 
                                     <div x-show="errors.choices" x-text="errors.choices"
-                                        class="text-rose-600 dark:text-rose-400 text-xs"></div>
+                                        class="text-rose-600 dark:text-rose-400 text-xs" x-transition>
+                                    </div>
                                 </div>
 
-                                <!-- End Time Field -->
-                                <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">End
-                                        Time *</label>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        End Time *
+                                    </label>
                                     <input type="datetime-local" x-model="form.ending_time"
-                                        @input="validateField('ending_time')" @blur="validateField('ending_time')"
-                                        :class="getFieldClass('ending_time')" :min="minDateTime"
-                                        class="p-3 mt-1 block w-full rounded-lg border transition-all duration-200 text-sm">
+                                        @input="validateField('ending_time')" :class="getFieldClass('ending_time')"
+                                        :min="getMinDateTime()"
+                                        class="p-3 block w-full rounded-lg border transition-all duration-200 text-sm">
                                     <div x-show="errors.ending_time" x-text="errors.ending_time"
-                                        class="text-rose-600 dark:text-rose-400 text-xs mt-1"></div>
-                                    <div x-show="form.ending_time" class="text-xs text-slate-500 mt-1">
-                                        Ends <span x-text="getTimeUntilEnd()"></span>
+                                        class="text-rose-600 dark:text-rose-400 text-xs mt-1" x-transition>
                                     </div>
                                 </div>
 
-                                <!-- Form Validation Summary -->
-                                <div x-show="!isFormValid()"
-                                    class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                                    <div class="flex items-start gap-2">
-                                        <ion-icon name="warning-outline"
-                                            class="text-amber-600 dark:text-amber-400 mt-0.5"></ion-icon>
-                                        <div class="text-sm text-amber-700 dark:text-amber-300">
-                                            <div class="font-medium mb-1">Please fix the following issues:</div>
-                                            <ul class="list-disc list-inside space-y-1 text-xs">
-                                                <li x-show="!form.name.trim()">Theme is required</li>
-                                                <li x-show="form.name.length > 255">Theme is too long</li>
-                                                <li x-show="form.description.length > 1000">Description is too long
-                                                </li>
-                                                <li
-                                                    x-show="!form.max_players || form.max_players < 2 || form.max_players > 100">
-                                                    Max players must be between 2-100</li>
-                                                <li x-show="!form.ending_time">End time is required</li>
-                                                <li
-                                                    x-show="form.ending_time && new Date(form.ending_time) <= new Date()">
-                                                    End time must be in the future</li>
-                                                <li x-show="form.choices.filter(c => c.trim()).length < 1">At least one
-                                                    choice is required</li>
-                                                <li x-show="hasDuplicateChoices()">Duplicate choices are not allowed
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
-                    </div>
 
-                    <!-- Form Actions -->
-                    <div
-                        class="bg-slate-100 dark:bg-slate-800 px-4 py-4 sm:flex sm:flex-row-reverse sm:px-6 border-t border-slate-300 dark:border-slate-700">
-                        <button type="submit" :disabled="isSubmitting || !isFormValid()"
-                            :class="isSubmitting ? 'opacity-50 cursor-not-allowed' : ''"
-                            class="inline-flex items-center w-full justify-center rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-400 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors sm:ml-3 sm:w-auto">
-                            <span x-show="!isSubmitting" x-text="editId ? 'Save Changes' : 'Create Wager'"></span>
-                            <span x-show="isSubmitting" class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                    </path>
-                                </svg>
-                                Submitting...
-                            </span>
-                        </button>
+                            <div
+                                class="bg-slate-100 dark:bg-slate-800 px-4 py-4 sm:flex sm:flex-row-reverse sm:px-6 -mx-6 mt-6">
+                                <button type="submit" :disabled="isSubmitting || !isFormValid()"
+                                    :class="isFormValid() && !isSubmitting ?
+                                        'bg-emerald-600 hover:bg-emerald-500 text-white' :
+                                        'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'"
+                                    class="inline-flex w-full justify-center rounded-lg px-4 py-3 text-sm font-semibold shadow-sm transition-all duration-200 sm:ml-3 sm:w-auto">
+                                    <span x-show="!isSubmitting">Create Wager</span>
+                                    <span x-show="isSubmitting" class="flex items-center gap-2">
+                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        Creating...
+                                    </span>
+                                </button>
+                                <button type="button" @click="closeModal()" :disabled="isSubmitting"
+                                    class="mt-3 inline-flex w-full justify-center rounded-lg bg-slate-200 dark:bg-slate-700 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors duration-200 sm:mt-0 sm:w-auto">
+                                    Cancel
+                                </button>
+                            </div>
                         </form>
-                        <button type="button" @click="showModal = false" :disabled="isSubmitting"
-                            class="mt-3 inline-flex w-full justify-center rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100 shadow-sm transition-colors sm:mt-0 sm:w-auto">
-                            Cancel
-                        </button>
+
                     </div>
-                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function wagerFormHandler() {
+        function createWagerForm() {
             return {
+                isSubmitting: false,
                 showModal: true,
-                editId: null,
                 isSubmitting: false,
                 globalError: '',
                 successMessage: '',
@@ -289,135 +239,107 @@
                     name: '',
                     description: '',
                     max_players: 2,
-                    isPrivate: false,
-                    choices: ['', ''],
-                    ending_time: ''
+                    status: 'public',
+                    ending_time: '',
+                    choices: ['', '']
                 },
 
-                errors: {},
+                errors: {
+                    name: '',
+                    description: '',
+                    max_players: '',
+                    ending_time: '',
+                    choices: ''
+                },
 
                 init() {
-                    // Set minimum datetime to current time + 1 hour
                     const now = new Date();
                     now.setHours(now.getHours() + 1);
-                    this.minDateTime = now.toISOString().slice(0, 16);
-
-                    // Set default end time to 24 hours from now
-                    const defaultEnd = new Date();
-                    defaultEnd.setHours(defaultEnd.getHours() + 24);
-                    this.form.ending_time = defaultEnd.toISOString().slice(0, 16);
+                    this.form.ending_time = now.toISOString().slice(0, 16);
                 },
 
-                validateField(fieldName) {
-                    this.errors[fieldName] = '';
+                validateField(field) {
+                    this.errors[field] = '';
 
-                    switch (fieldName) {
+                    switch (field) {
                         case 'name':
                             if (!this.form.name.trim()) {
                                 this.errors.name = 'Theme is required';
                             } else if (this.form.name.length > 255) {
-                                this.errors.name = 'Theme cannot exceed 255 characters';
+                                this.errors.name = 'Theme must be less than 255 characters';
                             }
                             break;
 
                         case 'description':
-                            if (this.form.description.length > 1000) {
-                                this.errors.description = 'Description cannot exceed 1000 characters';
+                            if (this.form.description && this.form.description.length > 1000) {
+                                this.errors.description = 'Description must be less than 1000 characters';
                             }
                             break;
 
                         case 'max_players':
-                            if (!this.form.max_players) {
-                                this.errors.max_players = 'Max players is required';
-                            } else if (this.form.max_players < 2) {
-                                this.errors.max_players = 'Minimum 2 players required';
-                            } else if (this.form.max_players > 100) {
-                                this.errors.max_players = 'Maximum 100 players allowed';
+                            if (!this.form.max_players || this.form.max_players < 2 || this.form.max_players > 100) {
+                                this.errors.max_players = 'Max players must be between 2 and 100';
                             }
                             break;
 
                         case 'ending_time':
                             if (!this.form.ending_time) {
                                 this.errors.ending_time = 'End time is required';
-                            } else {
-                                const endTime = new Date(this.form.ending_time);
-                                const now = new Date();
-                                if (endTime <= now) {
-                                    this.errors.ending_time = 'End time must be in the future';
-                                } else if (endTime.getTime() - now.getTime() < 3600000) { // 1 hour
-                                    this.errors.ending_time = 'End time must be at least 1 hour from now';
-                                }
+                            } else if (new Date(this.form.ending_time) <= new Date()) {
+                                this.errors.ending_time = 'Wager has to end and hour from now or more';
                             }
                             break;
 
                         case 'choices':
-                            const validChoices = this.form.choices.filter(c => c.trim());
-                            if (validChoices.length < 1) {
-                                this.errors.choices = 'At least one choice is required';
+                            const validChoices = this.getValidChoices();
+                            if (validChoices.length < 2) {
+                                this.errors.choices = 'At least 2 valid choices are required';
                             } else if (this.hasDuplicateChoices()) {
                                 this.errors.choices = 'Duplicate choices are not allowed';
-                            } else if (validChoices.some(c => c.length > 255)) {
-                                this.errors.choices = 'Each choice cannot exceed 255 characters';
                             }
                             break;
                     }
                 },
 
-                getFieldClass(fieldName) {
-                    const baseClass =
-                        'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 shadow-sm focus:ring-emerald-500 transition-all duration-200';
-
-                    if (this.errors[fieldName]) {
-                        return baseClass + ' border-rose-500 focus:border-rose-500 error-shake';
-                    } else if (this.isFieldValid(fieldName)) {
-                        return baseClass + ' border-emerald-500 focus:border-emerald-500 success-pulse';
-                    }
-                    return baseClass + ' focus:border-emerald-500';
-                },
-
-                getChoiceFieldClass(index) {
-                    const baseClass =
-                        'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 shadow-sm focus:ring-emerald-500 transition-all duration-200';
-
-                    if (this.errors.choices) {
-                        return baseClass + ' border-rose-500 focus:border-rose-500';
-                    }
-                    return baseClass + ' focus:border-emerald-500';
-                },
-
-                isFieldValid(fieldName) {
-                    switch (fieldName) {
-                        case 'name':
-                            return this.form.name.trim() && this.form.name.length <= 255;
-                        case 'description':
-                            return this.form.description.length <= 1000;
-                        case 'max_players':
-                            return this.form.max_players >= 2 && this.form.max_players <= 100;
-                        case 'ending_time':
-                            if (!this.form.ending_time) return false;
-                            const endTime = new Date(this.form.ending_time);
-                            const now = new Date();
-                            return endTime > now && (endTime.getTime() - now.getTime()) >= 3600000;
-                        case 'choices':
-                            const validChoices = this.form.choices.filter(c => c.trim());
-                            return validChoices.length >= 1 && !this.hasDuplicateChoices();
-                        default:
-                            return true;
-                    }
+                getValidChoices() {
+                    return this.form.choices.filter(choice => choice.trim() !== '');
                 },
 
                 hasDuplicateChoices() {
-                    const validChoices = this.form.choices.filter(c => c.trim());
-                    const uniqueChoices = [...new Set(validChoices.map(c => c.trim().toLowerCase()))];
-                    return validChoices.length !== uniqueChoices.length;
+                    const validChoices = this.getValidChoices();
+                    const unique = [...new Set(validChoices.map(c => c.trim().toLowerCase()))];
+                    return validChoices.length !== unique.length;
                 },
 
-                isFormValid() {
-                    return this.isFieldValid('name') &&
-                        this.isFieldValid('description') &&
-                        this.isFieldValid('max_players') &&
-                        this.isFieldValid('ending_time') &&
-                        this.isFieldValid('choices');
+                getFieldClass(field) {
+                    const baseClass = "p-3 block w-full rounded-lg border transition-all duration-200 text-sm";
+                    const errorClass =
+                        "border-rose-300 dark:border-rose-600 bg-rose-50 dark:bg-rose-900/20 text-slate-900 dark:text-slate-100";
+                    const validClass =
+                        "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500";
+
+                    if (this.errors[field]) {
+                        return `${baseClass} ${errorClass}`;
+                    }
+                    return `${baseClass} ${validClass}`;
+                },
+
+                getChoiceFieldClass(index) {
+                    const baseClass = "p-3 block w-full rounded-lg border transition-all duration-200 text-sm";
+                    const errorClass =
+                        "border-rose-300 dark:border-rose-600 bg-rose-50 dark:bg-rose-900/20 text-slate-900 dark:text-slate-100";
+                    const validClass =
+                        "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500";
+
+                    const choiceValue = this.form.choices[index];
+                    if (this.errors.choices && (!choiceValue || choiceValue.trim() === '')) {
+                        return `${baseClass} ${errorClass}`;
+                    }
+                    return `${baseClass} ${validClass}`;
+                },
+
+                toggleVisibility() {
+                    this.form.status = this.form.status === 'public' ? 'private' : 'public';
                 },
 
                 addChoice() {
@@ -427,37 +349,41 @@
                 },
 
                 removeChoice(index) {
-                    if (this.form.choices.length > 1) {
+                    if (this.form.choices.length > 2) {
                         this.form.choices.splice(index, 1);
-                        this.validateField('choices');
                     }
                 },
 
-                getTimeUntilEnd() {
-                    if (!this.form.ending_time) return '';
-                    const endTime = new Date(this.form.ending_time);
+                getMinDateTime() {
                     const now = new Date();
-                    const diff = endTime.getTime() - now.getTime();
+                    return now.toISOString().slice(0, 16);
+                },
 
-                    if (diff <= 0) return 'in the past';
+                isFormValid() {
+                    console.log('Form validation check:', {
+                        name: this.form.name,
+                        name_valid: !!this.form.name.trim(),
+                        ending_time: this.form.ending_time,
+                        ending_time_valid: !!this.form.ending_time,
+                        max_players: this.form.max_players,
+                        max_players_valid: this.form.max_players >= 2 && this.form.max_players <= 100,
+                        choices: this.getValidChoices(),
+                        choices_valid: this.getValidChoices().length >= 2,
+                        duplicates: this.hasDuplicateChoices()
+                    });
 
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-                    if (days > 0) return `in ${days} days, ${hours} hours`;
-                    if (hours > 0) return `in ${hours} hours, ${minutes} minutes`;
-                    return `in ${minutes} minutes`;
+                    return true;
                 },
 
                 async submitForm() {
                     this.globalError = '';
                     this.successMessage = '';
 
-                    // Validate all fields
-                    ['name', 'description', 'max_players', 'ending_time', 'choices'].forEach(field => {
-                        this.validateField(field);
-                    });
+                    this.validateField('name');
+                    this.validateField('description');
+                    this.validateField('max_players');
+                    this.validateField('ending_time');
+                    this.validateField('choices');
 
                     if (!this.isFormValid()) {
                         this.globalError = 'Please fix all validation errors before submitting.';
@@ -467,57 +393,100 @@
                     this.isSubmitting = true;
 
                     try {
-                        // Simulate API call
-                        await this.simulateApiCall();
+                        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-                        this.successMessage = 'Wager created successfully!';
+                        const formData = new FormData();
+                        formData.append('_token', token);
+                        formData.append('name', this.form.name.trim());
+                        formData.append('description', this.form.description.trim());
+                        formData.append('max_players', this.form.max_players);
+                        formData.append('status', this.form.status);
+                        formData.append('ending_time', this.form.ending_time);
 
-                        // Reset form after success
-                        setTimeout(() => {
-                            this.resetForm();
-                        }, 2000);
+                        const validChoices = this.getValidChoices();
+                        validChoices.forEach((choice, index) => {
+                            formData.append(`choices[${index}]`, choice.trim());
+                        });
+
+                        console.log('Submitting form with data:', {
+                            name: this.form.name,
+                            description: this.form.description,
+                            max_players: this.form.max_players,
+                            status: this.form.status,
+                            ending_time: this.form.ending_time,
+                            choices: validChoices
+                        });
+
+                        const response = await fetch('/wagers', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const result = await response.json().catch(() => null);
+
+                        if (response.ok) {
+                            this.successMessage = 'Wager created successfully! Redirecting...';
+
+                            this.form = {
+                                name: '',
+                                description: '',
+                                max_players: 2,
+                                status: 'public',
+                                ending_time: '',
+                                choices: ['', '']
+                            };
+
+                            const now = new Date();
+                            now.setHours(now.getHours() + 1);
+                            this.form.ending_time = now.toISOString().slice(0, 16);
+
+                            if (typeof window !== 'undefined' && window.location) {
+                                setTimeout(() => {
+                                    window.location.href = '/wagers';
+                                }, 800);
+                            }
+
+                        } else {
+                            if (result && result.errors) {
+                                Object.keys(result.errors).forEach(field => {
+                                    this.errors[field] = result.errors[field][0];
+                                });
+                                this.globalError = 'Please fix the validation errors.';
+                            } else {
+                                this.globalError = result?.message || 'Failed to create wager. Please try again.';
+                            }
+                        }
 
                     } catch (error) {
-                        this.globalError = error.message || 'Failed to create wager. Please try again.';
+                        console.error('Error submitting form:', error);
+                        this.globalError = 'Network error. Please check your connection and try again.';
                     } finally {
                         this.isSubmitting = false;
                     }
                 },
 
-                async simulateApiCall() {
-                    // Simulate network delay
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-
-                    // Simulate potential server-side validation errors
-                    const random = Math.random();
-                    if (random < 0.1) { // 10% chance of server error
-                        throw new Error('Server validation failed: Theme already exists.');
-                    }
-                    if (random < 0.05) { // 5% chance of network error
-                        throw new Error('Network error. Please check your connection and try again.');
+                closeModal() {
+                    if (this.isSubmitting) {
+                        // Prevent closing the modal while submitting
+                        return;
                     }
 
-                    return {
-                        success: true
-                    };
-                },
-
-                resetForm() {
-                    this.form = {
-                        name: '',
-                        description: '',
-                        max_players: 2,
-                        isPrivate: false,
-                        choices: ['', ''],
-                        ending_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
-                    };
-                    this.errors = {};
                     this.globalError = '';
                     this.successMessage = '';
+                    this.showModal = false;
+
+                    if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('close-create-wager-modal'));
+                    }
                 }
             }
         }
     </script>
+
 </body>
 
 </html>

@@ -1,6 +1,6 @@
 <div class="rounded-xl p-5 shadow-sm bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 backdrop-blur transition transform duration-200 ease-out cursor-pointer group hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-500/50"
-    @click="window.location='{{ route('wager.show', ['id' => $wager->id]) }}'"
-    @keydown.enter.prevent="window.location='{{ route('wager.show', ['id' => $wager->id]) }}'" role="button"
+    @click="window.location='{{ route('wagers.show', ['id' => $wager->id]) }}'"
+    @keydown.enter.prevent="window.location='{{ route('wagers.show', ['id' => $wager->id]) }}'" role="button"
     tabindex="0">
     <div class="flex items-start justify-between">
         <div>
@@ -20,13 +20,12 @@
     <div class="mt-4 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
         <span>Max players: {{ $wager->max_players }}</span>
     </div>
-    {{-- Card is clickable; no separate Open button needed --}}
     <div class="mt-4 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
         <span>Ends {{ $wager->ending_time->diffForHumans() }}</span>
     </div>
     @if ($wager->creator_id == Auth::user()->id)
         <div class="mt-3 flex gap-2">
-            <form action="{{ route('wagers.destroy', $wager) }}" method="POST">
+            <form action="{{ route('wagers.destroy', $wager) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this wager?');">
                 @csrf
                 @method('DELETE')
                 <button type="submit" @click.stop
