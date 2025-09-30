@@ -27,9 +27,6 @@ class WagerService
         ];
     }
 
-    /**
-     * Get validation messages for wager creation/updating
-     */
     public function getValidationMessages(): array
     {
         return [
@@ -44,8 +41,6 @@ class WagerService
             'max_players.max'      => 'Maximum of 100 players allowed per wager.',
             'visibility.required'  => 'Wager visibility setting is required.',
             'visibility.in'        => 'Visibility must be either public or private.',
-            'ending_time.required' => 'An end time is required for your wager.',
-            'ending_time.date'     => 'Please provide a valid end date and time.',
             'ending_time.after'    => 'Wager must end at least 1 hour from now.',
             'ending_time.before'   => 'Wager cannot be scheduled more than 1 year in advance.',
             'choices.required'     => 'At least one choice is required for betting.',

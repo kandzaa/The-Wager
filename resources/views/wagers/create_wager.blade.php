@@ -1,26 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Wager Form</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-</head>
-
-<body class="bg-gray-100 dark:bg-slate-950">
-
     <div x-data="createWagerForm()" class="fixed inset-0 z-50" x-show="showModal">
 
         <div class="fixed inset-0 backdrop-blur-sm bg-slate-950/50" @click="closeModal()"></div>
 
         <div class="fixed inset-0 z-50 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4">
-                <divd
+                <diva
                     class="relative transform overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-900 text-left shadow-2xl transition-all sm:w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto ring-1 ring-slate-300 dark:ring-slate-700">
 
                     <div class="bg-slate-50 dark:bg-slate-900 px-6 pt-6 pb-4">
@@ -113,35 +97,23 @@
                                     <div class="flex items-center gap-3">
                                         <span
                                             class="text-sm font-medium text-slate-700 dark:text-slate-300">Visibility:</span>
-                                        <div class="flex items-center gap-3">
-                                            <div class="flex items-center gap-2">
-                                                <ion-icon name="lock-open" class="w-5 h-5"></ion-icon>
-                                                <span
-                                                    :class="form.status === 'public' ?
-                                                        'font-medium text-emerald-600 dark:text-emerald-400' :
-                                                        'text-slate-400'"
-                                                    class="text-sm transition-colors duration-200">Public</span>
-                                            </div>
-
-                                            <button @click="toggleVisibility()" type="button"
-                                                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                                                :class="form.status === 'private' ? 'bg-rose-200 dark:bg-rose-800' :
-                                                    'bg-emerald-200 dark:bg-emerald-800'">
-                                                <span class="sr-only">Toggle lobby visibility</span>
-                                                <span aria-hidden="true"
-                                                    class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                                                    :class="form.status === 'private' ? 'translate-x-5' : 'translate-x-0'">
-                                                </span>
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" @click="form.status = 'public'"
+                                                :class="form.status === 'public' ? 'h-8 bg-emerald-600 text-white mb-2' :
+                                                    'h-8 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300  mb-2'"
+                                                class="px-2 py-1 rounded-md text-xs font-medium transition-colors">
+                                                <ion-icon name="lock-open"
+                                                    class="inline w-3 h-3 mr-1 align-middle"></ion-icon>
+                                                Public
                                             </button>
-
-                                            <div class="flex items-center gap-2">
-                                                <ion-icon name="lock-closed" class="w-5 h-5"></ion-icon>
-                                                <span
-                                                    :class="form.status === 'private' ?
-                                                        'font-medium text-rose-600 dark:text-rose-400' :
-                                                        'text-slate-400'"
-                                                    class="text-sm transition-colors duration-200">Private</span>
-                                            </div>
+                                            <button type="button" @click="form.status = 'private'"
+                                                :class="form.status === 'private' ? 'h-8 bg-rose-600 text-white  mb-2' :
+                                                    'h-8 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300  mb-2'"
+                                                class="px-2 py-1 rounded-md text-xs font-medium transition-colors">
+                                                <ion-icon name="lock-closed"
+                                                    class="inline w-3 h-3 mr-1 align-middle"></ion-icon>
+                                                Private
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -486,7 +458,3 @@
             }
         }
     </script>
-
-</body>
-
-</html>

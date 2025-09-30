@@ -1,6 +1,6 @@
 <x-app-layout>
     <div
-        class="min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 transition-colors">
+        class="select-none min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 transition-colors">
         <div class="container mx-auto px-4 py-12 max-w-5xl">
 
             @if (session('success'))
@@ -47,7 +47,7 @@
                         <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div class="flex-1">
                                 <h1
-                                    class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r  from-slate-900 via-slate-700 to-slate-900 dark:from-slate-100 dark:via-slate-300 dark:to-slate-100 bg-clip-text text-transparent">
+                                    class="pb-4 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-slate-100 dark:via-slate-300 dark:to-slate-100 bg-clip-text text-transparent">
                                     {{ $wager->name }}
                                 </h1>
                                 <p
@@ -71,25 +71,21 @@
                         </div>
 
                         <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                            <!-- Ends -->
                             <div
                                 class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-slate-200/50 dark:border-slate-700/50 transition-all hover:shadow-sm">
                                 <div
                                     class="text-[10px] xs:text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                                    Ends
-                                </div>
+                                    Ends</div>
                                 <div class="mt-1 text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">
                                     {{ optional($wager->ending_time)?->diffForHumans() ?? 'N/A' }}
                                 </div>
                             </div>
 
-                            <!-- Status -->
                             <div
                                 class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-slate-200/50 dark:border-slate-700/50 transition-all hover:shadow-sm">
                                 <div
                                     class="text-[10px] xs:text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                                    Status
-                                </div>
+                                    Status</div>
                                 <div class="mt-1 flex items-center gap-2">
                                     <span
                                         class="w-2 h-2 rounded-full flex-shrink-0 {{ $wager->status === 'public' ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30' : 'bg-slate-400' }}"></span>
@@ -100,26 +96,23 @@
                                 </div>
                             </div>
 
-                            <!-- Max Players -->
                             <div
                                 class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-slate-200/50 dark:border-slate-700/50 transition-all hover:shadow-sm">
                                 <div
                                     class="text-[10px] xs:text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                                    Max Players
-                                </div>
+                                    Max Players</div>
                                 <div class="mt-1 text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">
                                     {{ $wager->max_players }}
                                 </div>
                             </div>
 
-                            <!-- Total Pot -->
                             <div
                                 class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-emerald-200/50 dark:border-emerald-700/50 transition-all hover:shadow-sm">
                                 <div
                                     class="text-[10px] xs:text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
-                                    Total Pot
-                                </div>
-                                <div class="mt-1 text-base sm:text-lg font-bold text-emerald-800 dark:text-emerald-200">
+                                    Total Pot</div>
+                                <div class="mt-1 text-base sm:text-lg font-bold text-emerald-800 dark:text-emerald-200"
+                                    id="pot-display">
                                     {{ number_format($wager->pot, 0) }}
                                 </div>
                             </div>
@@ -127,20 +120,14 @@
                     </div>
                 </div>
 
-
                 <div class="px-8 py-8 border-t border-slate-200/50 dark:border-slate-700/50">
-                    <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">Live Bet Distribution</h2>
-                    <div class="relative w-[300px] max-w-1xl mx-auto">
-                        <canvas id="wagerPieChart" class="w-full"></canvas>
+                    <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-6">Live Bet Distribution</h2>
+                    <div class="flex justify-center">
+                        <div class="w-full max-w-md">
+                            <canvas id="betChart" width="400" height="400"></canvas>
+                        </div>
                     </div>
                 </div>
-
-                @php
-                    $playersList = collect($wager->players ?? []);
-                    $isJoined = $playersList->contains(function ($p) {
-                        return is_array($p) && ($p['user_id'] ?? null) === Auth::id();
-                    });
-                @endphp
 
                 <div class="px-8 py-8">
                     @if (!$isJoined)
@@ -153,350 +140,357 @@
                             <form method="POST" action="{{ route('wagers.join', $wager) }}" class="mt-4 inline-block">
                                 @csrf
                                 <button type="submit"
-                                    class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm">
+                                    class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm transition-colors duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
                                     Join Wager
                                 </button>
                             </form>
                         </div>
                     @else
-                        <form method="POST" action="{{ route('wagers.bet', $wager) }}" class="space-y-8">
+                        <form method="POST" action="{{ route('wagers.bet', $wager) }}" class="space-y-8"
+                            id="bet-form">
                             @csrf
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+                            @if ($userBet && $userBet->choice_id)
+                                <div
+                                    class="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-900/20 p-6">
+                                    <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-200">Current Bet</h3>
+                                    <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                                        You've bet {{ number_format($userBet->bet_amount, 0) }} on this wager. You can
+                                        change your bet below.
+                                    </p>
+                                </div>
+                            @endif
 
                             <div class="space-y-4">
-                                <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     @foreach ($wager->choices as $choice)
-                                        <label
-                                            class="group relative flex items-center gap-4 p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 border-slate-200 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-slate-800/80">
-
-                                            <input type="radio" name="choice_id" value="{{ $choice->id }}"
-                                                class="sr-only peer" required>
-
-                                            <div
-                                                class="relative w-5 h-5 rounded-full border-2 border-slate-300 dark:border-slate-600 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-all duration-200 flex-shrink-0">
-                                                <div
-                                                    class="absolute inset-1 rounded-full bg-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200">
-                                                </div>
+                                        <div
+                                            class="bg-white/50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/50">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <h3 class="font-medium text-slate-900 dark:text-slate-100">
+                                                    {{ $choice->label }}</h3>
                                             </div>
 
-                                            <div class="flex-1 min-w-0">
-                                                <span
-                                                    class="block text-lg font-medium text-slate-900 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors duration-200">
-                                                    {{ $choice->label }}
-                                                </span>
+                                            <div class="space-y-2">
+                                                <input type="number" name="bets[{{ $loop->index }}][amount]"
+                                                    id="bet_{{ $choice->id }}"
+                                                    class="bet-input block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                    placeholder="Bet" min="0" step="1">
+                                                <input type="hidden" name="bets[{{ $loop->index }}][choice_id]"
+                                                    value="{{ $choice->id }}">
                                             </div>
-
-                                            <div
-                                                class="absolute inset-0 rounded-xl border-2 border-transparent peer-checked:border-emerald-500 peer-checked:shadow-lg peer-checked:shadow-emerald-500/20 transition-all duration-200">
-                                            </div>
-                                        </label>
+                                        </div>
                                     @endforeach
                                 </div>
-                                @error('choice_id')
-                                    <p class="mt-2 text-sm text-rose-600 font-medium">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div class="space-y-4">
-                                <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Place Your Bet</h2>
-                                <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4">
-                                    <div class="flex-1 max-w-xs">
-                                        <label for="amount"
-                                            class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            Amount (coins)
-                                        </label>
-                                        <div class="text-xs mb-2 text-slate-500 dark:text-slate-400">
-                                            Available balance: <span id="available-balance"
-                                                class="font-semibold text-slate-700 dark:text-slate-200">{{ number_format((int) (Auth::user()->balance ?? 0)) }}</span>
-                                        </div>
-                                        <div class="relative">
-                                            <input id="amount" name="amount" type="number" min="1"
-                                                step="1" required
-                                                class="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-4 py-3 text-slate-900 dark:text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-200 text-lg font-medium shadow-sm"
-                                                placeholder="Enter coins">
-                                            <div
-                                                class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                                                <svg class="w-5 h-5 text-slate-400" fill="none"
-                                                    stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
-                                                    </path>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        @error('amount')
-                                            <p class="mt-1 text-sm text-rose-600 font-medium">{{ $message }}</p>
-                                        @enderror
-                                    </div>
 
-                                    <button id="place-bet-btn" type="submit"
-                                        class="group relative inline-flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white text-lg font-semibold rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-500/30 transition-all duration-200 shadow-lg shadow-emerald-600/25 hover:shadow-xl hover:shadow-emerald-500/30 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                        </svg>
-                                        Place Bet
-                                        <div
-                                            class="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        </div>
+                                <div class="flex items-center gap-3">
+                                    <button type="submit" id="submit-btn"
+                                        class="flex-1 py-3 px-4 rounded-lg text-white font-medium transition-all duration-200 bg-emerald-600 hover:bg-emerald-700">
+                                        <span id="submit-text">Place Bet</span>
+                                        <span id="submit-spinner" class="hidden ml-2">
+                                            <svg class="animate-spin h-5 w-5 text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                        </span>
                                     </button>
-
                                 </div>
                             </div>
                         </form>
                     @endif
-
-
                 </div>
             </div>
         </div>
-
-    </div>
     </div>
 
-    <!-- Ievieto Chart.js bibliotēku, kas tiek izmantota diagrammu zīmēšanai -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // DOMContentLoaded laikā izpildīts kods 
-        document.addEventListener('DOMContentLoaded', () => {
-            const ctx = document.getElementById('wagerPieChart');
-            if (!ctx) return;
+        // Global variables
+        let betChart = null;
+        let userBalance = {{ auth()->user()->balance }};
 
-            // Gaišās tēmas krāsas priekš sektoru diagrammas
-            const lightThemeColors = [
-                '#1f77b4', // blue
-                '#ff7f0e', // orange
-                '#2ca02c', // green
-                '#d62728', // red
-                '#9467bd', // purple
-                '#8c564b', // brown
-                '#e377c2', // pink
-                '#17becf' // cyan
-            ];
+        @php
+            $chartData = $wager->choices
+                ->map(function ($choice) {
+                    return [
+                        'id' => $choice->id,
+                        'label' => $choice->label,
+                        'total_bet' => $choice->total_bet,
+                    ];
+                })
+                ->toArray();
+        @endphp
 
-            // Tumšās tēmas krāsas priekš sektoru diagrammas
-            const darkThemeColors = [
-                '#4CC9F0', // sky blue
-                '#F72585', // magenta
-                '#43AA8B', // teal/green
-                '#F9C74F', // yellow
-                '#577590', // desaturated blue
-                '#90BE6D', // light green
-                '#FAA307', // amber
-                '#E07A5F' // coral
-            ];
+        let initialData = @json($chartData);
 
-            // Funkcija kas atgriež tēmas krāsas
-            const getThemeColors = (isDarkTheme) => {
-                return isDarkTheme ? darkThemeColors : lightThemeColors;
-            };
+        // Create or update the pie chart
+        function renderChart(data) {
+            const canvas = document.getElementById('betChart');
+            if (!canvas) return;
 
-            const cssVariables = `
-:root {
-  --color-1: #059669;
-  --color-2: #2563EB;
-  --color-3: #D97706;
-  --color-4: #DC2626;
-  --color-5: #7C3AED;
-  --color-6: #0891B2;
-  --color-7: #65A30D;
-  --color-8: #DB2777;
-}
+            // Prepare chart data
+            let labels = data.map(d => d.label);
+            let values = data.map(d => parseFloat(d.total_bet) || 0);
 
-[data-theme="dark"] {
-  --color-1: #34D399;
-  --color-2: #60A5FA;
-  --color-3: #FBBF24;
-  --color-4: #F87171;
-  --color-5: #A78BFA;
-  --color-6: #22D3EE;
-  --color-7: #A3E635;
-  --color-8: #F472B6;
-}
-`;
-            // Pārbauda vai lietotājs izmanto tumšo tēmu
-            const isDarkTheme = () => document.documentElement.classList.contains('dark') || document
-                .documentElement.getAttribute('data-theme') === 'dark';
+            const totalBets = values.reduce((a, b) => a + b, 0);
 
-            // Iegūst krāsu paleti atkarībā no tēmas (tumšās/gaisas)
-            let bgColors = getThemeColors(isDarkTheme());
-            // Izveido tādu pašu krāsu masivu apmales krāsām
-            let borderColors = bgColors.map(c => c);
-
-            try {
-                const styleId = 'wager-chart-theme-vars';
-                if (!document.getElementById(styleId)) {
-                    const styleEl = document.createElement('style');
-                    styleEl.id = styleId;
-                    styleEl.textContent = cssVariables;
-                    document.head.appendChild(styleEl);
-                }
-            } catch (_) {}
-
-            let chart;
-
-            // Funkcija, kas iegūst datus par derībām no servera
-            async function fetchStats() {
-                try {
-                    // Nosūta pieprasījumu, lai iegūtu datus
-                    const res = await fetch("{{ route('wagers.stats', ['wager' => $wager->id]) }}", {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    if (!res.ok) throw new Error('Neizdevās ielādēt statistiku');
-                    return await res.json(); // Atgriež datus JSON formātā
-                } catch (e) {
-                    // Atgriež tukšus datus, ja radusies kļūda
-                    return {
-                        labels: [],
-                        data: [],
-                        pot: 0
-                    };
-                }
+            // Show placeholder if no bets
+            if (totalBets === 0) {
+                labels = ['No bets yet'];
+                values = [1];
             }
 
-            // Nav parādīta pilna koda implementācija
-            // Inicializē un parāda diagrammu ar norādītajiem datiem
-            function initChart(labels, data) {
-                // Izveido jaunu diagrammas (pie chart) instanci
-                chart = new Chart(ctx, {
-                    type: 'pie', // Norāda diagrammas tipu - sektora diagramma
-                    data: {
-                        labels,
-                        datasets: [{
-                            data,
-                            // Pielieto krāsas no masīva, cikliski atkārtojot tās, ja nepieciešams
-                            backgroundColor: labels.map((_, i) => bgColors[i % bgColors.length]),
-                            // Tās pašas krāsas tiek izmantotas apmalēm
-                            borderColor: labels.map((_, i) => borderColors[i % borderColors
-                                .length]),
-                            borderWidth: 2, // Apmales platums pikseļos
-                            hoverOffset: 6, // Cik tālu izvirzīt daļu, kad uz tās novieto kursoru
-                        }]
-                    },
-                    // Diagrammas konfigurācijas opcijas
-                    options: {
-                        responsive: true, // Diagramma automātiski pielāgojas izmēram
-                        maintainAspectRatio: false, // Neuztur malu attiecību
-                        animation: false, // Atspējo animācijas veiktspējas labad
-                        animations: {
-                            colors: false, // Atspējo krāsu animācijas
-                            x: false, // Atspējo x ass animācijas
-                            y: false, // Atspējo y ass animācijas
-                            radius: {
-                                duration: 0 // Atspējo rādiusa animācijas
-                            },
+            // Destroy old chart
+            if (betChart) {
+                betChart.destroy();
+            }
+
+            // Create new chart
+            betChart = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: totalBets === 0 ? ['#E5E7EB'] : [
+                            '#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6',
+                            '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280'
+                        ],
+                        borderWidth: 2,
+                        borderColor: ''
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
                         },
-                        transitions: {
-                            active: {
-                                animation: {
-                                    duration: 0 // Atspējo pāreju animācijas
-                                }
-                            },
-                        },
-                        plugins: {
-                            // Leģendas konfigurācija
-                            legend: {
-                                position: 'bottom', // Novieto leģendu zem diagrammas
-                                labels: {
-                                    // Izmanto pielāgotu krāsu no CSS mainīgajiem vai noklusējuma krāsu
-                                    color: getComputedStyle(document.documentElement).getPropertyValue(
-                                        '--tw-prose-body') || '#475569'
-                                }
-                            },
-                            // Uzvedņu (tooltip) konfigurācija
-                            tooltip: {
-                                callbacks: {
-                                    // Pielāgo tekstu, kas parādās, kad kursors novietots virs diagrammas daļas
-                                    label: (ctx) => {
-                                        const label = ctx.label || ''; // Iegūst etiķeti
-                                        const value = ctx.parsed || 0; // Iegūst skaitlisko vērtību
-                                        return `${label}: ${value}`; // Atgriež formatētu tekstu
-                                    }
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (totalBets === 0) return 'No bets yet';
+                                    const value = ctx.raw || 0;
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = Math.round((value / total) * 100);
+                                    return `${ctx.label}: ${value} (${pct}%)`;
                                 }
                             }
                         }
                     }
-                });
-            }
-
-            // Atjauno diagrammas krāsas, mainoties tēmai (tumšā/gaisā)
-            function updateColorsForTheme() {
-                // Iegūst jaunās krāsas atbilstoši pašreizējai tēmai
-                bgColors = getThemeColors(isDarkTheme());
-                borderColors = bgColors.map(c => c);
-
-                // Ja diagramma jau ir izveidota, atjauno tās krāsas
-                if (chart) {
-                    // Atjauno fona krāsas katram datu punktam
-                    chart.data.datasets[0].backgroundColor = chart.data.labels.map((_, i) =>
-                        bgColors[i % bgColors.length]);
-
-                    // Atjauno apmales krāsas katram datu punktam
-                    chart.data.datasets[0].borderColor = chart.data.labels.map((_, i) =>
-                        borderColors[i % borderColors.length]);
-
-                    // Atjauno diagrammu bez animācijas ('none' nozīmē bez animācijas)
                 }
-            }
+            });
+        }
 
-            const themeObserver = new MutationObserver(() => updateColorsForTheme());
-            themeObserver.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['class', 'data-theme']
+        // Update chart when user types in bet inputs
+        function updateChartWithUserBets() {
+            const inputs = document.querySelectorAll('.bet-input');
+            const userBets = {};
+
+            // Collect user's current bet inputs
+            inputs.forEach(input => {
+                const amount = parseFloat(input.value) || 0;
+                const hiddenInput = input.parentElement.querySelector('input[name*="[choice_id]"]');
+                if (hiddenInput) {
+                    const choiceId = parseInt(hiddenInput.value);
+                    userBets[choiceId] = amount;
+                }
             });
 
-            function shallowEqualArray(a, b) {
-                if (!Array.isArray(a) || !Array.isArray(b)) return false;
-                if (a.length !== b.length) return false;
-                for (let i = 0; i < a.length; i++) {
-                    if (a[i] !== b[i]) return false;
-                }
-                return true;
+            // Combine initial data with user's current bets
+            const chartData = initialData.map(choice => ({
+                id: choice.id,
+                label: choice.label,
+                total_bet: (parseFloat(choice.total_bet) || 0) + (userBets[choice.id] || 0)
+            }));
+
+            renderChart(chartData);
+        }
+
+        // Fetch latest wager data from server
+        async function fetchWagerStats() {
+            try {
+                const response = await fetch(`/wagers/{{ $wager->id }}/stats`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching wager stats:', error);
+                return null;
             }
+        }
 
-            // Atjauno diagrammu ar jaunākajiem datiem no servera
-            async function refreshChart() {
-                // Iegūst jaunākos datus
-                const stats = await fetchStats();
+        // Update UI with fresh data from server
+        function updateUIWithServerData(data) {
+            if (!data) return;
 
-                // Ja diagramma vēl nav izveidota, izveido to
-                if (!chart) {
-                    initChart(stats.labels, stats.data);
-                } else {
-                    // Pretējā gadījumā atjauno esošās diagrammas datus
-                    // Only update if changed to avoid flicker
-                    const sameLabels = shallowEqualArray(chart.data.labels, stats.labels);
-                    const sameData = shallowEqualArray(chart.data.datasets[0].data, stats.data);
-                    if (!sameLabels) chart.data.labels = stats.labels;
-                    if (!sameData) chart.data.datasets[0].data = stats.data;
-                    if (!sameLabels || !sameData) {
-                        updateColorsForTheme();
-                        chart.update('none');
+            // Update pot
+            document.getElementById('pot-display').textContent = Math.round(data.pot).toLocaleString();
+
+            // Update chart data
+            initialData = data.distribution.map(item => ({
+                id: item.id,
+                label: item.label,
+                total_bet: parseFloat(item.amount) || 0
+            }));
+
+            renderChart(initialData);
+        }
+
+        // Handle bet form submission
+        async function handleBetSubmit(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitSpinner = document.getElementById('submit-spinner');
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.textContent = 'Placing Bet...';
+            submitSpinner.classList.remove('hidden');
+
+            try {
+                const formData = new FormData(form);
+                const token = form.querySelector('input[name="_token"]').value;
+
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(formData)
+                });
+
+                const contentType = response.headers.get('content-type') || '';
+                let result = null;
+
+                if (contentType.includes('application/json')) {
+                    result = await response.json();
+                }
+
+                if (response.ok && result && result.success) {
+                    // Update UI with new data
+                    if (result.wager) {
+                        document.getElementById('pot-display').textContent = Math.round(result.wager.pot)
+                            .toLocaleString();
+
+                        initialData = result.wager.choices.map(choice => ({
+                            id: choice.id,
+                            label: choice.label,
+                            total_bet: parseFloat(choice.total_bet) || 0
+                        }));
+
+                        renderChart(initialData);
+
+                        // Update balance if provided
+                        if (result.wager.user_balance !== undefined) {
+                            const balanceEl = document.querySelector('.balance-amount');
+                            if (balanceEl) {
+                                balanceEl.textContent = parseInt(result.wager.user_balance).toLocaleString();
+                            }
+                        }
                     }
+
+                    form.reset();
+                    updateChartWithUserBets();
+                } else if (response.ok) {
+                    // Server returned HTML instead of JSON, fetch fresh data
+                    const freshData = await fetchWagerStats();
+                    if (freshData) {
+                        updateUIWithServerData(freshData);
+                        form.reset();
+                        updateChartWithUserBets();
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    throw new Error(result?.message || 'Failed to place bet');
                 }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitText.textContent = 'Place Bet';
+                submitSpinner.classList.add('hidden');
             }
+        }
 
-            refreshChart();
-            setInterval(refreshChart, 3000);
+        // Polling function to keep chart updated
+        let pollInterval = null;
 
-            const amountInput = document.getElementById('amount');
-            const placeBetBtn = document.getElementById('place-bet-btn');
-            const balanceError = document.getElementById('balance-error');
-            const availableBalanceEl = document.getElementById('available-balance');
-            const availableBalance = Number((availableBalanceEl?.textContent || '0').replace(/[^0-9]/g, '')) || 0;
+        function startPolling() {
+            pollInterval = setInterval(async () => {
+                const data = await fetchWagerStats();
+                if (data) {
+                    document.getElementById('pot-display').textContent = Math.round(data.pot).toLocaleString();
+                    initialData = data.distribution.map(item => ({
+                        id: item.id,
+                        label: item.label,
+                        total_bet: parseFloat(item.amount) || 0
+                    }));
+                    renderChart(initialData);
+                }
+            }, 15000); // Poll every 15 seconds instead of 5
+        }
 
-            function validateBalance() {
-                const val = Number(amountInput.value || 0);
-                const ok = val > 0 && val <= availableBalance;
-                if (placeBetBtn) placeBetBtn.disabled = !ok;
-                if (balanceError) balanceError.classList.toggle('hidden', ok);
+        function stopPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
             }
-            if (amountInput) {
-                amountInput.addEventListener('input', validateBalance);
-                validateBalance();
-            }
+        }
+
+        // Initialize everything when page loads
+        window.addEventListener('load', function() {
+            // Wait a moment for Chart.js to be ready
+            setTimeout(() => {
+                // Render initial chart
+                renderChart(initialData);
+
+                // Set up bet input listeners
+                const inputs = document.querySelectorAll('.bet-input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', updateChartWithUserBets);
+                    input.addEventListener('change', updateChartWithUserBets);
+                });
+
+                // Set up form submission
+                const form = document.getElementById('bet-form');
+                if (form) {
+                    form.addEventListener('submit', handleBetSubmit);
+                }
+
+                // Start polling for updates
+                startPolling();
+
+                // Handle page visibility changes
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        stopPolling();
+                    } else {
+                        startPolling();
+                    }
+                });
+
+                // Clean up on page unload
+                window.addEventListener('beforeunload', stopPolling);
+            }, 500);
         });
     </script>
 </x-app-layout>

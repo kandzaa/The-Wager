@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->integer('balance')->default(500);
-            $table->json('wager_history')->nullable();
-            $table->json('games_played')->nullable();
             $table->enum('role', ['user', 'admin'])->default('user');
             $table->rememberToken();
+            $table->timestamp('last_daily_claim_at')->nullable();
             $table->timestamps();
         });
 

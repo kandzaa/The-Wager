@@ -45,6 +45,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
             'balance'           => 'integer',
+            'last_daily_claim_at' => 'datetime',
         ];
     }
 

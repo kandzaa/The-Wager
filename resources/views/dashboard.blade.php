@@ -24,7 +24,7 @@
                                     <div
                                         class="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
                                         <ion-icon name="people-circle"></ion-icon>
-                                        {{ Auth::user()->count() }}
+                                        {{ $usersCount ?? 0 }}
                                     </div>
                                 </div>
                             </div>
@@ -39,19 +39,9 @@
                                         Wagers
                                     </h3>
                                     <div class="text-2xl font-bold text-slate-900 dark:text-slate-100">
-
-                                        {{-- {{ $wagers->count() }}</div> --}}
+                                        {{ $wagersCount ?? 0 }}
                                     </div>
 
-                                </div>
-                            </div>
-
-                            <div
-                                class="bg-slate-100/80 dark:bg-slate-800/40 backdrop-blur-sm rounded-xl p-6 border border-slate-300/60 dark:border-slate-700">
-                                <div class="flex items-center justify-between">
-                                    <div>
-
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -59,5 +49,5 @@
                 </div>
             </div>
         </div>
-    </div>
 </x-app-layout>
+

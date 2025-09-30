@@ -4,6 +4,9 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\FriendsController;
 use App\Http\Controllers\WagerController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Models\User;
+use App\Models\Wager;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -11,34 +14,36 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $wagersCount = Wager::count();
+    $usersCount  = User::count();
+    return view('dashboard', compact('wagersCount', 'usersCount'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/balance', function () {
-    return view('balance');
+    $user           = Auth::user();
+    $last           = $user->last_daily_claim_at;
+    $nextEligibleAt = $last ? $last->copy()->addDay() : now()->subSecond();
+    $canClaim       = now()->greaterThanOrEqualTo($nextEligibleAt);
+    return view('balance', compact('canClaim', 'nextEligibleAt'));
 })->middleware(['auth', 'verified'])->name('balance');
 
 Route::get('/profile', function () {
     return view('profile');
 })->middleware(['auth', 'verified'])->name('profile');
 
-// WAGER ROUTES - IMPORTANT: Specific routes MUST come before dynamic routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/wagers', [WagerController::class, 'index'])->name('wagers');
     Route::post('/wagers', [WagerController::class, 'store'])->name('wagers.store');
-
-    // CRITICAL: These specific routes must come BEFORE /wagers/{id}
+    Route::get('/wagers/{wager}/edit', [WagerController::class, 'edit'])->name('wagers.edit');
     Route::get('/wagers/search', [WagerController::class, 'search'])->name('wagers.search');
-
-    // Dynamic route comes after specific routes
-    Route::get('/wagers/{id}', [WagerController::class, 'show'])->name('wagers.show');
-
-    // Other wager routes
+    Route::get('/wagers/{wager}', [WagerController::class, 'show'])->name('wagers.show');
     Route::post('/wagers/{wager}/join', [WagerController::class, 'join'])->name('wagers.join');
     Route::post('/wagers/{wager}/bet', [WagerController::class, 'bet'])->name('wagers.bet');
     Route::get('/wagers/{wager}/stats', [WagerController::class, 'stats'])->name('wagers.stats');
     Route::put('/wagers/{wager}', [WagerController::class, 'update'])->name('wagers.update');
     Route::delete('/wagers/{wager}', [WagerController::class, 'destroy'])->name('wagers.destroy');
+    Route::patch('/wagers/{wager}/end', [WagerController::class, 'end'])
+        ->name('wagers.end');
 });
 
 // FRIENDS ROUTES

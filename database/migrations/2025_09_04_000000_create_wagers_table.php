@@ -25,12 +25,7 @@ return new class extends Migration
             $table->integer('max_players');
             // Derības statuss - publiska vai privāta (noklusējuma vērtība 'public')
             $table->enum('status', ['public', 'private'])->default('public');
-            // JSON lauks, kurā glabājas informācija par spēlētājiem
-            // un viņu likmēm (masīva formātā)
-            $table->json('players');
-            // JSON lauks spēles vēstures glabāšanai
-            // Var saturēt informāciju par visiem notikumiem derībā
-            $table->json('game_history');
+
             // Laika zīmogs, kad derība sāksies
             $table->timestamp('starting_time');
             // Laika zīmogs, kad derība beigsies

@@ -1,9 +1,4 @@
 <x-app-layout>
-    <div class="flex items-center justify-between mb-6">
-        <x-nav-link href="{{ route('admin') }}">Admin</x-nav-link>
-        <x-nav-link href="{{ route('statistics') }}">Statistics</x-nav-link>
-
-    </div>
 
     <div
         class="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">

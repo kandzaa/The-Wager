@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -14,34 +13,55 @@ class Wager extends Model
         'ending_time',
         'status',
         'pot',
-        'players',
-        'game_history',
-        'starting_time'
+        'starting_time',
+        'winning_choice_id',
     ];
 
     protected $casts = [
-        'ending_time' => 'datetime',
+        'ending_time'   => 'datetime',
         'starting_time' => 'datetime',
-        'pot' => 'integer',
-        'players' => 'array',
-        'game_history' => 'array'
+        'pot'           => 'integer',
     ];
-    
+
     protected $attributes = [
-        'players' => '[]',
-        'game_history' => '[]',
-        'pot' => 0,
-        'status' => 'public'
+        'pot'    => 0,
+        'status' => 'public',
     ];
 
     public function creator()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\App\Models\User::class, 'creator_id');
     }
 
     public function choices()
     {
-        return $this->hasMany(WagerChoice::class)->orderBy('sort_order');
+        return $this->hasMany(\App\Models\WagerChoice::class);
+    }
+
+    public function winningChoice()
+    {
+        return $this->belongsTo(\App\Models\WagerChoice::class, 'winning_choice_id');
+    }
+
+    public function players()
+    {
+        return $this->hasMany(WagerPlayer::class);
+    }
+
+    public function bets()
+    {
+        // Simple hasMany relationship for now
+        return $this->hasMany(WagerBet::class);
+    }
+
+    public function getPlayerCountAttribute()
+    {
+        return $this->players()->count();
+    }
+
+    public function getTotalBetAmountAttribute()
+    {
+        return $this->bets()->sum('bet_amount');
     }
 
     public function isActive()
@@ -51,35 +71,16 @@ class Wager extends Model
 
     public function isFull()
     {
-        return count($this->players ?? []) >= $this->max_players;
+        return $this->players()->count() >= $this->max_players;
     }
 
-    /**
-     * Remove a player from the wager
-     */
     public function removePlayer($userId)
     {
-        $players = collect($this->players)->filter(function ($player) use ($userId) {
-            return ! isset($player['user_id']) || $player['user_id'] != $userId;
-        })->values()->toArray();
-
-        $this->update(['players' => $players]);
-        return true;
+        return $this->players()->where('user_id', $userId)->delete();
     }
 
-    /**
-     * Get player count
-     */
-    public function getPlayerCountAttribute()
+    public function hasPlayer($userId)
     {
-        return count($this->players);
-    }
-
-    /**
-     * Get available spots
-     */
-    public function getAvailableSpotsAttribute()
-    {
-        return $this->max_players - $this->player_count;
+        return $this->players->contains('user_id', $userId);
     }
 }

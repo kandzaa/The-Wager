@@ -20,9 +20,7 @@
             <th
                 class="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                 Max players</th>
-            <th
-                class="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                Players</th>
+
             <th
                 class="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                 Pot</th>
@@ -50,19 +48,6 @@
                 <td class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
                     {{ $wagerItem->max_players }}</td>
 
-                <td class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
-                    @php $players = $wagerItem->players ?? []; @endphp
-                    @if (is_array($players))
-                        @foreach ($players as $player)
-                            {{ is_array($player) ? $player['name'] ?? json_encode($player) : (is_object($player) ? $player->name ?? (string) $player : (string) $player) }}
-                            @if (!$loop->last)
-                                ,
-                            @endif
-                        @endforeach
-                    @else
-                        {{ (string) $players }}
-                    @endif
-                </td>
 
                 <td class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
                     {{ $wagerItem->pot }}</td>
@@ -84,7 +69,7 @@
                         class="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 mx-1"><ion-icon name="create"
                             class="text-xl"></ion-icon></a>
                     <span class="mx-1">|</span>
-                    <a href="{{ route('wager.show', $wagerItem->id) }}"
+                    <a href="{{ route('wagers.show', ['wager' => $wagerItem->id]) }}"
                         class="inline-block dark:text-white text-black rounded-md mx-1"><ion-icon name="search"
                             class="text-xl"></ion-icon></a>
                 </td>

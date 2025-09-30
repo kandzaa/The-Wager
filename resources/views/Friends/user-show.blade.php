@@ -1,7 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div
-            class="bg-gradient-to-r from-emerald-500 to-emerald-600 dark:from-emerald-800 dark:to-emerald-900 rounded-xl p-6 shadow-lg">
+        <div class="bg-gradient-to-r rounded-xl p-6 shadow-lg">
             <h2 class="font-bold text-2xl text-white leading-tight flex items-center">
                 User Profile
             </h2>
@@ -70,9 +69,7 @@
 
                                 <div
                                     class="group relative overflow-hidden bg-slate-100/80 dark:bg-slate-800/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-300/60 dark:border-slate-700 hover:shadow-lg hover:bg-white/80 dark:hover:bg-slate-800/60 hover:border-slate-400/60 dark:hover:border-slate-600 transition-all duration-300">
-                                    <div
-                                        class="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full -mr-10 -mt-10">
-                                    </div>
+
                                     <div class="relative">
                                         <div class="flex items-center mb-3">
                                             <div
@@ -96,9 +93,7 @@
 
                                 <div
                                     class="group relative overflow-hidden bg-slate-100/80 dark:bg-slate-800/40 backdrop-blur-sm rounded-2xl p-6 border border-slate-300/60 dark:border-slate-700 hover:shadow-lg hover:bg-white/80 dark:hover:bg-slate-800/60 hover:border-slate-400/60 dark:hover:border-slate-600 transition-all duration-300">
-                                    <div
-                                        class="absolute top-0 right-0 w-20 h-20 bg-slate-500/10 rounded-full -mr-10 -mt-10">
-                                    </div>
+
                                     <div class="relative">
                                         <div class="flex items-center mb-3">
                                             <div
