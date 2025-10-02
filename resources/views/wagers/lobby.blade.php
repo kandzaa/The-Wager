@@ -7,7 +7,7 @@
                 <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Wagers Lobby</h1>
                 <button @click="showModal = true"
                     class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-md hover:bg-emerald-500 focus:outline-none transition-colors duration-150 shadow-sm">
-                    Create Wager
+                    <ion-icon class="size-6" name="add-circle-outline"></ion-icon>
                 </button>
             </div>
 
@@ -44,7 +44,9 @@
             </div>
 
             <div class="mt-12">
-                <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-6">Your Wagers
+                <h2
+                    class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-6 border-t-2 border-gray-600 dark:border-gray-500">
+                    Your Wagers
                 </h2>
                 @if ($yourWagers->isEmpty())
                     <div

@@ -1,6 +1,6 @@
 <x-app-layout>
     <div
-        class="select-none min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 transition-colors">
+        class=" min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 transition-colors">
         <div class="container mx-auto px-4 py-12 max-w-5xl">
 
             @if (session('success'))
@@ -43,7 +43,11 @@
                         class="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-blue-500/5 dark:from-emerald-400/5 dark:to-blue-400/5">
                     </div>
 
+
                     <div class="relative max-w-7xl mx-auto">
+                        <button @click="window.location='{{ route('wagers') }}'"
+                            class="text-gray-400 hover:text-gray-200 duration-300 ">
+                            <ion-icon class="size-6" name="return-up-back-outline"></ion-icon></button>
                         <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div class="flex-1">
                                 <h1
@@ -130,83 +134,185 @@
                 </div>
 
                 <div class="px-8 py-8">
-                    @if (!$isJoined)
+                    @if ($wager->status === 'ended')
                         <div
-                            class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 p-6 text-center">
-                            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Join this wager to
-                                participate</h3>
-                            <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">You can view details, but you
-                                must join before placing a bet.</p>
-                            <form method="POST" action="{{ route('wagers.join', $wager) }}" class="mt-4 inline-block">
-                                @csrf
-                                <button type="submit"
-                                    class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm transition-colors duration-200">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
-                                    Join Wager
-                                </button>
-                            </form>
-                        </div>
-                    @else
-                        <form method="POST" action="{{ route('wagers.bet', $wager) }}" class="space-y-8"
-                            id="bet-form">
-                            @csrf
-                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 p-6 space-y-6">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Results</h3>
+                                <p class="text-slate-600 dark:text-slate-300 mt-1">{{ $wager->description }}</p>
+                            </div>
 
-                            @if ($userBet && $userBet->choice_id)
-                                <div
-                                    class="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-900/20 p-6">
-                                    <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-200">Current Bet</h3>
-                                    <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                                        You've bet {{ number_format($userBet->bet_amount, 0) }} on this wager. You can
-                                        change your bet below.
-                                    </p>
-                                </div>
-                            @endif
-
-                            <div class="space-y-4">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    @foreach ($wager->choices as $choice)
-                                        <div
-                                            class="bg-white/50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/50">
-                                            <div class="flex items-center justify-between mb-3">
-                                                <h3 class="font-medium text-slate-900 dark:text-slate-100">
-                                                    {{ $choice->label }}</h3>
-                                            </div>
-
-                                            <div class="space-y-2">
-                                                <input type="number" name="bets[{{ $loop->index }}][amount]"
-                                                    id="bet_{{ $choice->id }}"
-                                                    class="bet-input block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                    placeholder="Bet" min="0" step="1">
-                                                <input type="hidden" name="bets[{{ $loop->index }}][choice_id]"
-                                                    value="{{ $choice->id }}">
-                                            </div>
-                                        </div>
-                                    @endforeach
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="font-medium text-emerald-700 dark:text-emerald-300 mb-2">Winners</h4>
+                                    @if (($results['winners'] ?? collect())->isNotEmpty())
+                                        <ul class="space-y-2">
+                                            @foreach ($results['winners'] as $row)
+                                                <li
+                                                    class="flex items-center justify-between rounded-lg border border-emerald-200/60 dark:border-emerald-800/60 bg-emerald-50/40 dark:bg-emerald-900/10 px-3 py-2">
+                                                    <span
+                                                        class="text-slate-900 dark:text-slate-100 font-medium">{{ $row['name'] }}</span>
+                                                    <span
+                                                        class="text-emerald-700 dark:text-emerald-300 text-sm">+{{ number_format($row['net'], 0) }}</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <p class="text-sm text-slate-500">No winners</p>
+                                    @endif
                                 </div>
 
-                                <div class="flex items-center gap-3">
-                                    <button type="submit" id="submit-btn"
-                                        class="flex-1 py-3 px-4 rounded-lg text-white font-medium transition-all duration-200 bg-emerald-600 hover:bg-emerald-700">
-                                        <span id="submit-text">Place Bet</span>
-                                        <span id="submit-spinner" class="hidden ml-2">
-                                            <svg class="animate-spin h-5 w-5 text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                </path>
-                                            </svg>
-                                        </span>
-                                    </button>
+                                <div>
+                                    <h4 class="font-medium text-rose-700 dark:text-rose-300 mb-2">Losers</h4>
+                                    @if (($results['losers'] ?? collect())->isNotEmpty())
+                                        <ul class="space-y-2">
+                                            @foreach ($results['losers'] as $row)
+                                                <li
+                                                    class="flex items-center justify-between rounded-lg border border-rose-200/60 dark:border-rose-800/60 bg-rose-50/40 dark:bg-rose-900/10 px-3 py-2">
+                                                    <span
+                                                        class="text-slate-900 dark:text-slate-100 font-medium">{{ $row['name'] }}</span>
+                                                    <span
+                                                        class="text-rose-700 dark:text-rose-300 text-sm">{{ number_format($row['net'], 0) }}</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <p class="text-sm text-slate-500">No losers</p>
+                                    @endif
                                 </div>
                             </div>
-                        </form>
+
+                            <div>
+                                <h4 class="font-medium text-slate-900 dark:text-slate-100 mb-2">Participants</h4>
+                                @if ($wager->players->isNotEmpty())
+                                    <ul class="flex flex-wrap gap-2">
+                                        @foreach ($wager->players as $p)
+                                            <li
+                                                class="px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 text-sm text-slate-700 dark:text-slate-200">
+                                                {{ optional($p->user)->name ?? 'Unknown' }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <p class="text-sm text-slate-500">No participants</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                    @if ($wager->status !== 'ended')
+                        @if (!$isJoined)
+                            <div
+                                class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 p-6 text-center">
+                                <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Join this wager to
+                                    participate</h3>
+                                <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">You can view details, but you
+                                    must join before placing a bet.</p>
+                                <form method="POST" action="{{ route('wagers.join', $wager) }}"
+                                    class="mt-4 inline-block">
+                                    @csrf
+                                    <button type="submit"
+                                        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm transition-colors duration-200">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Join Wager
+                                    </button>
+                                </form>
+                            </div>
+                        @else
+                            <form method="POST" action="{{ route('wagers.bet', $wager) }}" class="space-y-8"
+                                id="bet-form">
+                                @csrf
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+
+
+                                <div class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        @foreach ($wager->choices as $choice)
+                                            <div
+                                                class="bg-white/50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/50">
+                                                <div class="flex items-center justify-between mb-3">
+                                                    <h3 class="font-medium text-slate-900 dark:text-slate-100">
+                                                        {{ $choice->label }}</h3>
+                                                </div>
+
+                                                <div class="space-y-2">
+                                                    <input type="number" name="bets[{{ $loop->index }}][amount]"
+                                                        id="bet_{{ $choice->id }}"
+                                                        class="bet-input block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                        placeholder="Bet" min="0" step="1">
+                                                    <input type="hidden" name="bets[{{ $loop->index }}][choice_id]"
+                                                        value="{{ $choice->id }}">
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="flex items-center gap-3">
+                                        <button type="submit" id="submit-btn"
+                                            class="flex-1 py-3 px-4 rounded-lg text-white font-medium transition-all duration-200 bg-emerald-600 hover:bg-emerald-700">
+                                            <span id="submit-text">Place Bet</span>
+                                            <span id="submit-spinner" class="hidden ml-2">
+                                                <svg class="animate-spin h-5 w-5 text-white"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                    </path>
+                                                </svg>
+                                            </span>
+                                        </button>
+
+
+                                        {{-- @if (Auth::user()->id == $wager->creator_id)
+                                        <div x-data="{ showEndModal: false }" class="inline-block">
+                                            <button type="button" @click="showEndModal = true"
+                                                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-gray-600 hover:bg-gray-500 text-white font-medium shadow-sm transition-colors duration-200">
+                                                End Wager
+                                            </button>
+
+                                            <!-- Modal -->
+                                            <div x-show="showEndModal" x-cloak
+                                                class="fixed inset-0 z-50 flex items-center justify-center">
+                                                <!-- Backdrop -->
+                                                <div class="absolute inset-0 bg-black/50"
+                                                    @click="showEndModal = false"></div>
+                                                <!-- Panel -->
+                                                <div
+                                                    class="relative z-10 w-full max-w-lg mx-4 rounded-xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-700">
+                                                    <div
+                                                        class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+                                                        <h3
+                                                            class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                                                            End Wager</h3>
+                                                        <button type="button" @click="showEndModal = false"
+                                                            class="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                viewBox="0 0 24 24" fill="currentColor"
+                                                                class="w-5 h-5">
+                                                                <path fill-rule="evenodd"
+                                                                    d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z"
+                                                                    clip-rule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                    <div class="p-4">
+                                                        @include('wagers.wagers_end', [
+                                                            'wagers' => [$wager],
+                                                        ])
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif --}}
+                                    </div>
+                                </div>
+                            </form>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -214,6 +320,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script>
         // Global variables
         let betChart = null;
@@ -322,7 +429,7 @@
         async function fetchWagerStats() {
             try {
                 const response = await fetch(`/wagers/{{ $wager->id }}/stats`);
-                if (!response.ok) throw new Error('Failed to fetch');
+                if (!response.ok) throw new Error('fetch fail');
                 return await response.json();
             } catch (error) {
                 console.error('Error fetching wager stats:', error);

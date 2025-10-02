@@ -12,32 +12,32 @@
     <!-- Navigation Rows -->
     <nav class="grid grid-cols-1 divide-y divide-slate-200 dark:divide-slate-800">
         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')"
-            class="block px-6 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+            class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
             <ion-icon name="home-outline" class="size-5 mr-2"></ion-icon>
             {{ __('Dashboard') }}
         </x-nav-link>
 
         <x-nav-link :href="route('wagers')" :active="request()->routeIs('wagers')"
-            class="block px-6 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+            class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
             <ion-icon name="game-controller-outline" class="size-5 mr-2"></ion-icon>
             {{ __('Wagers') }}
         </x-nav-link>
 
         <x-nav-link :href="route('balance')" :active="request()->routeIs('balance')"
-            class="block px-6 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+            class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
             <ion-icon name="wallet-outline" class="size-5 mr-2"></ion-icon>
             {{ __('Balance') }}
         </x-nav-link>
 
         <x-nav-link :href="route('friends')" :active="request()->routeIs('friends')"
-            class="block px-6 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+            class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
             <ion-icon name="people-outline" class="size-5 mr-2"></ion-icon>
             {{ __('Friends') }}
         </x-nav-link>
 
 
         <x-nav-link :href="route('profile')" :active="request()->routeIs('profile')"
-            class="block px-6 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+            class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
             <ion-icon name="person-circle-outline" class="size-5 mr-2"></ion-icon>
             {{ __('Profile') }}
         </x-nav-link>
@@ -45,10 +45,20 @@
 
 
         @if (Auth::check() && Auth::user()->role === 'admin')
-            <x-nav-link :href="route('admin')" :active="request()->routeIs('admin')"
-                class="block px-6 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
-                <ion-icon name="construct-outline" class="size-5 mr-2"></ion-icon>
+            <div class="block px-4 py-3 text-sm text-slate-600 dark:text-slate-600">
                 {{ __('Admin') }}
+            </div>
+
+            <x-nav-link :href="route('admin')" :active="request()->routeIs('admin')"
+                class="block px-4 py-4 text-sm mt-2 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+                <ion-icon name="construct-outline" class="size-5 mr-2"></ion-icon>
+                {{ __('Manage') }}
+            </x-nav-link>
+
+            <x-nav-link :href="route('statistics')" :active="request()->routeIs('statistics')"
+                class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+                <ion-icon name="stats-chart" class="size-5 mr-2"></ion-icon>
+                {{ __('Statistics') }}
             </x-nav-link>
         @endif
         <div

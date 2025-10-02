@@ -35,17 +35,20 @@
                                     <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-2">Daily
                                         Coins</h3>
                                     <div class="flex items-center space-x-3" id="daily-claim"
-                                         data-next-eligible-at="{{ optional($nextEligibleAt)->toIso8601String() }}"
-                                         data-can-claim="{{ $canClaim ? '1' : '0' }}">
+                                        data-next-eligible-at="{{ optional($nextEligibleAt)->toIso8601String() }}"
+                                        data-can-claim="{{ $canClaim ? '1' : '0' }}">
                                         @if (!$canClaim)
-                                            <span id="cooldownText" class="text-slate-600 dark:text-slate-300 text-lg">Available in --:--:--</span>
+                                            <span id="cooldownText"
+                                                class="text-slate-600 dark:text-slate-300 text-lg">Available in
+                                                --:--:--</span>
                                         @endif
-                                        <form id="claimForm" method="POST" action="{{ route('dailyBalance') }}" class="hidden">
+                                        <form id="claimForm" method="POST" action="{{ url('/dailyBalance') }}"
+                                            class="hidden">
                                             @csrf
                                         </form>
                                         <button id="claimBtn" type="button"
-                                                class="bg-emerald-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-                                                {{ $canClaim ? '' : 'disabled' }}>
+                                            class="bg-emerald-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                                            {{ $canClaim ? '' : 'disabled' }}>
                                             {{ $canClaim ? 'Claim' : 'Claimed' }}
                                         </button>
                                     </div>
@@ -61,7 +64,7 @@
     </div>
 
     <script>
-        (function () {
+        (function() {
             const daily = document.getElementById('daily-claim');
             if (!daily) return;
 
@@ -77,6 +80,7 @@
             function startCountdown(untilISO) {
                 if (!untilISO) return;
                 const until = new Date(untilISO);
+
                 function tick() {
                     const now = new Date();
                     const diffMs = until - now;
@@ -108,7 +112,8 @@
                 if (btn.disabled) return;
                 btn.disabled = true;
                 const tokenInput = form.querySelector('input[name="_token"]');
-                const csrf = tokenInput ? tokenInput.value : document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const csrf = tokenInput ? tokenInput.value : document.querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute('content');
                 try {
                     const res = await fetch(form.action, {
                         method: 'POST',
@@ -135,7 +140,7 @@
                             daily.insertBefore(span, btn);
                         }
                         btn.textContent = 'Claimed';
-                        startCountdown(new Date(nextAt).toISOString().replace('Z',''));
+                        startCountdown(new Date(nextAt).toISOString().replace('Z', ''));
                     } else if (res.status === 429) {
                         // Already claimed; start countdown from remaining seconds
                         btn.textContent = 'Claimed';

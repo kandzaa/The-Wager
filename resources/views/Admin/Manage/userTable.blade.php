@@ -1,5 +1,7 @@
 <div class="flex items-center justify-between mb-6">
     <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">All Users</h2>
+    <input type="text" placeholder="Search users"
+        class="p-2 block w-64 rounded-lg border transition-all duration-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white" />
 </div>
 <div class="overflow-x-auto">
     <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">

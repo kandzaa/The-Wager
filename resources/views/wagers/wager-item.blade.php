@@ -30,24 +30,11 @@
                 @csrf
                 @method('DELETE')
                 <button type="submit" @click.stop
-                    class="px-4 py-2 bg-red-600 dark:bg-rose-600 text-white rounded-md hover:bg-red-500 dark:hover:bg-rose-500 transition">Delete</button>
+                    class="px-4 py-2 bg-red-600 dark:bg-rose-600 text-white rounded-md hover:bg-red-500 dark:hover:bg-rose-500 transition">
+                    <ion-icon class="size-4 " name="trash-outline"></ion-icon></button>
             </form>
-
-            {{-- <button
-                @click.stop="
-                    $dispatch('edit-wager', {
-                        id: {{ $wager->id }},
-                        name: @js($wager->name),
-                        description: @js($wager->description),
-                        max_players: {{ (int) $wager->max_players }},
-                        visibility: @js($wager->status === 'public' ? 'public' : 'private'),
-                        ending_time_local: @js(optional($wager->ending_time)->format('Y-m-d\TH:i')),
-                        choices: @js($wager->choices->pluck('label'))
-                    })
-                "
-                class="px-4 py-2 bg-blue-600 dark:bg-sky-600 text-white rounded-md hover:bg-blue-500 dark:hover:bg-sky-500 transition">
-                Edit
-            </button> --}}
+            {{-- <button @click.stop="window.location='{{ route('admin.Manage.wagers.edit', $wager) }}'"
+                class="px-4 py-2 bg-blue-600 dark:bg-sky-600 text-white rounded-md hover:bg-blue-500 dark:hover:bg-sky-500 transition">edit</button> --}}
         </div>
     @endif
 </div>

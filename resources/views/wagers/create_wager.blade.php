@@ -45,9 +45,6 @@
                             <div class="space-y-6">
 
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                        Theme *
-                                    </label>
                                     <input type="text" x-model="form.name" @input="validateField('name')"
                                         :class="getFieldClass('name')" placeholder="Enter wager theme"
                                         class="p-3 block w-full rounded-lg border transition-all duration-200 text-sm"
@@ -61,9 +58,6 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                        Description
-                                    </label>
                                     <textarea x-model="form.description" @input="validateField('description')" :class="getFieldClass('description')"
                                         placeholder="Optional description" rows="3" maxlength="1000"
                                         class="p-3 block w-full rounded-lg border transition-all duration-200 text-sm resize-none">
@@ -120,9 +114,6 @@
 
                                 <div class="space-y-3">
                                     <div class="flex items-center justify-between">
-                                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                            Choices *
-                                        </label>
                                         <span class="text-xs text-slate-500">
                                             <span x-text="getValidChoices().length"></span> choices
                                         </span>
@@ -160,7 +151,7 @@
 
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                        End Time *
+                                        Ending Time *
                                     </label>
                                     <input type="datetime-local" x-model="form.ending_time"
                                         @input="validateField('ending_time')" :class="getFieldClass('ending_time')"

@@ -118,6 +118,8 @@ class FriendsController extends Controller
 
         if ($user->friends()->where('friend_id', $friendId)->exists()) {
             $user->friends()->detach($friendId);
+            $friendId->friends()->detach($user->id);
+            return response()->json(['message' => 'Friend removed successfully.']);
         }
 
         return response()->json(['message' => 'This user is not your friend.'], 400);

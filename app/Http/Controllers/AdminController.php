@@ -18,7 +18,7 @@ class AdminController extends Controller
     {
         $users = User::orderBy('id')->get();
         $wager = Wager::with('creator')->orderBy('id')->get();
-        return view('Admin.statistics', compact('users', 'wager'));
+        return view('Admin.Statistics.statistics', compact('users', 'wager'));
     }
 
     //funkcijas ar user
