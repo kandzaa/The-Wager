@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\FriendsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WagerController;
@@ -27,6 +28,8 @@ Route::get('/balance', function () {
     $canClaim       = now()->greaterThanOrEqualTo($nextEligibleAt);
     return view('balance', compact('canClaim', 'nextEligibleAt'));
 })->middleware(['auth', 'verified'])->name('balance');
+
+Route::post('/dailyBalance', [BalanceController::class, 'dailyBalance'])->middleware(['auth', 'verified'])->name('balance.daily');
 
 //profila rouotes
 Route::get('/profile', [ProfileController::class, 'index'])->middleware(['auth', 'verified'])->name('profile');

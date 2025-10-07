@@ -3,8 +3,8 @@
         <input type="text" id="wager-search-input"
             class="w-full p-3 pl-10 bg-white dark:bg-slate-900/40 backdrop-blur border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
             placeholder="Search wagers" autocomplete="off" />
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 dark:text-slate-400 absolute left-3 top-3.5" viewBox="0 0 20 20"
-            fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 dark:text-slate-400 absolute left-3 top-3.5"
+            viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd"
                 d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
                 clip-rule="evenodd" />
@@ -85,31 +85,65 @@
                     '<p class="text-slate-400 text-center py-8 bg-slate-900/40 border border-slate-800 rounded-lg">No wagers found.</p>';
             } else {
                 searchResultsList.innerHTML = wagers.map(wager => `
-                <div class="rounded-xl p-5 shadow-sm bg-slate-900/40 border border-slate-800 backdrop-blur transition transform duration-200 ease-out cursor-pointer group hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-500/50" data-wager-id="${wager.id}" role="button" tabindex="0">
-                    <div class="flex items-start justify-between">
+                <div class="relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50 shadow-md transition-all duration-300 ease-out cursor-pointer group hover:shadow-emerald-500/20 hover:-translate-y-0.5 hover:border-emerald-400/50" data-wager-id="${wager.id}" role="button" tabindex="0">
+                    <!-- Glow effect on hover -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    
+                    <div class="relative flex items-start justify-between">
                         <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-md">
-                                <span class="text-xl font-semibold text-white">
+                            <!-- Avatar with subtle shine -->
+                            <div class="relative w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-emerald-500/30 transition-shadow duration-300">
+                                <span class="text-xl font-bold text-white">
                                     ${wager.name?.substring(0,1)?.toUpperCase() ?? 'W'}
                                 </span>
+                                <div class="absolute inset-0 rounded-full border-2 border-white/10 group-hover:border-emerald-400/30 transition-colors duration-300"></div>
                             </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-slate-100">${wager.name}</h3>
-                                ${wager.description ? `<p class="text-slate-300 text-sm mt-1">${wager.description}</p>` : ''}
-                                <p class="text-xs text-slate-400 mt-1">Ends ${wager.ends_human ?? ''}</p>
+                            
+                            <!-- Content -->
+                            <div class="space-y-1">
+                                <h3 class="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors duration-200">
+                                    ${wager.name}
+                                    <span class="absolute inset-0"></span>
+                                </h3>
+                                ${wager.description ? `
+                                    <p class="text-sm text-slate-300/90 group-hover:text-slate-200 transition-colors duration-200 line-clamp-2">
+                                        ${wager.description}
+                                    </p>
+                                ` : ''}
+                                <div class="flex items-center space-x-2 text-xs text-slate-400 group-hover:text-slate-300 transition-colors duration-200">
+                                    <span class="flex items-center">
+                                        <svg class="w-3.5 h-3.5 mr-1 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        ${wager.ends_human ?? 'No end date'}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                        <div class="hidden sm:block text-emerald-400/70 text-xs">Open ▶</div>
+                        
+                        <!-- CTA -->
+                        <div class="hidden sm:flex items-center justify-center px-3 py-1 rounded-full bg-emerald-900/30 border border-emerald-800/50 text-emerald-300/90 text-xs font-medium group-hover:bg-emerald-800/40 group-hover:border-emerald-700/50 group-hover:text-white transition-all duration-200">
+                            View
+                            <svg class="ml-1 w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
                     </div>
                 </div>
             `).join('');
-            // Make cards clickable to open the wager
-            searchResultsList.querySelectorAll('[data-wager-id]').forEach(card => {
-                const id = card.getAttribute('data-wager-id');
-                const open = () => { window.location = `/wagers/${id}`; };
-                card.addEventListener('click', open);
-                card.addEventListener('keydown', (e) => { if (e.key === 'Enter') { open(); }});
-            });
+                // Make cards clickable to open the wager
+                searchResultsList.querySelectorAll('[data-wager-id]').forEach(card => {
+                    const id = card.getAttribute('data-wager-id');
+                    const open = () => {
+                        window.location = `/wagers/${id}`;
+                    };
+                    card.addEventListener('click', open);
+                    card.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            open();
+                        }
+                    });
+                });
             }
             searchResults.classList.remove('hidden');
         }

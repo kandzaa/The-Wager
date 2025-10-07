@@ -1,13 +1,23 @@
 <x-app-layout>
     <div x-data="{ showModal: false }"
-        class="min-h-screen bg-gradient-to-br from-white via-slate-50 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors">
-        <div class="container mx-auto px-4 py-10" x-effect="document.body.classList.toggle('overflow-hidden', showModal)">
+        class="select-none min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12"
+            x-effect="document.body.classList.toggle('overflow-hidden', showModal)">
 
-            <div class="flex items-center justify-between mb-8">
-                <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Wagers Lobby</h1>
+            <!-- Header Section -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                        Wagers Lobby
+                    </h1>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                        Create and join exciting wagers with other players
+                    </p>
+                </div>
                 <button @click="showModal = true"
-                    class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-md hover:bg-emerald-500 focus:outline-none transition-colors duration-150 shadow-sm">
-                    <ion-icon class="size-6" name="add-circle-outline"></ion-icon>
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-all duration-200">
+                    <ion-icon class="size-5" name="add-circle-outline"></ion-icon>
+                    <span>Create Wager</span>
                 </button>
             </div>
 
@@ -25,44 +35,51 @@
                 );
             @endphp
 
-            <div class="mt-10">
-                <h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-6">Available
-                    Wagers</h2>
-                @if ($publicWagers->isEmpty())
-                    <div
-                        class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-600 dark:text-slate-300">
-                        <p class="text-base">No public wagers are available right now.</p>
-                        <p class="text-sm mt-2">Be the first to create one!</p>
-                    </div>
-                @else
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        @foreach ($publicWagers as $wager)
-                            @include('wagers.wager-item', ['wager' => $wager])
-                        @endforeach
-                    </div>
-                @endif
-            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mt-10">
+                <!-- Available Wagers - Main Content -->
+                <div class="lg:col-span-8">
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-5">
+                        Available Wagers
+                    </h2>
 
-            <div class="mt-12">
-                <h2
-                    class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-6 border-t-2 border-gray-600 dark:border-gray-500">
-                    Your Wagers
-                </h2>
-                @if ($yourWagers->isEmpty())
-                    <div
-                        class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-slate-600 dark:text-slate-300">
-                        <p class="text-base">You haven't created any wagers yet.</p>
-                        <p class="text-sm mt-2">Create one to get started.</p>
-                    </div>
-                @else
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        @foreach ($yourWagers as $wager)
-                            @include('wagers.wager-item', ['wager' => $wager])
-                        @endforeach
-                    </div>
-                @endif
-            </div>
+                    @if ($publicWagers->isEmpty())
+                        <div
+                            class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 p-12 text-center">
+                            <p class="text-base text-slate-600 dark:text-slate-300 mb-2">No public wagers available</p>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Be the first to create one!</p>
+                        </div>
+                    @else
+                        <div class="space-y-4">
+                            @foreach ($publicWagers as $wager)
+                                @include('wagers.wager-item', ['wager' => $wager, 'compact' => false])
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
 
+                <!-- Your Wagers - Sidebar -->
+                <div class="lg:col-span-4">
+                    <div class="sticky top-6">
+                        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-5">
+                            Your Wagers
+                        </h2>
+
+                        @if ($yourWagers->isEmpty())
+                            <div
+                                class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 p-6 text-center">
+                                <p class="text-sm text-slate-600 dark:text-slate-300">You haven't created any wagers
+                                    yet.</p>
+                            </div>
+                        @else
+                            <div class="space-y-3">
+                                @foreach ($yourWagers as $wager)
+                                    @include('wagers.wager-item', ['wager' => $wager, 'compact' => true])
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>

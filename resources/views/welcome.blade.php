@@ -161,7 +161,8 @@
         }
     </style>
 </head>
-<div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-emerald-950 text-white overflow-hidden relative">
+<div
+    class="select-none min-h-screen bg-gradient-to-br from-gray-900 via-black to-emerald-950 text-white overflow-hidden relative">
 
     <div class="absolute inset-0 opacity-10">
         <div class="absolute inset-0"

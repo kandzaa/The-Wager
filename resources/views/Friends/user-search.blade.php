@@ -1,4 +1,4 @@
-<div class="mb-10">
+<div class="select-none mb-10">
     <div class="text-center mb-8">
         <p class="text-xl font-bold text-slate-800 dark:text-slate-100">
             Connect with amazing people

@@ -50,7 +50,7 @@
             </div>
 
             <x-nav-link :href="route('admin')" :active="request()->routeIs('admin')"
-                class="block px-4 py-4 text-sm mt-2 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+                class="block px-4 py-4 text-sm  text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                 <ion-icon name="construct-outline" class="size-5 mr-2"></ion-icon>
                 {{ __('Manage') }}
             </x-nav-link>

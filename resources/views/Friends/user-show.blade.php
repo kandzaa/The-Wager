@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="bg-gradient-to-r rounded-xl p-6 shadow-lg">
+        <div class="select-none bg-gradient-to-r rounded-xl p-6 shadow-lg">
             <h2 class="font-bold text-2xl text-white leading-tight flex items-center">
                 User Profile
             </h2>
@@ -8,7 +8,7 @@
     </x-slot>
 
     <div
-        class="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        class="select-none min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <div class="py-8">
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div

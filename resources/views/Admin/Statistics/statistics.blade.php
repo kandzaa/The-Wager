@@ -8,7 +8,10 @@
                     class="bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-300/60 dark:border-slate-800 overflow-hidden">
                     <div class="p-6 sm:p-8">
                         <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Statistics</h1>
+                        <div>
+                            <h2>All pots value</h2>
 
+                        </div>
                     </div>
                 </div>
             </div>

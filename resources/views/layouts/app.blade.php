@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ 'The Wager' }}</title>
+    <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=59840&format=png&color=000000">
     <script>
         (function() {
             const html = document.documentElement;
@@ -48,7 +47,6 @@
                             d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
-                @include('components.theme-switch')
             </header>
 
             @isset($header)

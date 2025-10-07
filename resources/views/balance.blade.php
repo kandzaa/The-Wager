@@ -4,7 +4,7 @@
     </x-slot>
 
     <div
-        class="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        class="select-none min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div
@@ -142,7 +142,6 @@
                         btn.textContent = 'Claimed';
                         startCountdown(new Date(nextAt).toISOString().replace('Z', ''));
                     } else if (res.status === 429) {
-                        // Already claimed; start countdown from remaining seconds
                         btn.textContent = 'Claimed';
                         const nextAt = data.next_eligible_at;
                         if (cooldownText && nextAt) {

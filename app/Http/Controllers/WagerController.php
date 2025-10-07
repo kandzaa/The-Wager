@@ -269,45 +269,126 @@ class WagerController extends Controller
             'max_players'     => 'required|integer|min:2|max:100',
             'ending_time'     => 'required|date|after:' . now()->addHour()->format('Y-m-d H:i'),
             'choices'         => 'required|array|min:2|max:10',
+            'choices.*.id'    => 'nullable|exists:wager_choices,id',
+            'choices.*.total_bet' => 'nullable|numeric|min:0',
             'choices.*.label' => 'required|string|max:255',
             'status'          => 'required|in:public,private',
         ]);
 
-        // Update wager
-        $wager->update([
-            'name'        => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'max_players' => $validated['max_players'],
-            'ending_time' => $validated['ending_time'],
-            'status'      => $validated['status'],
-        ]);
+        DB::beginTransaction();
 
-        $existingChoiceIds = [];
-        foreach ($validated['choices'] as $index => $choiceData) {
-            $choice = $wager->choices()->updateOrCreate(
-                ['id' => $choiceData['id'] ?? null],
-                [
-                    'label' => trim($choiceData['label']),
-                ]
-            );
-            $existingChoiceIds[] = $choice->id;
+        try {
+            // Update wager
+            $wager->update([
+                'name'        => $validated['name'],
+                'description' => $validated['description'] ?? null,
+                'max_players' => $validated['max_players'],
+                'ending_time' => $validated['ending_time'],
+                'status'      => $validated['status'],
+            ]);
+
+            $existingChoiceIds = [];
+            
+            // Process each choice
+            foreach ($validated['choices'] as $choiceData) {
+                $updateData = ['label' => trim($choiceData['label'])];
+                
+                // Only update total_bet if it's provided in the request
+                if (isset($choiceData['total_bet'])) {
+                    $updateData['total_bet'] = (float)$choiceData['total_bet'];
+                }
+                
+                // Update or create the choice
+                $choice = $wager->choices()->updateOrCreate(
+                    ['id' => $choiceData['id'] ?? null],
+                    $updateData
+                );
+                
+                $existingChoiceIds[] = $choice->id;
+            }
+
+            // Delete removed choices that have no bets
+            $wager->choices()
+                ->whereNotIn('id', $existingChoiceIds)
+                ->where('total_bet', 0)
+                ->delete();
+
+            DB::commit();
+
+            return redirect()->route('wagers.show', $wager)
+                ->with('success', 'Wager updated successfully!');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating wager: ' . $e->getMessage());
+            
+            return back()->withInput()
+                ->with('error', 'An error occurred while updating the wager. Please try again.');
         }
-
-        // Delete removed choices
-        $wager->choices()->whereNotIn('id', $existingChoiceIds)->delete();
-
-        return redirect()->route('wagers.show', $wager)
-            ->with('success', 'Wager updated successfully!');
     }
 
     public function destroy(Wager $wager)
     {
+        // Check authorization
         if ($wager->creator_id !== Auth::id()) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Not authorized'], 403);
+            }
             return back()->with('error', 'Not authorized to delete this wager.');
         }
-        $wager->choices()->delete();
-        $wager->delete();
-        return redirect()->route('wagers');
+
+        DB::beginTransaction();
+
+        try {
+            // First, refund all bets to users
+            $bets = \App\Models\WagerBet::whereHas('wagerPlayer', function ($q) use ($wager) {
+                $q->where('wager_id', $wager->id);
+            })->with('wagerPlayer.user')->get();
+
+            $refundedAmount = 0;
+            foreach ($bets as $bet) {
+                $user = $bet->wagerPlayer->user;
+                if ($user) {
+                    $user->increment('balance', $bet->bet_amount);
+                    $refundedAmount += $bet->bet_amount;
+                }
+            }
+
+            // Delete all bets
+            \App\Models\WagerBet::whereHas('wagerPlayer', function ($q) use ($wager) {
+                $q->where('wager_id', $wager->id);
+            })->delete();
+
+            // Delete all players
+            $wager->players()->delete();
+
+            // Delete all choices
+            $wager->choices()->delete();
+
+            // Finally delete the wager
+            $wager->delete();
+
+            DB::commit();
+
+            Log::info("Wager {$wager->id} deleted. Refunded {$refundedAmount} to users.");
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Wager deleted successfully']);
+            }
+
+            return redirect()->route('wagers')->with('success', 'Wager deleted successfully and bets refunded.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error deleting wager: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+            }
+
+            return back()->with('error', 'Error deleting wager: ' . $e->getMessage());
+        }
     }
 
     // public function end(Request $request, Wager $wager)
