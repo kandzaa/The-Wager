@@ -26,18 +26,21 @@
                         <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div class="flex-1">
                                 <div class="flex flex-wrap items-center gap-4 pb-4">
-                                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-slate-100 dark:via-slate-300 dark:to-slate-100 bg-clip-text text-transparent">
+                                    <h1
+                                        class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-slate-100 dark:via-slate-300 dark:to-slate-100 bg-clip-text text-transparent">
                                         {{ $wager->name }}
                                     </h1>
-                                    @if($wager->status === 'ended')
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200">
+                                    @if ($wager->status === 'ended')
+                                        <span
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200">
                                             <svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 8 8">
                                                 <circle cx="4" cy="4" r="3" />
                                             </svg>
                                             Ended
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
+                                        <span
+                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
                                             <svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 8 8">
                                                 <circle cx="4" cy="4" r="3" />
                                             </svg>
@@ -794,15 +797,19 @@
                 </button>
             </div>
 
-            <form id="endWagerForm" action="{{ route('wagers.end', $wager) }}" method="POST" class="space-y-6" onsubmit="return handleEndWagerSubmit(event)">
+            <form id="endWagerForm" action="{{ route('wagers.end', $wager) }}" method="POST" class="space-y-6"
+                onsubmit="return handleEndWagerSubmit(event)">
                 @csrf
-                
+
                 <!-- Form Errors -->
                 @if ($errors->any())
-                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-lg p-4">
+                    <div
+                        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-lg p-4">
                         <div class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                             <div>
                                 <h4 class="text-sm font-medium text-red-800 dark:text-red-200">
@@ -880,7 +887,7 @@
             const formData = new FormData(form);
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
-            
+
             // Show loading state
             submitBtn.disabled = true;
             submitBtn.innerHTML = `
@@ -892,37 +899,39 @@
             `;
 
             fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err; });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                let errorMessage = 'An error occurred while processing your request.';
-                if (error.errors) {
-                    errorMessage = Object.values(error.errors).flat().join(' ');
-                } else if (error.message) {
-                    errorMessage = error.message;
-                }
-                
-                // Show error message
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'bg-red-50 border-l-4 border-red-500 p-4 mb-4';
-                errorDiv.innerHTML = `
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw err;
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    let errorMessage = 'An error occurred while processing your request.';
+                    if (error.errors) {
+                        errorMessage = Object.values(error.errors).flat().join(' ');
+                    } else if (error.message) {
+                        errorMessage = error.message;
+                    }
+
+                    // Show error message
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'bg-red-50 border-l-4 border-red-500 p-4 mb-4';
+                    errorDiv.innerHTML = `
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -934,30 +943,33 @@
                         </div>
                     </div>
                 `;
-                
-                // Remove any existing error messages
-                const existingError = form.querySelector('.bg-red-50');
-                if (existingError) {
-                    existingError.remove();
-                }
-                
-                // Insert error message after the form
-                form.insertBefore(errorDiv, form.firstChild);
-                
-                // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-                
-                // Scroll to error
-                errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            });
-            
+
+                    // Remove any existing error messages
+                    const existingError = form.querySelector('.bg-red-50');
+                    if (existingError) {
+                        existingError.remove();
+                    }
+
+                    // Insert error message after the form
+                    form.insertBefore(errorDiv, form.firstChild);
+
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+
+                    // Scroll to error
+                    errorDiv.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                });
+
             return false;
         }
-        
+
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-show modal if show_end_modal is in session
-            @if(session('show_end_modal'))
+            @if (session('show_end_modal'))
                 const modal = document.getElementById('endWagerModal');
                 if (modal) {
                     modal.classList.remove('hidden');
@@ -966,7 +978,7 @@
             @endif
             const modal = document.getElementById('endWagerModal');
             const endWagerButton = document.getElementById('endWagerButton');
-            
+
             if (endWagerButton) {
                 endWagerButton.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -974,14 +986,14 @@
                     openEndWagerModal();
                 });
             }
-            
+
             // Close modal when clicking outside
             window.addEventListener('click', function(e) {
                 if (e.target === modal) {
                     closeEndWagerModal();
                 }
             });
-            
+
             // Close modal with Escape key
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
@@ -989,7 +1001,7 @@
                 }
             });
         });
-        
+
         function openEndWagerModal() {
             const modal = document.getElementById('endWagerModal');
             if (modal) {
@@ -1002,7 +1014,7 @@
                 }
             }
         }
-        
+
         function closeEndWagerModal() {
             const modal = document.getElementById('endWagerModal');
             if (modal) {

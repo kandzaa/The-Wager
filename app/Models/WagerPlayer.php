@@ -7,11 +7,24 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WagerPlayer extends Model
 {
-    public $timestamps = false;
+    public $timestamps = true;
+    
+    protected $casts = [
+        'bet_amount' => 'decimal:2',
+        'potential_payout' => 'decimal:2',
+        'actual_payout' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     protected $fillable = [
         'wager_id',
         'user_id',
+        'bet_amount',
+        'choice_id',
+        'status',
+        'potential_payout',
+        'actual_payout',
     ];
 
     public function wager(): BelongsTo
@@ -24,9 +37,19 @@ class WagerPlayer extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function choice(): BelongsTo
+    {
+        return $this->belongsTo(WagerChoice::class, 'choice_id');
+    }
+
     public function bets(): HasMany
     {
         return $this->hasMany(WagerBet::class);
+    }
+    
+    public function getAmountAttribute()
+    {
+        return $this->bet_amount;
     }
 
     public function getTotalBetAmountAttribute(): float
