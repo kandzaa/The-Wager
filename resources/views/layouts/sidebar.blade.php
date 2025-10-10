@@ -42,6 +42,12 @@
             {{ __('Profile') }}
         </x-nav-link>
 
+        <x-nav-link :href="route('history')" :active="request()->routeIs('history')"
+            class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+            <ion-icon name="hourglass-outline" class="size-5 mr-2"></ion-icon>
+            {{ __('History') }}
+        </x-nav-link>
+
 
 
         @if (Auth::check() && Auth::user()->role === 'admin')
@@ -55,7 +61,7 @@
                 {{ __('Manage') }}
             </x-nav-link>
 
-            <x-nav-link :href="route('statistics')" :active="request()->routeIs('statistics')"
+            <x-nav-link :href="route('admin.statistics')" :active="request()->routeIs('admin.statistics')"
                 class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                 <ion-icon name="stats-chart" class="size-5 mr-2"></ion-icon>
                 {{ __('Statistics') }}

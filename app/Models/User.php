@@ -61,4 +61,20 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class, 'user_friends', 'user_id', 'friend_id');
     }
+
+    /**
+     * Get all wager players for the user.
+     */
+    public function wagerPlayers()
+    {
+        return $this->hasMany(\App\Models\WagerPlayer::class, 'user_id');
+    }
+    
+    /**
+     * Get all wager invitations for the user.
+     */
+    public function wagerInvitations()
+    {
+        return $this->hasMany(\App\Models\WagerInvitation::class, 'invitee_id');
+    }
 }

@@ -2,25 +2,43 @@
     $compact = $compact ?? false;
 @endphp
 
-<div class="relative rounded-xl {{ $compact ? 'p-5' : 'p-6' }} bg-white dark:bg-slate-800/90 border {{ $compact ? 'border-slate-200/60' : 'border-slate-200/80' }} dark:border-slate-700/80 backdrop-blur-sm transition-all duration-300 ease-out cursor-pointer group hover:shadow-xl hover:-translate-y-1 hover:border-emerald-400/60 hover:bg-gradient-to-br hover:from-white hover:to-emerald-50/30 dark:hover:from-slate-800/95 dark:hover:to-emerald-900/10"
-    @click="window.location='{{ route('wagers.show', ['wager' => $wager->id]) }}'"
-    @keydown.enter.prevent="window.location='{{ route('wagers.show', ['wager' => $wager->id]) }}'" role="button"
+@php
+    $wagerLink = $wager->status === 'ended' 
+        ? route('wagers.results', $wager)
+        : route('wagers.show', $wager);
+@endphp
+
+<div class="wager-item relative rounded-xl {{ $compact ? 'p-5' : 'p-6' }} bg-white dark:bg-slate-800/90 border {{ $compact ? 'border-slate-200/60' : 'border-slate-200/80' }} dark:border-slate-700/80 backdrop-blur-sm transition-all duration-300 ease-out cursor-pointer group hover:shadow-xl hover:-translate-y-1 hover:border-emerald-400/60 hover:bg-gradient-to-br hover:from-white hover:to-emerald-50/30 dark:hover:from-slate-800/95 dark:hover:to-emerald-900/10"
+    data-name="{{ $wager->name }}"
+    data-creator="{{ $wager->creator->name }}"
+    @click="window.location='{{ $wagerLink }}'"
+    @keydown.enter.prevent="window.location='{{ $wagerLink }}'" role="button"
     tabindex="0">
 
-    <span
-        class="absolute -top-2.5 -right-2.5 z-10 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold {{ $wager->status === 'public' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30' }} group-hover:scale-110 transition-all duration-300">
-        @if ($wager->status === 'public')
-            <ion-icon class="text-sm" name="globe-outline"></ion-icon>
+    <div class="absolute -top-2.5 -right-2.5 z-10 flex flex-col items-end gap-1">
+        @if($wager->status === 'ended')
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30 group-hover:scale-110 transition-all duration-300">
+                <ion-icon class="text-sm" name="flag-outline"></ion-icon>
+                Ended
+            </span>
         @else
-            <ion-icon class="text-sm" name="lock-closed-outline"></ion-icon>
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold {{ $wager->status === 'public' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30' }} group-hover:scale-110 transition-all duration-300">
+                @if ($wager->status === 'public')
+                    <ion-icon class="text-sm" name="globe-outline"></ion-icon>
+                @else
+                    <ion-icon class="text-sm" name="lock-closed-outline"></ion-icon>
+                @endif
+                {{ ucfirst($wager->status) }}
+            </span>
         @endif
-        {{ ucfirst($wager->status) }}
+        
         @if (Auth::user()->id == $wager->creator_id)
-            <div class="border-l-1 border-gray-600 dark:border-gray-700 pl-1 ">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200 shadow-sm group-hover:scale-105 transition-all duration-300">
+                <ion-icon class="text-xs" name="star-outline"></ion-icon>
                 Your wager
-            </div>
+            </span>
         @endif
-    </span>
+    </div>
 
     <div class="space-y-{{ $compact ? '3' : '4' }}">
         <div class="relative">

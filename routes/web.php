@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\FriendsController;
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WagerController;
 use App\Http\Middleware\AdminMiddleware;
@@ -18,7 +19,26 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     $wagersCount = Wager::count();
     $usersCount  = User::count();
-    return view('dashboard', compact('wagersCount', 'usersCount'));
+
+    // Get pending invitations for the authenticated user
+    $pendingInvitations = auth()->user()->wagerInvitations()
+        ->with('wager')
+        ->where('status', \App\Models\WagerInvitation::STATUS_PENDING)
+        ->where('expires_at', '>', now())
+        ->get();
+
+    // Get wagers the user has joined
+    $joinedWagers = auth()->user()->wagerPlayers()
+        ->with(['wager' => function ($query) {
+            $query->withCount('players');
+        }])
+        ->whereHas('wager', function ($query) {
+            $query->where('status', '!=', 'ended');
+        })
+        ->get()
+        ->sortByDesc('wager.ending_time');
+
+    return view('dashboard', compact('wagersCount', 'usersCount', 'pendingInvitations', 'joinedWagers'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/balance', function () {
@@ -48,17 +68,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/wagers/{wager}/stats', [WagerController::class, 'stats'])->name('wagers.stats');
     Route::put('/wagers/{wager}', [WagerController::class, 'update'])->name('wagers.update');
     Route::delete('/wagers/{wager}', [WagerController::class, 'destroy'])->name('wagers.destroy');
-    Route::patch('/wagers/{wager}/end', [WagerController::class, 'end'])->name('wagers.end');
+
+    // Invitation routes
+    Route::post('/wagers/{wager}/invite', [WagerController::class, 'sendInvitation'])->name('wagers.invite');
+    Route::get('/invitations/accept/{token}', [WagerController::class, 'acceptInvitation'])->name('invitations.accept');
+    Route::get('/invitations/decline/{token}', [WagerController::class, 'declineInvitation'])->name('invitations.decline');
+
+    // Show end wager form
+    Route::get('/wagers/{wager}/end', [WagerController::class, 'showEndForm'])->name('wagers.end.form');
+    // Process end wager form submission
+    Route::post('/wagers/{wager}/end', [WagerController::class, 'end'])->name('wagers.end');
+
+    Route::get('/wagers/{wager}/results', [WagerController::class, 'results'])->name('wagers.results');
 });
 
 // FRIENDS ROUTES
 Route::get('/friends', [FriendsController::class, 'index'])->middleware(['auth', 'verified'])->name('friends');
 Route::get('/friends/search', [FriendsController::class, 'searchUsers'])->name('friends.search');
-Route::post('/friends/add', [FriendsController::class, 'addFriend'])->name('friends.add');
-Route::post('/friends/remove', [FriendsController::class, 'removeFriend'])->name('friends.remove');
+Route::post('/friends/add', [FriendsController::class, 'addFriend'])
+    ->middleware(['auth', 'verified'])
+    ->name('friends.add');
+Route::post('/friends/remove', [FriendsController::class, 'removeFriend'])
+    ->middleware(['auth', 'verified'])
+    ->name('friends.remove');
 Route::post('/friends/request', [FriendsController::class, 'requestFriend'])->middleware(['auth', 'verified'])->name('friends.request');
 Route::post('/friends/accept', [FriendsController::class, 'acceptRequest'])->middleware(['auth', 'verified'])->name('friends.accept');
 Route::get('/user/{id}', [FriendsController::class, 'showUser'])->middleware(['auth', 'verified'])->name('user.show');
+
+// History routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/history', [HistoryController::class, 'index'])->name('history');
+    Route::get('/history/wager/{wager}', [HistoryController::class, 'show'])->name('history.wager.show');
+});
 
 // admin derību routes
 Route::prefix('admin/Manage/wagers')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
@@ -73,8 +114,8 @@ Route::prefix('admin/Manage/users')->middleware(['auth', 'verified', AdminMiddle
     Route::delete('/{id}', [AdminController::class, 'deleteUser'])->name('admin.Manage.users.destroy');
     Route::get('/{id}', [AdminController::class, 'showUser'])->name('admin.Manage.users.show');
 });
-//admin views
+// Admin routes
 Route::get('/admin', [AdminController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
-Route::get('/admin/statistics', [AdminController::class, 'statistics'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('statistics');
+Route::get('/admin/statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin.statistics');
 
 require __DIR__ . '/auth.php';

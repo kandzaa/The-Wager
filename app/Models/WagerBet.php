@@ -2,7 +2,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WagerBet extends Model
 {
@@ -20,18 +19,51 @@ class WagerBet extends Model
         'actual_payout' => 'decimal:2',
     ];
 
-    public function wagerPlayer(): BelongsTo
+    /**
+     * Get the wager this bet belongs to.
+     */
+    public function wager()
+    {
+        return $this->belongsTo(Wager::class);
+    }
+
+    /**
+     * Get the wager player (user who placed the bet).
+     */
+    public function wagerPlayer()
     {
         return $this->belongsTo(WagerPlayer::class);
     }
 
-    public function choice(): BelongsTo
+    /**
+     * Get the choice that was bet on.
+     */
+    public function wagerChoice()
     {
-        return $this->belongsTo(WagerChoice::class, 'wager_choice_id');
+        return $this->belongsTo(WagerChoice::class);
     }
 
-    public function wager(): BelongsTo
+    /**
+     * Scope to get only winning bets.
+     */
+    public function scopeWon($query)
     {
-        return $this->belongsTo(Wager::class);
+        return $query->where('status', 'won');
+    }
+
+    /**
+     * Scope to get only losing bets.
+     */
+    public function scopeLost($query)
+    {
+        return $query->where('status', 'lost');
+    }
+
+    /**
+     * Scope to get pending bets.
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
     }
 }
