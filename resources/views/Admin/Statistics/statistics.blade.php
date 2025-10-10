@@ -8,9 +8,6 @@
                     <h1 class="text-2xl font-semibold text-slate-900 dark:text-white mb-1">
                         Analytics Dashboard
                     </h1>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">
-                        Real-time insights and performance metrics
-                    </p>
                 </div>
 
                 <!-- Stats Grid -->
