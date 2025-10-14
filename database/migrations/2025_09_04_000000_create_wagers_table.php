@@ -37,10 +37,7 @@ return new class extends Migration
             // Laika zīmogs, kad derība tika pabeigta (var būt NULL, ja nav pabeigta)
             $table->timestamp('ended_at')->nullable();
             // Uzvarētāja izvēles ID (atsauce uz wager_choices tabulu)
-            $table->foreignId('winning_choice_id')
-                ->nullable()
-                ->constrained('wager_choices')
-                ->onDelete('set null');
+            $table->foreignId('winning_choice_id')->nullable();
             // Automātiski aizpildāmie lauki created_at un updated_at
             $table->timestamps();
         });

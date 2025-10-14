@@ -1,0 +1,26 @@
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public $withinTransaction = false; // Add fix here too!
+
+    public function up(): void
+    {
+        Schema::table('wagers', function (Blueprint $table) {
+            $table->foreign('winning_choice_id')
+                ->references('id')
+                ->on('wager_choices')
+                ->onDelete('set null');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('wagers', function (Blueprint $table) {
+            $table->dropForeign(['winning_choice_id']);
+        });
+    }
+};
