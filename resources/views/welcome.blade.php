@@ -194,7 +194,7 @@
                 </span>
             </div>
             <p class="text-lg text-gray-400 max-w-2xl mx-auto mb-12 animate-fade-in" style="animation-delay: 0.7s">
-                Welcome to The Wager, where you can challange and bet against your friends.
+                Welcome to The test, where you can challange and bet against your friends.
             </p>
         </div>
 
