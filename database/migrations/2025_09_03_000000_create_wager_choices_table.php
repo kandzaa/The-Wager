@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('wager_choices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('wager_id')->constrained('wagers')->cascadeOnDelete();
+            $table->foreignId('wager_id');
             $table->string('label');
             $table->unsignedBigInteger('total_bet')->default(0);
             $table->timestamps();
