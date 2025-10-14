@@ -22,17 +22,15 @@ return new class extends Migration
             $table->foreignId('choice_id')->nullable()->constrained('wager_choices')->onDelete('set null');
 
             $table->string('status')->default('pending');
+
             $table->decimal('potential_payout')->nullable();
             $table->decimal('actual_payout')->nullable();
 
-            // Indexes for better query performance
             $table->index('wager_id');
             $table->index('user_id');
             $table->index('status');
             $table->timestamp('placed_at')->nullable();
 
-            $hasCreated = Schema::hasColumn('wager_players', 'created_at');
-            $hasUpdated = Schema::hasColumn('wager_players', 'updated_at');
             $table->timestamps();
         });
         DB::statement("ALTER TABLE wager_players ADD CONSTRAINT wager_players_status_check
