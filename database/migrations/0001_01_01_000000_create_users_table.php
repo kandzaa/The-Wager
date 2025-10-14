@@ -6,12 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    protected $withinTransaction = false; // <-- ADD THIS LINE
+
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->unique(); // <-- This line is likely causing the abort
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->integer('balance')->default(500);
@@ -21,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // The check constraint you added in the last step
         DB::statement("ALTER TABLE users ADD CONSTRAINT check_user_role CHECK (role IN ('user', 'admin'))");
 
         Schema::create('sessions', function (Blueprint $table) {
