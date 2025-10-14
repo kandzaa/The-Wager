@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    protected $connection = 'pgsql';
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -16,7 +15,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->integer('balance')->default(500);
-            $table->enum('role', ['user', 'admin'])->default('user');
+            $table->raw('CHECK (role IN (\'user\', \'admin\'))');
             $table->rememberToken();
             $table->timestamp('last_daily_claim_at')->nullable();
             $table->timestamps();
