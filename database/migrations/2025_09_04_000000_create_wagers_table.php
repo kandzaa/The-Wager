@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -25,7 +26,7 @@ return new class extends Migration
             // Maksimālais spēlētāju skaits derībā
             $table->integer('max_players');
             // Derības statuss - publiska vai privāta (noklusējuma vērtība 'public')
-            $table->enum('status', ['public', 'private'])->default('public');
+            $table->string('status')->default('public');
 
             // Laika zīmogs, kad derība sāksies
             $table->timestamp('starting_time');
@@ -43,6 +44,8 @@ return new class extends Migration
             // Automātiski aizpildāmie lauki created_at un updated_at
             $table->timestamps();
         });
+
+        DB::statement("ALTER TABLE wagers ADD CONSTRAINT check_wager_status CHECK (status IN ('public', 'private'))");
     }
 
     public function down(): void
