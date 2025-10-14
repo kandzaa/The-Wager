@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -20,7 +21,7 @@ return new class extends Migration
             $table->decimal('bet_amount')->nullable();
             $table->foreignId('choice_id')->nullable()->constrained('wager_choices')->onDelete('set null');
 
-            $table->enum('status', ['pending', 'won', 'lost'])->default('pending');
+            $table->string('status')->default('pending');
             $table->decimal('potential_payout')->nullable();
             $table->decimal('actual_payout')->nullable();
 
@@ -34,6 +35,8 @@ return new class extends Migration
             $hasUpdated = Schema::hasColumn('wager_players', 'updated_at');
             $table->timestamps();
         });
+        DB::statement("ALTER TABLE wager_players ADD CONSTRAINT wager_players_status_check
+            CHECK (status IN ('pending', 'won', 'lost'))");
     }
 
     public function down(): void
