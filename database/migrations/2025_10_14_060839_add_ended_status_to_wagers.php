@@ -1,15 +1,11 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    public $withinTransaction = false;
     public function up(): void
     {
         // For SQLite, we need to use raw SQL to modify the table
@@ -41,7 +37,7 @@ return new class extends Migration
 
                 // Copy data from old table to new table
                 DB::statement('INSERT INTO wagers_new SELECT * FROM wagers');
-                
+
                 // Drop old table and rename new one
                 DB::statement('DROP TABLE wagers');
                 DB::statement('ALTER TABLE wagers_new RENAME TO wagers');
@@ -80,7 +76,7 @@ return new class extends Migration
 
             // Copy data from current table to old table (only rows with valid status)
             DB::statement('INSERT INTO wagers_old SELECT * FROM wagers WHERE status IN ("public", "private")');
-            
+
             // Drop current table and rename old one
             DB::statement('DROP TABLE wagers');
             DB::statement('ALTER TABLE wagers_old RENAME TO wagers');

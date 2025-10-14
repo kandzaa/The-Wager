@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    public $withinTransaction = false;
     public function up(): void
     {
         // funkcija kas izveido tabulu 'wagers' no Schema kur ir definēta funkcija create kas izveido tabulu

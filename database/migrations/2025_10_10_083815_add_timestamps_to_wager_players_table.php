@@ -6,16 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    public $withinTransaction = false;
     public function up(): void
     {
         Schema::table('wager_players', function (Blueprint $table) {
-            if (!Schema::hasColumn('wager_players', 'created_at')) {
+            if (! Schema::hasColumn('wager_players', 'created_at')) {
                 $table->timestamp('created_at')->nullable();
             }
-            if (!Schema::hasColumn('wager_players', 'updated_at')) {
+            if (! Schema::hasColumn('wager_players', 'updated_at')) {
                 $table->timestamp('updated_at')->nullable();
             }
         });
