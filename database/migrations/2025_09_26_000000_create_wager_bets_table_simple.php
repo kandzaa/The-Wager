@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -25,6 +26,8 @@ return new class extends Migration
             $table->foreign('wager_player_id')->references('id')->on('wager_players')->onDelete('cascade');
             $table->foreign('wager_choice_id')->references('id')->on('wager_choices')->onDelete('cascade');
         });
+        DB::statement("ALTER TABLE wager_bets ADD CONSTRAINT wager_bets_status_check
+            CHECK (status IN ('pending', 'won', 'lost'))");
     }
 
     public function down()
