@@ -898,14 +898,23 @@
                 Processing...
             `;
 
+            // Get the CSRF token from the meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Create headers object
+            const headers = new Headers();
+            headers.append('X-Requested-With', 'XMLHttpRequest');
+            headers.append('X-CSRF-TOKEN', csrfToken);
+            
+            // Add CSRF token to form data
+            formData.append('_token', csrfToken);
+            
             fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
+                method: 'POST',
+                body: formData,
+                headers: headers,
+                credentials: 'same-origin'
+            })
                 .then(response => {
                     if (!response.ok) {
                         return response.json().then(err => {
