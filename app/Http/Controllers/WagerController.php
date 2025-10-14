@@ -17,10 +17,10 @@ class WagerController extends Controller
             ->where('status', '!=', 'ended')
             ->latest()
             ->get();
-            
+
         return view('wagers.lobby', compact('wagers'));
     }
-    
+
     public function history()
     {
         // Get only ended wagers
@@ -28,7 +28,7 @@ class WagerController extends Controller
             ->where('status', 'ended')
             ->latest('ended_at')
             ->paginate(10);
-            
+
         return view('history', compact('wagers'));
     }
 
@@ -437,8 +437,8 @@ class WagerController extends Controller
         // Check if the user is the creator of the wager
         if ($wager->creator_id !== auth()->id()) {
             \Log::warning('Unauthorized attempt to end wager', [
-                'user_id' => auth()->id(),
-                'wager_creator_id' => $wager->creator_id
+                'user_id'          => auth()->id(),
+                'wager_creator_id' => $wager->creator_id,
             ]);
             return back()->with('error', 'Only the wager creator can end the wager.');
         }
@@ -459,11 +459,10 @@ class WagerController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Validation failed', [
                 'errors' => $e->errors(),
-                'input' => $request->all()
+                'input'  => $request->all(),
             ]);
             throw $e;
         }
-
 
         // Get the winning choice (already validated it exists and belongs to this wager)
         $winningChoice = WagerChoice::find($validated['winning_choice_id']);
@@ -478,7 +477,7 @@ class WagerController extends Controller
                 'winning_choice_id' => $winningChoice->id,
                 'ended_at'          => $endedAt->toDateTimeString(),
             ]);
-            
+
             // Refresh the wager model to ensure we have the latest data
             $wager->refresh();
 
@@ -488,71 +487,71 @@ class WagerController extends Controller
             })->with('wagerPlayer.user')->get();
 
             $totalWinningBets = $winningChoice->total_bet;
-            $totalPot = $wager->pot;
+            $totalPot         = $wager->pot;
 
             // Payout multiplier (1.5x the bet amount for winners)
             $payoutMultiplier = 1.5;
-            
+
             // Track total payouts for logging
-            $totalPayouts = 0;
+            $totalPayouts           = 0;
             $totalWinningBetsAmount = 0;
-            
+
             // First pass: Calculate total winning bets amount and update bet statuses
             foreach ($bets as $bet) {
                 if ($bet->wager_choice_id == $winningChoice->id) {
                     $totalWinningBetsAmount += $bet->bet_amount;
                     $bet->update([
-                        'status' => 'won',
-                        'actual_payout' => round($bet->bet_amount * $payoutMultiplier, 2)
+                        'status'        => 'won',
+                        'actual_payout' => round($bet->bet_amount * $payoutMultiplier, 2),
                     ]);
                 } else {
                     $bet->update([
-                        'status' => 'lost',
-                        'actual_payout' => 0
+                        'status'        => 'lost',
+                        'actual_payout' => 0,
                     ]);
                 }
             }
-            
+
             // Second pass: Distribute winnings to winners
             if ($totalWinningBetsAmount > 0) {
                 foreach ($bets as $bet) {
                     if ($bet->wager_choice_id == $winningChoice->id) {
                         $payout = round($bet->bet_amount * $payoutMultiplier, 2);
                         $totalPayouts += $payout;
-                        
+
                         // Update user balance with their winnings
                         $bet->wagerPlayer->user->increment('balance', $payout);
-                        
+
                         \Log::info('Paid out winnings', [
-                            'user_id' => $bet->wagerPlayer->user_id,
+                            'user_id'    => $bet->wagerPlayer->user_id,
                             'bet_amount' => $bet->bet_amount,
-                            'payout' => $payout,
-                            'multiplier' => $payoutMultiplier
+                            'payout'     => $payout,
+                            'multiplier' => $payoutMultiplier,
                         ]);
                     }
                 }
-                
+
                 // Log house profit (total pot - total payouts)
                 $houseProfit = $totalPot - $totalPayouts;
                 \Log::info('Wager completed with house profit', [
-                    'wager_id' => $wager->id,
-                    'total_pot' => $totalPot,
-                    'total_payouts' => $totalPayouts,
-                    'house_profit' => $houseProfit,
-                    'payout_multiplier' => $payoutMultiplier
+                    'wager_id'          => $wager->id,
+                    'total_pot'         => $totalPot,
+                    'total_payouts'     => $totalPayouts,
+                    'house_profit'      => $houseProfit,
+                    'payout_multiplier' => $payoutMultiplier,
                 ]);
             } else {
                 // No winning bets - mark all as lost with 0 payout
                 foreach ($bets as $bet) {
                     $bet->update([
-                        'status' => 'lost',
-                        'actual_payout' => 0
+                        'status'        => 'lost',
+                        'actual_payout' => 0,
                     ]);
                 }
             }
 
             // Update player statuses based on their bets
-            $wager->players()->each(function($player) use ($winningChoice) {
+            $wager->players()->each(function ($player) use ($winningChoice) {
                 $status = 'lost'; // Default to lost
                 if ($player->choice_id === $winningChoice->id) {
                     $status = 'won';
@@ -563,20 +562,20 @@ class WagerController extends Controller
             DB::commit();
 
             \Log::info('Successfully ended wager', [
-                'wager_id' => $wager->id,
-                'winning_choice_id' => $winningChoice->id,
-                'total_pot' => $totalPot,
-                'total_winning_bets' => $totalWinningBets
+                'wager_id'           => $wager->id,
+                'winning_choice_id'  => $winningChoice->id,
+                'total_pot'          => $totalPot,
+                'total_winning_bets' => $totalWinningBets,
             ]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
-                    'success' => true,
-                    'message' => 'Wager has been ended and winnings distributed successfully!',
-                    'redirect' => route('wagers.results', $wager)
+                    'success'  => true,
+                    'message'  => 'Wager has been ended and winnings distributed successfully!',
+                    'redirect' => route('wagers.results', $wager),
                 ]);
             }
-            
+
             return redirect()->route('wagers.results', $wager)
                 ->with('success', 'Wager has been ended and winnings distributed successfully!');
 
@@ -584,40 +583,40 @@ class WagerController extends Controller
             DB::rollBack();
             \Log::error('Validation error ending wager: ' . $e->getMessage(), [
                 'wager_id' => $wager->id,
-                'errors' => $e->errors(),
+                'errors'   => $e->errors(),
             ]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation error: ' . $e->getMessage(),
-                    'errors' => $e->errors()
+                    'errors'  => $e->errors(),
                 ], 422);
             }
-            
+
             return back()->withErrors($e->errors());
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error ending wager: ' . $e->getMessage(), [
                 'wager_id'  => $wager->id,
                 'exception' => $e->getTraceAsString(),
-                'class' => get_class($e)
+                'class'     => get_class($e),
             ]);
 
             $errorMessage = 'An error occurred while processing the wager: ' . $e->getMessage();
-            
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => $errorMessage,
-                    'error' => [
+                    'error'   => [
                         'message' => $e->getMessage(),
-                        'type' => get_class($e)
-                    ]
+                        'type'    => get_class($e),
+                    ],
                 ], 500);
             }
-            
+
             return back()->with('error', $errorMessage);
         }
     }

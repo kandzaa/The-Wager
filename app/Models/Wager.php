@@ -48,7 +48,7 @@ class Wager extends Model
      */
     public function scopeUserParticipated($query, $userId)
     {
-        return $query->whereHas('players', function($q) use ($userId) {
+        return $query->whereHas('players', function ($q) use ($userId) {
             $q->where('user_id', $userId);
         })->orWhere('creator_id', $userId);
     }
@@ -59,8 +59,8 @@ class Wager extends Model
     public function scopeEnded($query)
     {
         return $query->where('status', 'ended')
-                    ->whereNotNull('ended_at')
-                    ->latest('ended_at');
+            ->whereNotNull('ended_at')
+            ->latest('ended_at');
     }
 
     /**
@@ -142,7 +142,7 @@ class Wager extends Model
     public function pendingInvitations()
     {
         return $this->invitations()->where('status', \App\Models\WagerInvitation::STATUS_PENDING)
-                                 ->where('expires_at', '>', now());
+            ->where('expires_at', '>', now());
     }
 
     /**
@@ -151,10 +151,10 @@ class Wager extends Model
     public function isUserInvited($email)
     {
         return $this->invitations()
-                   ->where('email', $email)
-                   ->where('status', \App\Models\WagerInvitation::STATUS_PENDING)
-                   ->where('expires_at', '>', now())
-                   ->exists();
+            ->where('email', $email)
+            ->where('status', \App\Models\WagerInvitation::STATUS_PENDING)
+            ->where('expires_at', '>', now())
+            ->exists();
     }
 
     /**
@@ -163,10 +163,16 @@ class Wager extends Model
     public function inviteUser($email, $inviterId)
     {
         return \App\Models\WagerInvitation::create([
-            'wager_id' => $this->id,
+            'wager_id'   => $this->id,
             'inviter_id' => $inviterId,
-            'email' => $email,
-            'status' => \App\Models\WagerInvitation::STATUS_PENDING,
+            'email'      => $email,
+            'status'     => \App\Models\WagerInvitation::STATUS_PENDING,
         ]);
+    }
+
+    public function setStatusAttribute($value)
+    {
+        $validStatuses              = ['public', 'private', 'ended'];
+        $this->attributes['status'] = in_array($value, $validStatuses) ? $value : 'public';
     }
 }
