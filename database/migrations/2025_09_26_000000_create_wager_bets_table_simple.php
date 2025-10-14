@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->timestamps();
 
-            // Explicitly define the foreign keys after the table is created
             $table->foreign('wager_id')->references('id')->on('wagers')->onDelete('cascade');
             $table->foreign('wager_player_id')->references('id')->on('wager_players')->onDelete('cascade');
             $table->foreign('wager_choice_id')->references('id')->on('wager_choices')->onDelete('cascade');

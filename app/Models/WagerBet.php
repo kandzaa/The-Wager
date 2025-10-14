@@ -10,7 +10,7 @@ class WagerBet extends Model
         'wager_player_id',
         'wager_choice_id',
         'bet_amount',
-        'status',
+        'status' => 'string',
         'actual_payout',
     ];
 
