@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('wager_bets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('wager_id')->constrained()->onDelete('cascade');
-            $table->foreignId('wager_player_id')->constrained('wager_players')->onDelete('cascade');
+            $table->foreignId('wager_player_id')->nullable()->constrained('wager_players')->onDelete('cascade');
             $table->foreignId('wager_choice_id')->constrained('wager_choices')->onDelete('cascade');
             $table->decimal('bet_amount', 15, 2);
             $table->string('status')->default('pending');
