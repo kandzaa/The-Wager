@@ -167,15 +167,24 @@
                             <div
                                 class="bg-slate-100 dark:bg-slate-800 px-4 py-4 sm:flex sm:flex-row-reverse sm:px-6 -mx-6 mt-6">
                                 <button type="submit" :disabled="isSubmitting || !isFormValid()"
-                                    :class="isFormValid() && !isSubmitting ?
-                                        'bg-emerald-600 hover:bg-emerald-500 text-white' :
-                                        'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'"
-                                    class="inline-flex w-full justify-center rounded-lg px-4 py-3 text-sm font-semibold shadow-sm transition-all duration-200 sm:ml-3 sm:w-auto">
-                                    <span x-show="!isSubmitting">Create Wager</span>
-                                    <span x-show="isSubmitting" class="flex items-center gap-2">
-                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        Creating...
-                                    </span>
+                                    class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <template x-if="!isSubmitting">
+                                        <span>Create Wager</span>
+                                    </template>
+                                    <template x-if="isSubmitting">
+                                        <span class="flex items-center">
+                                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                            Creating...
+                                        </span>
+                                    </template>
                                 </button>
                                 <button type="button" @click="closeModal()" :disabled="isSubmitting"
                                     class="mt-3 inline-flex w-full justify-center rounded-lg bg-slate-200 dark:bg-slate-700 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors duration-200 sm:mt-0 sm:w-auto">
@@ -322,20 +331,24 @@
                     return now.toISOString().slice(0, 16);
                 },
 
+                lastValidation: null,
+
                 isFormValid() {
-                    console.log('Form validation check:', {
+                    const validChoices = this.getValidChoices();
+                    const hasName = !!this.form.name.trim();
+                    const hasEndingTime = !!this.form.ending_time;
+                    const validMaxPlayers = this.form.max_players >= 2 && this.form.max_players <= 100;
+                    const hasEnoughChoices = validChoices.length >= 2;
+                    const hasDuplicates = this.hasDuplicateChoices();
+
+                    const currentState = JSON.stringify({
                         name: this.form.name,
-                        name_valid: !!this.form.name.trim(),
                         ending_time: this.form.ending_time,
-                        ending_time_valid: !!this.form.ending_time,
                         max_players: this.form.max_players,
-                        max_players_valid: this.form.max_players >= 2 && this.form.max_players <= 100,
-                        choices: this.getValidChoices(),
-                        choices_valid: this.getValidChoices().length >= 2,
-                        duplicates: this.hasDuplicateChoices()
+                        choices_count: validChoices.length
                     });
 
-                    return true;
+                    return hasName && hasEndingTime && validMaxPlayers && hasEnoughChoices && !hasDuplicates;
                 },
 
                 async submitForm() {
@@ -425,8 +438,8 @@
                         }
 
                     } catch (error) {
-                        console.error('Error submitting form:', error);
-                        this.globalError = 'Network error. Please check your connection and try again.';
+                        this.globalError = 'An error occurred while creating the wager.';
+                        console.error('Error creating wager:', error);
                     } finally {
                         this.isSubmitting = false;
                     }
