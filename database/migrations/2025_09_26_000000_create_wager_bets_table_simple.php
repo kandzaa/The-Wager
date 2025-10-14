@@ -11,12 +11,20 @@ return new class extends Migration
     {
         Schema::create('wager_bets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('wager_id')->constrained()->onDelete('cascade');
-            $table->foreignId('wager_player_id')->nullable()->constrained('wager_players')->onDelete('cascade');
-            $table->foreignId('wager_choice_id')->constrained('wager_choices')->onDelete('cascade');
+
+            // Explicitly define the columns first
+            $table->unsignedBigInteger('wager_id');
+            $table->unsignedBigInteger('wager_player_id')->nullable();
+            $table->unsignedBigInteger('wager_choice_id');
+
             $table->decimal('bet_amount', 15, 2);
             $table->string('status')->default('pending');
             $table->timestamps();
+
+            // Explicitly define the foreign keys after the table is created
+            $table->foreign('wager_id')->references('id')->on('wagers')->onDelete('cascade');
+            $table->foreign('wager_player_id')->references('id')->on('wager_players')->onDelete('cascade');
+            $table->foreign('wager_choice_id')->references('id')->on('wager_choices')->onDelete('cascade');
         });
     }
 

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('wager_players', function (Blueprint $table) {
             $table->id();
 
-            // Foreign keys
             $table->foreignId('wager_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
