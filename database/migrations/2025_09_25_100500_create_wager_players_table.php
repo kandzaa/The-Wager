@@ -28,7 +28,7 @@ return new class extends Migration
             $table->index('wager_id');
             $table->index('user_id');
             $table->index('status');
-            $table->timestamp('placed_at');
+            $table->timestamp('placed_at')->nullable();
 
             $hasCreated = Schema::hasColumn('wager_players', 'created_at');
             $hasUpdated = Schema::hasColumn('wager_players', 'updated_at');
