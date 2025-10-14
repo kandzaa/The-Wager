@@ -10,13 +10,18 @@ class WagerBet extends Model
         'wager_player_id',
         'wager_choice_id',
         'bet_amount',
-        'status' => 'string',
+        'status',
         'actual_payout',
+    ];
+
+    protected $attributes = [
+        'status' => 'pending',
     ];
 
     protected $casts = [
         'bet_amount'    => 'decimal:2',
         'actual_payout' => 'decimal:2',
+        'status'        => 'string',
     ];
 
     /**
