@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public $withinTransaction = false;
+
     public function up(): void
     {
         Schema::create('wager_players', function (Blueprint $table) {
@@ -27,10 +28,11 @@ return new class extends Migration
             $table->index('wager_id');
             $table->index('user_id');
             $table->index('status');
-            $table->index('placed_at');
+            $table->timestamp('placed_at');
 
             $hasCreated = Schema::hasColumn('wager_players', 'created_at');
             $hasUpdated = Schema::hasColumn('wager_players', 'updated_at');
+            $table->timestamps();
         });
     }
 
