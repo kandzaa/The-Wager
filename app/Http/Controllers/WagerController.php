@@ -226,7 +226,7 @@ class WagerController extends Controller
         try {
             // Place new bets (accumulate)
             foreach ($validBets as $bet) {
-                WagerChoice::where('id', $bet['choice_id'])->increment('total_bet', $bet['amount']);
+                // WagerChoice::where('id', $bet['choice_id'])->increment('total_bet', $bet['amount']);
 
                 $wagerPlayer->bets()->create([
                     'wager_id'        => $wager->id,
