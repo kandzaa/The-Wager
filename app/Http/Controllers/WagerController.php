@@ -221,13 +221,11 @@ class WagerController extends Controller
             return back()->with('error', 'Insufficient balance.');
         }
 
-        DB::beginTransaction();
-
         try {
+            DB::beginTransaction();
+
             // Place new bets (accumulate)
             foreach ($validBets as $bet) {
-                // WagerChoice::where('id', $bet['choice_id'])->increment('total_bet', $bet['amount']);
-
                 $wagerPlayer->bets()->create([
                     'wager_id'        => $wager->id,
                     'wager_choice_id' => $bet['choice_id'],
@@ -245,19 +243,48 @@ class WagerController extends Controller
             $wager->refresh();
             $wager->load(['choices', 'players']);
 
+            $response = [
+                'success' => true,
+                'message' => 'Bets placed successfully!',
+                'wager'   => [
+                    'pot'          => $wager->pot,
+                    'choices'      => $wager->choices->map(function ($choice) {
+                        return [
+                            'id'        => $choice->id,
+                            'label'     => $choice->label,
+                            'total_bet' => $choice->total_bet,
+                        ];
+                    }),
+                ]
+            ];
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json($response);
+            }
+
+            return back()->with('success', 'Bets placed successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Bet placement failed: ' . $e->getMessage(), [
+                'exception' => $e,
+                'user_id' => $user->id,
+                'wager_id' => $wager->id,
+                'bets' => $validBets
+            ]);
+
+            $errorMessage = 'Failed to place bets. Please try again.';
+            
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
-                    'success' => true,
-                    'message' => 'Bets placed successfully!',
-                    'wager'   => [
-                        'pot'          => $wager->pot,
-                        'choices'      => $wager->choices->map(function ($choice) {
-                            return [
-                                'id'        => $choice->id,
-                                'label'     => $choice->label,
-                                'total_bet' => $choice->total_bet,
-                            ];
-                        }),
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'error' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
+
+            return back()->with('error', $errorMessage);
+        }
                         'user_balance' => $user->fresh()->balance,
                     ],
                 ]);
