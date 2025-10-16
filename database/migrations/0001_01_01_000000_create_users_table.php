@@ -2,40 +2,46 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public $withinTransaction = false;
-
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->integer('balance')->default(500);
-            $table->string('role')->default('user')->nullable(false);
+            $table->string('role')->default('user');
             $table->rememberToken();
-            $table->timestamp('last_daily_claim_at')->nullable();
             $table->timestamps();
         });
 
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
-        });
+        // For SQLite, handle the constraint at the application level
+        if (DB::getDriverName() === 'sqlite') {
+            try {
+                DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS check_user_role');
+            } catch (\Exception $e) {
+                // Ignore if constraint doesn't exist
+            }
+        } else {
+            // Try to add constraint, ignore if it already exists
+            try {
+                DB::statement("ALTER TABLE users ADD CONSTRAINT chk_role CHECK (role IN ('admin', 'user'))");
+            } catch (\Exception $e) {
+                Log::warning('Could not add role constraint (may already exist): ' . $e->getMessage());
+            }
+        }
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('sessions');
     }
 };

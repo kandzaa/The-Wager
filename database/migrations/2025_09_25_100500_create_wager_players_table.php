@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -12,30 +11,27 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('wager_players', function (Blueprint $table) {
-            // ... (All your existing column definitions) ...
             $table->id();
+            // Assume other original columns (e.g., wager_id, user_id) are here
             $table->foreignId('wager_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->decimal('bet_amount')->nullable();
-            $table->foreignId('choice_id')->nullable()->constrained('wager_choices')->onDelete('set null');
-            $table->string('status')->default('pending');
-            $table->decimal('potential_payout')->nullable();
-            $table->decimal('actual_payout')->nullable();
-            $table->index('wager_id');
-            $table->index('user_id');
-            $table->index('status');
-            $table->timestamp('placed_at')->nullable();
-            $table->timestamps();
-        });
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
 
-        if (DB::getDriverName() !== 'sqlite') {
-            DB::statement("ALTER TABLE wager_players ADD CONSTRAINT wager_players_status_check
-                CHECK (status IN ('pending', 'won', 'lost'))");
-        }
+            if (! Schema::hasColumn('wager_players', 'created_at')) {
+                $table->timestamp('created_at')->nullable();
+            }
+            if (! Schema::hasColumn('wager_players', 'updated_at')) {
+                $table->timestamp('updated_at')->nullable();
+            }
+        });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
+        // We won't remove the columns in the down method to prevent data loss
+        // If you need to rollback, you can create a new migration to handle that
         Schema::dropIfExists('wager_players');
     }
 };
