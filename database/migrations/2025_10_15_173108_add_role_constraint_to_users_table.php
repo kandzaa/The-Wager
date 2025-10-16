@@ -7,24 +7,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
-        // For SQLite, we'll handle the role validation in the model
-        // This migration will just ensure the column exists with a default value
         Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->default('user')->change();
+            $table->enum('role', ['admin', 'user'])->default('user')->after('email');
         });
-
-        // For other databases, we can add the constraint
-        if (DB::getDriverName() !== 'sqlite') {
-            DB::statement("ALTER TABLE users ADD CONSTRAINT check_user_role CHECK (role IN ('user', 'admin'))");
-        }
+        DB::statement("ALTER TABLE users ADD CONSTRAINT chk_role CHECK (role IN ('admin', 'user'))");
     }
 
-    public function down(): void
+    public function down()
     {
-        if (DB::getDriverName() !== 'sqlite') {
-            DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS check_user_role');
-        }
+        DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS chk_role');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('role');
+        });
     }
 };
