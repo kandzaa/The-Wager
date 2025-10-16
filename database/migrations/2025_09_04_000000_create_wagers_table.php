@@ -22,24 +22,18 @@ return new class extends Migration
             $table->timestamp('ending_time');
             $table->integer('pot')->default(0);
             $table->timestamp('ended_at')->nullable();
-            $table->unsignedBigInteger('winning_choice_id')->nullable(); // Define column without constraint
-            $table->timestamps();                                        // Include timestamps to address previous error
+            $table->unsignedBigInteger('winning_choice_id')->nullable();
+            $table->timestamps();
 
-            if (DB::getDriverName() !== 'sqlite') {
-                DB::statement('ALTER TABLE wagers DROP CONSTRAINT IF EXISTS wagers_status_check');
-                DB::statement("ALTER TABLE wagers ADD CONSTRAINT wagers_status_check CHECK (status IN ('public', 'private', 'ended'))");
+            $constraintExists = DB::select("SELECT COUNT(*) as count FROM information_schema.table_constraints WHERE table_name = 'wagers' AND constraint_name = 'wagers_winning_choice_id_foreign'");
+            if ($constraintExists[0]->count == 0) {
+                $table->foreign('winning_choice_id')->references('id')->on('wager_choices')->onDelete('set null');
             }
         });
     }
 
     public function down(): void
     {
-        if (DB::getDriverName() !== 'sqlite') {
-            DB::statement('ALTER TABLE wagers DROP CONSTRAINT IF EXISTS wagers_status_check');
-            DB::statement("ALTER TABLE wagers ADD CONSTRAINT wagers_status_check CHECK (status IN ('public', 'private'))");
-        }
-
-        DB::table('wagers')->where('status', 'ended')->update(['status' => 'private']);
         Schema::dropIfExists('wagers');
     }
 };
