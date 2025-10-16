@@ -16,11 +16,10 @@ return new class extends Migration
             $table->foreignId('invitee_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->string('email');
             $table->string('token', 64)->unique();
-            $table->string('status')->default('pending'); // pending, accepted, declined, expired
+            $table->string('status')->default('pending');
             $table->timestamp('expires_at');
             $table->timestamps();
 
-            // Ensure we don't have duplicate pending invites for same email and wager
             $table->unique(['wager_id', 'email', 'status']);
         });
     }
