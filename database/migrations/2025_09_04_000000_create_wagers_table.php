@@ -15,16 +15,13 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('creator_id')->constrained('users')->onDelete('cascade');
             $table->integer('max_players');
-
             $table->string('status')->default('public');
-
             $table->timestamp('starting_time')->default(now())->nullable();
             $table->timestamp('ending_time');
             $table->integer('pot')->default(0);
             $table->timestamp('ended_at')->nullable();
             $table->foreignId('winning_choice_id')->nullable();
             $table->timestamps();
-
         });
 
     }

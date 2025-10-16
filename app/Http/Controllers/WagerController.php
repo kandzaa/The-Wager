@@ -44,29 +44,40 @@ class WagerController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Store method hit', ['request' => $request->all()]);
+
         $validated = $request->validate([
             'name'            => 'required|string|max:255',
-            'description'     => 'nullable|string',
+            'description'     => 'nullable|string|max:1000',
             'max_players'     => 'required|integer|min:2|max:100',
             'ending_time'     => 'required|date|after:now',
+            'status'          => 'required|in:public,private',
             'choices'         => 'required|array|min:2|max:10',
             'choices.*.label' => 'required|string|max:255',
-            'status'          => 'required|in:public,private',
         ]);
+
+        \Log::info('Validation passed', ['validated' => $validated]);
 
         DB::beginTransaction();
 
         try {
+            if (! Auth::check()) {
+                throw new \Exception('User not authenticated');
+            }
+
             $wager = Wager::create([
-                'creator_id'  => Auth::id(),
-                'name'        => $validated['name'],
-                'description' => $validated['description'] ?? null,
-                'max_players' => $validated['max_players'],
-                'ending_time' => $validated['ending_time'],
-                'status'      => $validated['status'],
+                'creator_id'    => Auth::id(),
+                'name'          => $validated['name'],
+                'description'   => $validated['description'] ?? null,
+                'max_players'   => $validated['max_players'],
+                'status'        => $validated['status'],
+                'starting_time' => now(), // Ensure this is always set
+                'ending_time'   => $validated['ending_time'],
             ]);
 
-            foreach ($validated['choices'] as $choice) {
+            \Log::info('Wager created', ['wager_id' => $wager->id]);
+
+            foreach ($validated['choices'] as $index => $choice) {
                 $wager->choices()->create([
                     'label'     => $choice['label'],
                     'total_bet' => 0,
@@ -75,15 +86,31 @@ class WagerController extends Controller
 
             DB::commit();
 
+            \Log::info('Transaction committed', ['wager_id' => $wager->id]);
+
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success'  => true,
+                    'message'  => 'Wager created successfully!',
+                    'redirect' => route('wagers.show', $wager),
+                ]);
+            }
+
             return redirect()->route('wagers.show', $wager)
                 ->with('success', 'Wager created successfully!');
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            \Log::warning('Validation failed', ['errors' => $e->errors()]);
+            return response()->json(['success' => false, 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating wager: ' . $e->getMessage());
-
-            return back()->withInput()
-                ->with('error', 'An error occurred while creating the wager. Please try again.');
+            \Log::error('Error creating wager: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while creating the wager.',
+                'error'   => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
         }
     }
 
