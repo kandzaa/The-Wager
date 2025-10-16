@@ -71,7 +71,7 @@ class WagerController extends Controller
                 'description'   => $validated['description'] ?? null,
                 'max_players'   => $validated['max_players'],
                 'status'        => $validated['status'],
-                'starting_time' => now(), // Explicitly set, overrides default
+                'starting_time' => now(),
                 'ending_time'   => $validated['ending_time'],
             ]);
 

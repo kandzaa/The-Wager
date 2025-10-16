@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('ending_time');
             $table->integer('pot')->default(0);
             $table->timestamp('ended_at')->nullable();
-            $table->foreignId('winning_choice_id')->constrained('wager_choices')->onDelete('set null');
+            $table->foreignId('winning_choice_id')->nullable();
             $table->timestamps();
         });
     }
