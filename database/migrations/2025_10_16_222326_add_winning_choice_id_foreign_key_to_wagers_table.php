@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('wagers', function (Blueprint $table) {
+            // Check if foreign key constraint exists
             $constraintExists = DB::select("SELECT COUNT(*) as count FROM information_schema.table_constraints WHERE table_name = 'wagers' AND constraint_name = 'wagers_winning_choice_id_foreign'");
             if ($constraintExists[0]->count == 0) {
                 $table->foreign('winning_choice_id')->references('id')->on('wager_choices')->onDelete('set null');
