@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->foreignId('creator_id')->constrained('users')->onDelete('cascade');
+            $table->unsignedBigInteger('creator_id'); // Temporary, no constraint
             $table->integer('max_players');
             $table->string('status')->default('public');
             $table->timestamp('starting_time')->default(\DB::raw('CURRENT_TIMESTAMP'));
@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('pot')->default(0);
             $table->timestamp('ended_at')->nullable();
             $table->foreignId('winning_choice_id')->nullable();
+            $table->timestamps(); // Add timestamps
 
             $constraintExists = DB::select("SELECT COUNT(*) as count FROM information_schema.table_constraints WHERE table_name = 'wagers' AND constraint_name = 'wagers_winning_choice_id_foreign'");
             if ($constraintExists[0]->count == 0) {
