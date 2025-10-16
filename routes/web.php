@@ -20,14 +20,12 @@ Route::get('/dashboard', function () {
     $wagersCount = Wager::count();
     $usersCount  = User::count();
 
-    // Get pending invitations for the authenticated user
     $pendingInvitations = auth()->user()->wagerInvitations()
         ->with('wager')
         ->where('status', \App\Models\WagerInvitation::STATUS_PENDING)
         ->where('expires_at', '>', now())
         ->get();
 
-    // Get wagers the user has joined
     $joinedWagers = auth()->user()->wagerPlayers()
         ->with(['wager' => function ($query) {
             $query->withCount('players');
@@ -58,16 +56,16 @@ Route::post('/profile/change-email', [ProfileController::class, 'changeEmail'])-
 Route::post('/profile/change-password', [ProfileController::class, 'changePassword'])->middleware(['auth', 'verified'])->name('profile.change-password');
 //derību routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/wagers', [WagerController::class, 'index'])->name('wagers');
-    Route::post('/wagers', [WagerController::class, 'store'])->name('wagers.store');
-    Route::get('/wagers/{wager}/edit', [WagerController::class, 'edit'])->name('wagers.edit');
     Route::get('/wagers/search', [WagerController::class, 'search'])->name('wagers.search');
-    Route::get('/wagers/{wager}', [WagerController::class, 'show'])->name('wagers.show');
+    Route::resource('wagers', WagerController::class)->only([
+        'index', 'create', 'store', 'show', 'edit', 'update', 'destroy',
+    ]);
     Route::post('/wagers/{wager}/join', [WagerController::class, 'join'])->name('wagers.join');
     Route::post('/wagers/{wager}/bet', [WagerController::class, 'bet'])->name('wagers.bet');
     Route::get('/wagers/{wager}/stats', [WagerController::class, 'stats'])->name('wagers.stats');
-    Route::put('/wagers/{wager}', [WagerController::class, 'update'])->name('wagers.update');
-    Route::delete('/wagers/{wager}', [WagerController::class, 'destroy'])->name('wagers.destroy');
+    Route::get('/wagers/{wager}/results', [WagerController::class, 'results'])->name('wagers.results');
+    Route::get('/wagers/{wager}/end', [WagerController::class, 'showEndForm'])->name('wagers.end.form');
+    Route::post('/wagers/{wager}/end', [WagerController::class, 'end'])->name('wagers.end');
 
     // Invitation routes
     Route::post('/wagers/{wager}/invite', [WagerController::class, 'sendInvitation'])->name('wagers.invite');

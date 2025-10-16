@@ -17,7 +17,7 @@
             {{ __('Dashboard') }}
         </x-nav-link>
 
-        <x-nav-link :href="route('wagers')" :active="request()->routeIs('wagers')"
+        <x-nav-link :href="route('wagers.index')" :active="request()->routeIs('wagers.index')"
             class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
             <ion-icon name="game-controller-outline" class="size-5 mr-2"></ion-icon>
             {{ __('Wagers') }}

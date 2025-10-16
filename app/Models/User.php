@@ -24,27 +24,30 @@ class User extends Authenticatable
         'role',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
+    protected $attributes = [
+        'role' => 'user',
+    ];
+
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected static function booted()
+    {
+        static::saving(function ($user) {
+            if (! in_array($user->role, ['user', 'admin'])) {
+                throw new \InvalidArgumentException("Invalid role. Must be either 'user' or 'admin'");
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'balance'           => 'integer',
+            'email_verified_at'   => 'datetime',
+            'password'            => 'hashed',
+            'balance'             => 'integer',
             'last_daily_claim_at' => 'datetime',
         ];
     }
@@ -69,7 +72,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Models\WagerPlayer::class, 'user_id');
     }
-    
+
     /**
      * Get all wager invitations for the user.
      */

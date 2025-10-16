@@ -23,9 +23,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // The check constraint you added in the last step
-        DB::statement("ALTER TABLE users ADD CONSTRAINT check_user_role CHECK (role IN ('user', 'admin'))");
-
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();
@@ -36,9 +33,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

@@ -1,12 +1,12 @@
-    <div x-data="createWagerForm()" class="fixed inset-0 z-50" x-show="showModal">
-
+<div x-show="showModal" class="fixed inset-0 z-50">
+    <div x-data="createWagerForm()">
         <div class="fixed inset-0 backdrop-blur-sm bg-slate-950/50" @click="closeModal()"></div>
 
         <div class="fixed inset-0 z-50 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4">
-                <diva
+                <div
                     class="relative transform overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-900 text-left shadow-2xl transition-all sm:w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto ring-1 ring-slate-300 dark:ring-slate-700">
-
+                    <!-- Rest of the form content remains unchanged -->
                     <div class="bg-slate-50 dark:bg-slate-900 px-6 pt-6 pb-4">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
@@ -122,7 +122,8 @@
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <template x-for="(choice, index) in form.choices" :key="index">
                                             <div class="flex items-center gap-2">
-                                                <input type="text" x-model="form.choices[index]"
+                                                <!-- 🟢 FIX: Bind to choice.label to match backend validation (choices.*.label) -->
+                                                <input type="text" x-model="choice.label"
                                                     @input="validateField('choices')"
                                                     :class="getChoiceFieldClass(index)"
                                                     :placeholder="'Choice ' + (index + 1)" maxlength="255"
@@ -162,6 +163,9 @@
                                     </div>
                                 </div>
 
+                                <!-- HIDDEN STARTING TIME FIELD - Required by migration -->
+                                <input type="hidden" x-model="form.starting_time">
+
                             </div>
 
                             <div
@@ -194,8 +198,10 @@
                         </form>
 
                     </div>
+                </div>
             </div>
         </div>
+
     </div>
 
     <script>
@@ -203,36 +209,43 @@
             return {
                 isSubmitting: false,
                 showModal: true,
-                isSubmitting: false,
                 globalError: '',
                 successMessage: '',
-
                 form: {
                     name: '',
                     description: '',
                     max_players: 2,
                     status: 'public',
+                    starting_time: '',
                     ending_time: '',
-                    choices: ['', '']
+                    choices: [{
+                        label: ''
+                    }, {
+                        label: ''
+                    }]
                 },
-
                 errors: {
                     name: '',
                     description: '',
                     max_players: '',
+                    starting_time: '',
                     ending_time: '',
                     choices: ''
                 },
-
                 init() {
+                    this.resetFormTimes();
+                    window.addEventListener('close-create-wager-modal', () => {
+                        this.showModal = false;
+                    });
+                },
+                resetFormTimes() {
                     const now = new Date();
+                    this.form.starting_time = now.toISOString().slice(0, 16);
                     now.setHours(now.getHours() + 1);
                     this.form.ending_time = now.toISOString().slice(0, 16);
                 },
-
                 validateField(field) {
                     this.errors[field] = '';
-
                     switch (field) {
                         case 'name':
                             if (!this.form.name.trim()) {
@@ -241,27 +254,23 @@
                                 this.errors.name = 'Theme must be less than 255 characters';
                             }
                             break;
-
                         case 'description':
                             if (this.form.description && this.form.description.length > 1000) {
                                 this.errors.description = 'Description must be less than 1000 characters';
                             }
                             break;
-
                         case 'max_players':
                             if (!this.form.max_players || this.form.max_players < 2 || this.form.max_players > 100) {
                                 this.errors.max_players = 'Max players must be between 2 and 100';
                             }
                             break;
-
                         case 'ending_time':
                             if (!this.form.ending_time) {
                                 this.errors.ending_time = 'End time is required';
                             } else if (new Date(this.form.ending_time) <= new Date()) {
-                                this.errors.ending_time = 'Wager has to end and hour from now or more';
+                                this.errors.ending_time = 'Wager has to end at least one hour from now';
                             }
                             break;
-
                         case 'choices':
                             const validChoices = this.getValidChoices();
                             if (validChoices.length < 2) {
@@ -272,67 +281,56 @@
                             break;
                     }
                 },
-
                 getValidChoices() {
-                    return this.form.choices.filter(choice => choice.trim() !== '');
+                    return this.form.choices
+                        .map(choice => choice.label.trim())
+                        .filter(label => label !== '');
                 },
-
                 hasDuplicateChoices() {
                     const validChoices = this.getValidChoices();
-                    const unique = [...new Set(validChoices.map(c => c.trim().toLowerCase()))];
+                    const unique = [...new Set(validChoices.map(c => c.toLowerCase()))];
                     return validChoices.length !== unique.length;
                 },
-
                 getFieldClass(field) {
-                    const baseClass = "p-3 block w-full rounded-lg border transition-all duration-200 text-sm";
+                    const baseClass = 'p-3 block w-full rounded-lg border transition-all duration-200 text-sm';
                     const errorClass =
-                        "border-rose-300 dark:border-rose-600 bg-rose-50 dark:bg-rose-900/20 text-slate-900 dark:text-slate-100";
+                        'border-rose-300 dark:border-rose-600 bg-rose-50 dark:bg-rose-900/20 text-slate-900 dark:text-slate-100';
                     const validClass =
-                        "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500";
-
+                        'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500';
                     if (this.errors[field]) {
                         return `${baseClass} ${errorClass}`;
                     }
                     return `${baseClass} ${validClass}`;
                 },
-
                 getChoiceFieldClass(index) {
-                    const baseClass = "p-3 block w-full rounded-lg border transition-all duration-200 text-sm";
+                    const baseClass = 'p-3 block w-full rounded-lg border transition-all duration-200 text-sm';
                     const errorClass =
-                        "border-rose-300 dark:border-rose-600 bg-rose-50 dark:bg-rose-900/20 text-slate-900 dark:text-slate-100";
+                        'border-rose-300 dark:border-rose-600 bg-rose-50 dark:bg-rose-900/20 text-slate-900 dark:text-slate-100';
                     const validClass =
-                        "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500";
-
-                    const choiceValue = this.form.choices[index];
+                        'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500';
+                    const choiceValue = this.form.choices[index].label;
                     if (this.errors.choices && (!choiceValue || choiceValue.trim() === '')) {
                         return `${baseClass} ${errorClass}`;
                     }
                     return `${baseClass} ${validClass}`;
                 },
-
-                toggleVisibility() {
-                    this.form.status = this.form.status === 'public' ? 'private' : 'public';
-                },
-
                 addChoice() {
                     if (this.form.choices.length < 10) {
-                        this.form.choices.push('');
+                        this.form.choices.push({
+                            label: ''
+                        });
                     }
                 },
-
                 removeChoice(index) {
                     if (this.form.choices.length > 2) {
                         this.form.choices.splice(index, 1);
+                        this.validateField('choices');
                     }
                 },
-
                 getMinDateTime() {
                     const now = new Date();
                     return now.toISOString().slice(0, 16);
                 },
-
-                lastValidation: null,
-
                 isFormValid() {
                     const validChoices = this.getValidChoices();
                     const hasName = !!this.form.name.trim();
@@ -340,59 +338,36 @@
                     const validMaxPlayers = this.form.max_players >= 2 && this.form.max_players <= 100;
                     const hasEnoughChoices = validChoices.length >= 2;
                     const hasDuplicates = this.hasDuplicateChoices();
-
-                    const currentState = JSON.stringify({
-                        name: this.form.name,
-                        ending_time: this.form.ending_time,
-                        max_players: this.form.max_players,
-                        choices_count: validChoices.length
-                    });
-
-                    return hasName && hasEndingTime && validMaxPlayers && hasEnoughChoices && !hasDuplicates;
+                    const hasErrors = Object.values(this.errors).some(error => error !== '');
+                    return hasName && hasEndingTime && validMaxPlayers && hasEnoughChoices && !hasDuplicates && !hasErrors;
                 },
-
                 async submitForm() {
                     this.globalError = '';
                     this.successMessage = '';
-
                     this.validateField('name');
                     this.validateField('description');
                     this.validateField('max_players');
                     this.validateField('ending_time');
                     this.validateField('choices');
-
-                    if (!this.isFormValid()) {
+                    if (!this.isFormValid() || Object.values(this.errors).some(error => error !== '')) {
                         this.globalError = 'Please fix all validation errors before submitting.';
                         return;
                     }
-
                     this.isSubmitting = true;
-
                     try {
                         const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
                         const formData = new FormData();
                         formData.append('_token', token);
                         formData.append('name', this.form.name.trim());
                         formData.append('description', this.form.description.trim());
                         formData.append('max_players', this.form.max_players);
                         formData.append('status', this.form.status);
-                        formData.append('ending_time', this.form.ending_time);
-
-                        const validChoices = this.getValidChoices();
-                        validChoices.forEach((choice, index) => {
-                            formData.append(`choices[${index}]`, choice.trim());
+                        formData.append('starting_time', new Date().toISOString());
+                        formData.append('ending_time', new Date(this.form.ending_time).toISOString());
+                        const choicesToSubmit = this.form.choices.filter(choice => choice.label.trim() !== '');
+                        choicesToSubmit.forEach((choice, index) => {
+                            formData.append(`choices[${index}][label]`, choice.label.trim());
                         });
-
-                        console.log('Submitting form with data:', {
-                            name: this.form.name,
-                            description: this.form.description,
-                            max_players: this.form.max_players,
-                            status: this.form.status,
-                            ending_time: this.form.ending_time,
-                            choices: validChoices
-                        });
-
                         const response = await fetch('/wagers', {
                             method: 'POST',
                             body: formData,
@@ -401,42 +376,33 @@
                                 'Accept': 'application/json'
                             }
                         });
-
                         const result = await response.json().catch(() => null);
-
                         if (response.ok) {
                             this.successMessage = 'Wager created successfully! Redirecting...';
-
-                            this.form = {
-                                name: '',
-                                description: '',
-                                max_players: 2,
-                                status: 'public',
-                                ending_time: '',
-                                choices: ['', '']
-                            };
-
-                            const now = new Date();
-                            now.setHours(now.getHours() + 1);
-                            this.form.ending_time = now.toISOString().slice(0, 16);
-
+                            this.resetFormTimes();
+                            this.form.choices = [{
+                                label: ''
+                            }, {
+                                label: ''
+                            }];
                             if (typeof window !== 'undefined' && window.location) {
                                 setTimeout(() => {
                                     window.location.href = '/wagers';
                                 }, 800);
                             }
-
                         } else {
                             if (result && result.errors) {
                                 Object.keys(result.errors).forEach(field => {
-                                    this.errors[field] = result.errors[field][0];
+                                    const key = field.includes('.') ? field.split('.')[0] : field;
+                                    if (this.errors.hasOwnProperty(key)) {
+                                        this.errors[key] = result.errors[field][0];
+                                    }
                                 });
                                 this.globalError = 'Please fix the validation errors.';
                             } else {
                                 this.globalError = result?.message || 'Failed to create wager. Please try again.';
                             }
                         }
-
                     } catch (error) {
                         this.globalError = 'An error occurred while creating the wager.';
                         console.error('Error creating wager:', error);
@@ -444,21 +410,17 @@
                         this.isSubmitting = false;
                     }
                 },
-
                 closeModal() {
                     if (this.isSubmitting) {
-                        // Prevent closing the modal while submitting
                         return;
                     }
-
                     this.globalError = '';
                     this.successMessage = '';
                     this.showModal = false;
-
                     if (typeof window !== 'undefined') {
                         window.dispatchEvent(new CustomEvent('close-create-wager-modal'));
                     }
                 }
-            }
+            };
         }
     </script>

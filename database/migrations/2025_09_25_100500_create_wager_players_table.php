@@ -12,28 +12,26 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('wager_players', function (Blueprint $table) {
+            // ... (All your existing column definitions) ...
             $table->id();
-
             $table->foreignId('wager_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-
             $table->decimal('bet_amount')->nullable();
             $table->foreignId('choice_id')->nullable()->constrained('wager_choices')->onDelete('set null');
-
             $table->string('status')->default('pending');
-
             $table->decimal('potential_payout')->nullable();
             $table->decimal('actual_payout')->nullable();
-
             $table->index('wager_id');
             $table->index('user_id');
             $table->index('status');
             $table->timestamp('placed_at')->nullable();
-
             $table->timestamps();
         });
-        DB::statement("ALTER TABLE wager_players ADD CONSTRAINT wager_players_status_check
-            CHECK (status IN ('pending', 'won', 'lost'))");
+
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE wager_players ADD CONSTRAINT wager_players_status_check
+                CHECK (status IN ('pending', 'won', 'lost'))");
+        }
     }
 
     public function down(): void

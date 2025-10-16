@@ -24,6 +24,17 @@ class WagerBet extends Model
         'status'        => 'string',
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            if (! in_array($model->status, ['pending', 'won', 'lost'])) {
+                throw new \InvalidArgumentException("Invalid status value");
+            }
+        });
+    }
+
     /**
      * Get the wager this bet belongs to.
      */

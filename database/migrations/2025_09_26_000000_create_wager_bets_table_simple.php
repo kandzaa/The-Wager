@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public $withinTransaction = false;
+
     public function up()
     {
         Schema::create('wager_bets', function (Blueprint $table) {
@@ -26,8 +27,11 @@ return new class extends Migration
             $table->foreign('wager_player_id')->references('id')->on('wager_players')->onDelete('cascade');
             $table->foreign('wager_choice_id')->references('id')->on('wager_choices')->onDelete('cascade');
         });
-        DB::statement("ALTER TABLE wager_bets ADD CONSTRAINT wager_bets_status_check
-            CHECK (status IN ('pending', 'won', 'lost'))");
+
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE wager_bets ADD CONSTRAINT wager_bets_status_check
+                CHECK (status IN ('pending', 'won', 'lost'))");
+        }
     }
 
     public function down()

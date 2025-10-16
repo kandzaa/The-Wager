@@ -30,7 +30,7 @@ class Wager extends Model
 
     public function creator()
     {
-        return $this->belongsTo(\App\Models\User::class, 'creator_id');
+        return $this->belongsTo(User::class, 'creator_id');
     }
 
     public function choices()
@@ -174,5 +174,10 @@ class Wager extends Model
     {
         $validStatuses              = ['public', 'private', 'ended'];
         $this->attributes['status'] = in_array($value, $validStatuses) ? $value : 'public';
+    }
+
+    public function getPlayersCountAttribute()
+    {
+        return $this->players()->count();
     }
 }
