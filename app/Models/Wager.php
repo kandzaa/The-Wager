@@ -172,10 +172,9 @@ class Wager extends Model
 
     public function setStatusAttribute($value)
     {
-        $validStatuses              = ['public', 'private', 'ended'];
+        $validStatuses              = ['public', 'private', 'active', 'ended'];
         $this->attributes['status'] = in_array($value, $validStatuses) ? $value : 'public';
     }
-
     public function getPlayersCountAttribute()
     {
         return $this->players()->count();

@@ -1,9 +1,6 @@
 @php
     $compact = $compact ?? false;
-    $wagerLink =
-        isset($wager->status) && $wager->status === 'ended'
-            ? route('wagers.results', $wager)
-            : route('wagers.show', $wager);
+    $wagerLink = $wager->status === 'ended' ? route('wagers.results', $wager) : route('wagers.show', $wager);
 @endphp
 
 <div class="wager-item relative rounded-xl {{ $compact ? 'p-5' : 'p-6' }} bg-white dark:bg-slate-800/90 border {{ $compact ? 'border-slate-200/60' : 'border-slate-200/80' }} dark:border-slate-700/80 backdrop-blur-sm transition-all duration-300 ease-out cursor-pointer group hover:shadow-xl hover:-translate-y-1 hover:border-emerald-400/60 hover:bg-gradient-to-br hover:from-white hover:to-emerald-50/30 dark:hover:from-slate-800/95 dark:hover:to-emerald-900/10"
@@ -115,19 +112,24 @@
                 </div>
             @endif
 
-            @if (isset($wager->max_players) && isset($wager->players_count ?? 0))
+            @php
+                $maxPlayers = $wager->max_players ?? null;
+                $playersCount = $wager->players_count ?? 0;
+            @endphp
+
+            @if ($maxPlayers !== null && $playersCount !== null)
                 <div class="flex items-center {{ $compact ? 'text-xs' : 'text-sm' }}">
                     <div
                         class="flex items-center justify-center w-8 h-8 mr-2.5 rounded-lg bg-slate-50 dark:bg-slate-700/50">
                         <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z">
                             </path>
                         </svg>
                     </div>
                     <span class="font-medium text-slate-600 dark:text-slate-400">
-                        {{ $wager->players_count ?? 0 }} / {{ $wager->max_players }} players
+                        {{ $playersCount }} / {{ $maxPlayers }} players
                     </span>
                 </div>
             @endif

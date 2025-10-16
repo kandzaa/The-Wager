@@ -32,20 +32,20 @@
             <div class="lg:col-span-8">
                 <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-5">
                     Available Wagers
-                    <span class="text-sm text-slate-500">({{ $wagers->count() ?? 0 }} found)</span>
                 </h2>
 
 
 
                 @forelse ($wagers as $wager)
-                    <div class="wager-item-container">
-                        @include('wagers.wager-item', ['wager' => $wager, 'compact' => false])
-                    </div>
+                    @if ($wager)
+                        <div class="wager-item-container">
+                            @include('wagers.wager-item', ['wager' => $wager, 'compact' => false])
+                        </div>
+                    @endif
                 @empty
-                    <div
-                        class="no-wagers-message rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 p-12 text-center">
-                        <p class="text-base text-slate-600 dark:text-slate-300 mb-2">No public wagers available</p>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Be the first to create one!</p>
+                    <div class="no-wagers-message ...">
+                        <p>No public wagers available</p>
+                        <p>Be the first to create one!</p>
                     </div>
                 @endforelse
             </div>

@@ -4,7 +4,7 @@
         <div class="container mx-auto px-4 max-w-6xl">
             <!-- Header -->
             <div class="mb-8">
-                <a href="{{ route('wagers') }}"
+                <a href="{{ route('wagers.index') }}"
                     class="inline-flex items-center text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 mb-4 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
