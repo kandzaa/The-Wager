@@ -4,16 +4,26 @@ namespace App\Http\Controllers;
 use App\Models\Wager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class WagerController extends Controller
 {
     public function index()
     {
         $wagers = Wager::with('creator')
+            ->public()
             ->orderBy('ending_time', 'asc')
             ->get();
 
-        return view('wagers.lobby', compact('wagers'));
+        $userWagers = auth()->check()
+            ? Wager::with('creator')
+            ->where('creator_id', auth()->id())
+            ->orderBy('ending_time', 'asc')
+            ->get()
+            : collect();
+
+        return view('wagers.lobby', compact('wagers', 'userWagers'));
     }
 
     public function history()

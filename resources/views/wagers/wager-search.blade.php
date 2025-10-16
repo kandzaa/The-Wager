@@ -45,7 +45,6 @@
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(filterWagers, 300);
             });
-            // Initial call to ensure correct visibility
             filterWagers();
         } else {
             console.error('wager-search-input element not found');

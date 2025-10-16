@@ -1,15 +1,9 @@
 @php
     $compact = $compact ?? false;
-
-    // Safe wager link generation with fallback
-    $wagerLink = '#';
-    if (isset($wager->id)) {
-        if (isset($wager->status) && $wager->status === 'ended') {
-            $wagerLink = route('wagers.results', $wager);
-        } else {
-            $wagerLink = route('wagers.show', $wager);
-        }
-    }
+    $wagerLink =
+        isset($wager->status) && $wager->status === 'ended'
+            ? route('wagers.results', $wager)
+            : route('wagers.show', $wager);
 @endphp
 
 <div class="wager-item relative rounded-xl {{ $compact ? 'p-5' : 'p-6' }} bg-white dark:bg-slate-800/90 border {{ $compact ? 'border-slate-200/60' : 'border-slate-200/80' }} dark:border-slate-700/80 backdrop-blur-sm transition-all duration-300 ease-out cursor-pointer group hover:shadow-xl hover:-translate-y-1 hover:border-emerald-400/60 hover:bg-gradient-to-br hover:from-white hover:to-emerald-50/30 dark:hover:from-slate-800/95 dark:hover:to-emerald-900/10"
@@ -24,8 +18,7 @@
             @if ($wager->status === 'ended')
                 <span
                     class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30 group-hover:scale-110 transition-all duration-300">
-                    <ion-icon class="text-sm" name="flag-outline"></ion-icon>
-                    Ended
+                    <ion-icon class="text-sm" name="flag-outline"></ion-icon> Ended
                 </span>
             @else
                 <span
@@ -44,8 +37,7 @@
             @if (isset($wager->creator_id) && auth()->id() == $wager->creator_id)
                 <span
                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200 shadow-sm group-hover:scale-105 transition-all duration-300">
-                    <ion-icon class="text-xs" name="star-outline"></ion-icon>
-                    Your wager
+                    <ion-icon class="text-xs" name="star-outline"></ion-icon> Your wager
                 </span>
             @endif
         @endauth
@@ -53,7 +45,6 @@
 
     <!-- Main Content -->
     <div class="space-y-{{ $compact ? '3' : '4' }}">
-        <!-- Wager Title -->
         <div class="relative">
             <h3
                 class="{{ $compact ? 'text-base' : 'text-lg' }} font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-200 {{ $compact ? 'line-clamp-2' : 'line-clamp-1' }}">
@@ -66,7 +57,6 @@
             @endif
         </div>
 
-        <!-- Description -->
         @if (!empty($wager->description ?? ''))
             <p
                 class="text-slate-600 dark:text-slate-300 {{ $compact ? 'text-xs line-clamp-2' : 'text-sm line-clamp-2' }} leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors duration-200">
@@ -74,11 +64,8 @@
             </p>
         @endif
 
-        <!-- Wager Details -->
         <div
             class="pt-3 space-y-2.5 border-t border-slate-100 dark:border-slate-700/50 group-hover:border-emerald-100 dark:group-hover:border-emerald-900/30 transition-colors duration-300">
-
-            <!-- Ending Time -->
             @if (isset($wager->ending_time) && $wager->ending_time instanceof \Carbon\Carbon)
                 <div class="flex items-center {{ $compact ? 'text-xs' : 'text-sm' }}">
                     <div
@@ -111,7 +98,6 @@
                 </div>
             @endif
 
-            <!-- Creator Info -->
             @if (isset($wager->creator) && isset($wager->creator->name))
                 <div class="flex items-center {{ $compact ? 'text-xs' : 'text-sm' }}">
                     <div
@@ -129,7 +115,6 @@
                 </div>
             @endif
 
-            <!-- Player Count (if available) -->
             @if (isset($wager->max_players) && isset($wager->players_count ?? 0))
                 <div class="flex items-center {{ $compact ? 'text-xs' : 'text-sm' }}">
                     <div
@@ -153,7 +138,6 @@
     @if ($compact && isset($wager->creator_id) && auth()->check() && $wager->creator_id == auth()->id())
         <div
             class="mt-4 pt-3 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-700/50 group-hover:border-emerald-100 dark:group-hover:border-emerald-900/30 transition-colors duration-300">
-            <!-- Edit Button -->
             @if (isset($wager->id))
                 <a href="{{ route('wagers.edit', $wager) }}" class="flex items-center" @click.stop>
                     <button type="button"
@@ -164,7 +148,6 @@
                 </a>
             @endif
 
-            <!-- Delete Form -->
             @if (isset($wager->id))
                 <form action="{{ route('wagers.destroy', $wager) }}" method="POST" class="flex items-center"
                     @click.stop>
