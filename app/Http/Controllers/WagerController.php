@@ -44,30 +44,27 @@ class WagerController extends Controller
             'name'            => 'required|string|max:255',
             'description'     => 'nullable|string|max:1000',
             'max_players'     => 'required|integer|min:2|max:100',
-            'privacy'         => 'required|in:public,private', // ← Changed from 'status'
+            'privacy'         => 'required|in:public,private',
             'starting_time'   => 'required|date',
             'ending_time'     => 'required|date|after:now',
             'choices.*.label' => 'required|string|max:255',
         ]);
 
-                             // Set proper wager status (lifecycle), not privacy
-        $status = 'pending'; // Default status for new wagers
-        if (now()->greaterThanOrEqualTo($validated['starting_time'])) {
-            $status = 'active';
-        }
+        // FORCE proper status - lifecycle only
+        $status = now()->greaterThanOrEqualTo($validated['starting_time']) ? 'active' : 'pending';
 
         $wager = Wager::create([
+            'pot'           => 0,
             'name'          => $validated['name'],
             'description'   => $validated['description'],
             'max_players'   => $validated['max_players'],
-            'status'        => $status,               // 'pending' or 'active' - lifecycle status
-            'privacy'       => $validated['privacy'], // 'public' or 'private' - visibility
+            'status'        => $status,               // ← 'pending' or 'active' ONLY
+            'privacy'       => $validated['privacy'], // 'public' or 'private'
             'starting_time' => $validated['starting_time'],
             'ending_time'   => $validated['ending_time'],
             'creator_id'    => auth()->id(),
         ]);
 
-        // Create wager choices
         foreach ($validated['choices'] as $choice) {
             $wager->choices()->create(['label' => $choice['label']]);
         }
