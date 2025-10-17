@@ -13,6 +13,8 @@ class AddBetAmountToWagerPlayersTable extends Migration
                 $table->integer('bet_amount')->default(0);
             }
         });
+
+        DB::statement('ALTER TABLE wager_players ALTER COLUMN bet_amount SET NOT NULL;');
     }
 
     public function down()
