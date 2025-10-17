@@ -8,29 +8,21 @@ return new class extends Migration
 {
     public $withinTransaction = false;
 
-    public function up(): void
+    public function up()
     {
         Schema::create('wager_players', function (Blueprint $table) {
             $table->id();
-            $table->integer('bet_amount')->default(0);
             $table->foreignId('wager_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->integer('bet_amount')->default(0); // ← ADD THIS
+            $table->timestamps();
 
-            if (! Schema::hasColumn('wager_players', 'created_at')) {
-                $table->timestamp('created_at')->nullable();
-            }
-            if (! Schema::hasColumn('wager_players', 'updated_at')) {
-                $table->timestamp('updated_at')->nullable();
-            }
+            $table->unique(['wager_id', 'user_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        $table->dropColumn('bet_amount');
         Schema::dropIfExists('wager_players');
     }
 };
