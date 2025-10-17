@@ -15,11 +15,13 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->integer('max_players');
-            $table->enum('status', ['pending', 'active', 'ended'])->default('pending'); // Add if missing
-            $table->string('privacy')->default('public');                               // ← ADD THIS LINE
+            $table->enum('status', ['pending', 'active', 'ended'])->default('pending');
+            $table->string('privacy')->default('public');
             $table->timestamp('starting_time');
             $table->timestamp('ending_time');
             $table->foreignId('creator_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('winning_choice_id')->nullable()->constrained('wager_choices')->onDelete('set null');
+            $table->timestamp('ended_at')->nullable();
             $table->timestamps();
         });
     }

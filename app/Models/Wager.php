@@ -18,6 +18,7 @@ class Wager extends Model
         'pot',
         'starting_time',
         'winning_choice_id',
+        'ended_at',
     ];
 
     protected $casts = [
