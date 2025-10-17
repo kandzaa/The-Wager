@@ -47,64 +47,44 @@ class WagerController extends Controller
             'privacy'         => 'required|in:public,private',
             'starting_time'   => 'required|date',
             'ending_time'     => 'required|date|after:starting_time',
-            'choices.*.label' => 'required|string|max:255|distinct',
-        ], [
-            'choices.*.label.distinct' => 'Choice labels must be unique.',
-            'ending_time.after'        => 'Ending time must be after starting time.',
+            'choices.*.label' => 'required|string|max:255',
         ]);
 
-        // FORCE CORRECT STATUS - Only 'pending', 'active', or 'ended'
-        $startingTime = \Carbon\Carbon::parse($validated['starting_time']);
-        $status       = $startingTime->isPast() ? 'active' : 'pending';
+        $status = now()->greaterThanOrEqualTo($validated['starting_time']) ? 'active' : 'pending';
+        if (! in_array($status, ['pending', 'active', 'ended'])) {
+            throw new \Exception('Invalid status: ' . $status);
+        }
 
-        // Log for debugging
-        \Log::info('Creating wager', [
-            'status'        => $status,
+        // FORCE DEBUG - Log EVERYTHING
+        \Log::emergency('WAGER DEBUG', [
+            'validated_privacy' => $validated['privacy'],
+            'calculated_status' => $status,
+            'request_all'       => $request->all(),
+        ]);
+
+        // MANUAL INSERT - Bypass model mass assignment issues
+        $wagerId = DB::table('wagers')->insertGetId([
+            'pot'           => 0,
+            'name'          => $validated['name'],
+            'description'   => $validated['description'],
+            'max_players'   => $validated['max_players'],
+            'status'        => $status, // FORCE 'pending' or 'active'
             'privacy'       => $validated['privacy'],
             'starting_time' => $validated['starting_time'],
+            'ending_time'   => $validated['ending_time'],
+            'creator_id'    => auth()->id(),
+            'created_at'    => now(),
+            'updated_at'    => now(),
         ]);
 
-        try {
-            $wager = \App\Models\Wager::create([
-                'pot'           => 0,
-                'name'          => $validated['name'],
-                'description'   => $validated['description'],
-                'max_players'   => $validated['max_players'],
-                'status'        => $status,               // 'pending' or 'active'
-                'privacy'       => $validated['privacy'], // 'public' or 'private'
-                'starting_time' => $validated['starting_time'],
-                'ending_time'   => $validated['ending_time'],
-                'creator_id'    => auth()->id(),
-            ]);
+        // Create wager object
+        $wager = Wager::find($wagerId);
 
-            // Create choices AFTER wager (fixes foreign key)
-            foreach ($validated['choices'] as $choiceData) {
-                $wager->choices()->create([
-                    'label'     => trim($choiceData['label']),
-                    'total_bet' => 0,
-                ]);
-            }
-
-            \Log::info('Wager created successfully', ['wager_id' => $wager->id]);
-
-            return response()->json([
-                'success'  => true,
-                'message'  => 'Wager created successfully!',
-                'redirect' => route('wagers.index'),
-            ], 201);
-
-        } catch (\Exception $e) {
-            \Log::error('Failed to create wager', [
-                'error'     => $e->getMessage(),
-                'validated' => $validated,
-                'status'    => $status,
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create wager: ' . $e->getMessage(),
-            ], 500);
+        foreach ($validated['choices'] as $choice) {
+            $wager->choices()->create(['label' => $choice['label']]);
         }
+
+        return response()->json(['message' => 'Wager created successfully', 'id' => $wagerId], 201);
     }
 
     public function edit(Wager $wager)

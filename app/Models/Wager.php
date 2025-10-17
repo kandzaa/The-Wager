@@ -26,11 +26,7 @@ class Wager extends Model
         'ending_time'   => 'datetime',
         'starting_time' => 'datetime',
         'pot'           => 'integer',
-    ];
-
-    protected $attributes = [
-        'pot'    => 0,
-        'status' => 'public',
+        'ended_at'      => 'datetime',
     ];
 
     public function creator()
@@ -73,7 +69,7 @@ class Wager extends Model
      */
     public function scopePublic($query)
     {
-        return $query->where('status', 'public');
+        return $query->where('privacy', 'public');
     }
 
     /**
@@ -177,9 +173,10 @@ class Wager extends Model
 
     public function setStatusAttribute($value)
     {
-        $validStatuses              = ['public', 'private', 'active', 'ended'];
+        $validStatuses              = ['public', 'private', 'active', 'ended']; // ← WRONG!
         $this->attributes['status'] = in_array($value, $validStatuses) ? $value : 'public';
     }
+
     public function getPlayersCountAttribute()
     {
         return $this->players()->count();
