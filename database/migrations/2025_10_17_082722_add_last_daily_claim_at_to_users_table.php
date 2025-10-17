@@ -9,9 +9,11 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {$table->integer('balance')->default(0);});
+        Schema::table('users', function (Blueprint $table) {
+            Schema::table('users', function (Blueprint $table) {$table->timestamp('last_daily_claim_at')->nullable();});
+        });
     }
 
     /**
@@ -20,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            Schema::table('users', function (Blueprint $table) {$table->dropColumn('balance');});
+            Schema::table('users', function (Blueprint $table) {$table->dropColumn('last_daily_claim_at');});
         });
     }
 };
