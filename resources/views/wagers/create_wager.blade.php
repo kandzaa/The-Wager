@@ -5,7 +5,7 @@
         <div class="fixed inset-0 z-50 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4">
                 <div
-                    class="relative transform overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-900 text-left shadow-2xl transition-all sm:w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto ring-1 ring-slate-300 dark:ring-slate-700">
+                    class="relative transform overflo   hidden rounded-xl bg-slate-50 dark:bg-slate-900 text-left shadow-2xl transition-all sm:w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto ring-1 ring-slate-300 dark:ring-slate-700">
                     <!-- Rest of the form content remains unchanged -->
                     <div class="bg-slate-50 dark:bg-slate-900 px-6 pt-6 pb-4">
                         <div class="flex items-center justify-between">
@@ -361,7 +361,7 @@
                         formData.append('name', this.form.name.trim());
                         formData.append('description', this.form.description.trim());
                         formData.append('max_players', this.form.max_players);
-                        formData.append('status', this.form.status);
+                        formData.append('privacy', this.form.status); // ← CHANGE: status → privacy
                         formData.append('starting_time', new Date().toISOString());
                         formData.append('ending_time', new Date(this.form.ending_time).toISOString());
                         const choicesToSubmit = this.form.choices.filter(choice => choice.label.trim() !== '');

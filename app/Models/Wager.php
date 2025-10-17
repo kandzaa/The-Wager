@@ -14,6 +14,7 @@ class Wager extends Model
         'max_players',
         'ending_time',
         'status',
+        'privacy',
         'pot',
         'starting_time',
         'winning_choice_id',
