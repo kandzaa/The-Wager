@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('wager_players', function (Blueprint $table) {
             $table->id();
-            // Assume other original columns (e.g., wager_id, user_id) are here
+            $table->integer('bet_amount')->default(0);
             $table->foreignId('wager_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
 
@@ -30,8 +30,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // We won't remove the columns in the down method to prevent data loss
-        // If you need to rollback, you can create a new migration to handle that
+        $table->dropColumn('bet_amount');
         Schema::dropIfExists('wager_players');
     }
 };

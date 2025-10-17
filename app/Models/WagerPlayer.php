@@ -8,13 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class WagerPlayer extends Model
 {
     public $timestamps = true;
-    
+
     protected $casts = [
-        'bet_amount' => 'decimal:2',
-        'potential_payout' => 'decimal:2',
-        'actual_payout' => 'decimal:2',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'bet_amount'       => 'integer',
+        'potential_payout' => 'integer',
+        'actual_payout'    => 'integer',
+        'created_at'       => 'datetime',
+        'updated_at'       => 'datetime',
     ];
 
     protected $fillable = [
@@ -46,7 +46,7 @@ class WagerPlayer extends Model
     {
         return $this->hasMany(WagerBet::class);
     }
-    
+
     public function getAmountAttribute()
     {
         return $this->bet_amount;
