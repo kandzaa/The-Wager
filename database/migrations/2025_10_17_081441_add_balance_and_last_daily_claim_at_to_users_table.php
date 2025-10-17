@@ -9,7 +9,10 @@ class AddBalanceAndLastDailyClaimAtToUsersTable extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->decimal('balance', 10, 2)->default(0.00);
+            $table->integer('balance')->default(0);
+        });
+
+        Schema::table('users', function (Blueprint $table) {
             $table->timestamp('last_daily_claim_at')->nullable();
         });
     }
