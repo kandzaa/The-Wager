@@ -8,6 +8,7 @@ class Wager extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'pot',
         'name',
         'description',
         'creator_id',

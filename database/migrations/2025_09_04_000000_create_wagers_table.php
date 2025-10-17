@@ -12,6 +12,7 @@ return new class extends Migration
     {
         Schema::create('wagers', function (Blueprint $table) {
             $table->id();
+            $table->integer('pot')->default(0);
             $table->string('name');
             $table->text('description')->nullable();
             $table->integer('max_players');
