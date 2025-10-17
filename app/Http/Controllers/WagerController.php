@@ -46,30 +46,65 @@ class WagerController extends Controller
             'max_players'     => 'required|integer|min:2|max:100',
             'privacy'         => 'required|in:public,private',
             'starting_time'   => 'required|date',
-            'ending_time'     => 'required|date|after:now',
-            'choices.*.label' => 'required|string|max:255',
+            'ending_time'     => 'required|date|after:starting_time',
+            'choices.*.label' => 'required|string|max:255|distinct',
+        ], [
+            'choices.*.label.distinct' => 'Choice labels must be unique.',
+            'ending_time.after'        => 'Ending time must be after starting time.',
         ]);
 
-        // FORCE proper status - lifecycle only
-        $status = now()->greaterThanOrEqualTo($validated['starting_time']) ? 'active' : 'pending';
+        // FORCE CORRECT STATUS - Only 'pending', 'active', or 'ended'
+        $startingTime = \Carbon\Carbon::parse($validated['starting_time']);
+        $status       = $startingTime->isPast() ? 'active' : 'pending';
 
-        $wager = Wager::create([
-            'pot'           => 0,
-            'name'          => $validated['name'],
-            'description'   => $validated['description'],
-            'max_players'   => $validated['max_players'],
-            'status'        => $status,               // ← 'pending' or 'active' ONLY
-            'privacy'       => $validated['privacy'], // 'public' or 'private'
+        // Log for debugging
+        \Log::info('Creating wager', [
+            'status'        => $status,
+            'privacy'       => $validated['privacy'],
             'starting_time' => $validated['starting_time'],
-            'ending_time'   => $validated['ending_time'],
-            'creator_id'    => auth()->id(),
         ]);
 
-        foreach ($validated['choices'] as $choice) {
-            $wager->choices()->create(['label' => $choice['label']]);
-        }
+        try {
+            $wager = \App\Models\Wager::create([
+                'pot'           => 0,
+                'name'          => $validated['name'],
+                'description'   => $validated['description'],
+                'max_players'   => $validated['max_players'],
+                'status'        => $status,               // 'pending' or 'active'
+                'privacy'       => $validated['privacy'], // 'public' or 'private'
+                'starting_time' => $validated['starting_time'],
+                'ending_time'   => $validated['ending_time'],
+                'creator_id'    => auth()->id(),
+            ]);
 
-        return response()->json(['message' => 'Wager created successfully'], 201);
+            // Create choices AFTER wager (fixes foreign key)
+            foreach ($validated['choices'] as $choiceData) {
+                $wager->choices()->create([
+                    'label'     => trim($choiceData['label']),
+                    'total_bet' => 0,
+                ]);
+            }
+
+            \Log::info('Wager created successfully', ['wager_id' => $wager->id]);
+
+            return response()->json([
+                'success'  => true,
+                'message'  => 'Wager created successfully!',
+                'redirect' => route('wagers.index'),
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to create wager', [
+                'error'     => $e->getMessage(),
+                'validated' => $validated,
+                'status'    => $status,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create wager: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function edit(Wager $wager)
