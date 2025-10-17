@@ -8,25 +8,23 @@ return new class extends Migration
 {
     public $withinTransaction = false;
 
-    public function up(): void
+    public function up()
     {
         Schema::create('wagers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->foreignId('creator_id')->constrained('users')->onDelete('cascade');
             $table->integer('max_players');
-            $table->string('status')->default('public');
-            $table->timestamp('starting_time')->default(\DB::raw('CURRENT_TIMESTAMP'));
+            $table->enum('status', ['pending', 'active', 'ended'])->default('pending'); // Add if missing
+            $table->string('privacy')->default('public');                               // ← ADD THIS LINE
+            $table->timestamp('starting_time');
             $table->timestamp('ending_time');
-            $table->integer('pot')->default(0);
-            $table->timestamp('ended_at')->nullable();
-            $table->unsignedBigInteger('winning_choice_id')->nullable();
+            $table->foreignId('creator_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('wagers');
     }
