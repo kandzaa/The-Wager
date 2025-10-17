@@ -44,13 +44,14 @@ class WagerController extends Controller
             'name'            => 'required|string|max:255',
             'description'     => 'nullable|string|max:1000',
             'max_players'     => 'required|integer|min:2|max:100',
-            'status'          => 'required|in:public,private',
+            'privacy'         => 'required|in:public,private', // ← Changed from 'status'
             'starting_time'   => 'required|date',
             'ending_time'     => 'required|date|after:now',
             'choices.*.label' => 'required|string|max:255',
         ]);
 
-        $status = $validated['status'];
+                             // Set proper status, not privacy
+        $status = 'pending'; // Default status
         if (now()->greaterThanOrEqualTo($validated['starting_time'])) {
             $status = 'active';
         }
@@ -59,7 +60,8 @@ class WagerController extends Controller
             'name'          => $validated['name'],
             'description'   => $validated['description'],
             'max_players'   => $validated['max_players'],
-            'status'        => $status,
+            'status'        => $status,               // ← Now gets 'pending' or 'active'
+            'privacy'       => $validated['privacy'], // ← Add privacy field if exists
             'starting_time' => $validated['starting_time'],
             'ending_time'   => $validated['ending_time'],
             'creator_id'    => auth()->id(),
@@ -96,7 +98,7 @@ class WagerController extends Controller
             'choices'         => 'required|array|min:2|max:10',
             'choices.*.id'    => 'nullable|exists:wager_choices,id',
             'choices.*.label' => 'required|string|max:255',
-            'status'          => 'required|in:public,private',
+            'status'          => 'required|in:pending,active',
         ]);
 
         DB::beginTransaction();
