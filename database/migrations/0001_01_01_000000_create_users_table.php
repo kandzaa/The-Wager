@@ -8,14 +8,17 @@ return new class extends Migration
 {
     public $withinTransaction = false;
 
-    public function up(): void
+    public function up()
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['user', 'admin'])->default('user');
+            $table->string('role')->default('user');
+            $table->integer('balance')->default(0);
+            $table->timestamp('last_daily_claim_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
