@@ -20,9 +20,9 @@ class WagerBet extends Model
     ];
 
     protected $casts = [
-        'bet_amount'    => 'integer', // Changed to integer
-        'amount'        => 'integer', // Added to match table
-        'actual_payout' => 'integer', // Changed to integer
+        'bet_amount'    => 'integer',
+        'amount'        => 'integer',
+        'actual_payout' => 'integer',
         'status'        => 'string',
     ];
 
