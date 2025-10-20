@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('wager_bets', function (Blueprint $table) {
-            //
+            $table->integer('actual_payout')->nullable()->change();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('wager_bets', function (Blueprint $table) {
-            //
+            $table->integer('actual_payout')->change();
         });
     }
 };
