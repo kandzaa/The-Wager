@@ -10,21 +10,15 @@ class WagerPlayer extends Model
     public $timestamps = true;
 
     protected $casts = [
-        'bet_amount'       => 'integer',
-        'potential_payout' => 'integer',
-        'actual_payout'    => 'integer',
-        'created_at'       => 'datetime',
-        'updated_at'       => 'datetime',
+        'bet_amount' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     protected $fillable = [
         'wager_id',
         'user_id',
         'bet_amount',
-        'choice_id',
-        'status',
-        'potential_payout',
-        'actual_payout',
     ];
 
     public function wager(): BelongsTo
@@ -35,11 +29,6 @@ class WagerPlayer extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function choice(): BelongsTo
-    {
-        return $this->belongsTo(WagerChoice::class, 'choice_id');
     }
 
     public function bets(): HasMany

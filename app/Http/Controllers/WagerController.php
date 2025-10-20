@@ -196,40 +196,52 @@ class WagerController extends Controller
             'bets.*.amount'    => 'required|integer|min:1|max:' . Auth::user()->balance,
         ]);
 
+        \Log::info('Bet request validated', ['wager_id' => $wager->id, 'user_id' => Auth::user()->id, 'bets' => $validated['bets']]);
+
         if ($wager->status === 'ended') {
-            return response()->json(['success' => false, 'message' => 'This wager has ended'], 400);
+            return response()->json(['success' => false, 'message' => 'Wager has ended'], 400);
         }
 
         $user        = Auth::user();
         $totalAmount = collect($validated['bets'])->sum('amount');
 
-        // Validate balance upfront
         if ($user->balance < $totalAmount) {
             return response()->json(['success' => false, 'message' => 'Insufficient balance'], 400);
         }
 
         DB::beginTransaction();
         try {
-            // Check if player exists without locking first
-            \Log::info('Checking wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
-            $player = $wager->players()->where('user_id', $user->id)->first();
+            // Step 1: Check player
+            \Log::info('Checking player existence', ['wager_id' => $wager->id, 'user_id' => $user->id]);
+            $player = DB::table('wager_players')
+                ->where('wager_id', $wager->id)
+                ->where('user_id', $user->id)
+                ->first();
 
             if (! $player) {
-                \Log::info('Creating wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
-                $player = $wager->players()->create([
+                \Log::info('Creating player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
+                $playerId = DB::table('wager_players')->insertGetId([
+                    'wager_id'   => $wager->id,
                     'user_id'    => $user->id,
                     'bet_amount' => 0,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+                $player = DB::table('wager_players')->find($playerId);
             }
 
             $bets = [];
             foreach ($validated['bets'] as $betData) {
-                $choice = $wager->choices()->findOrFail($betData['choice_id']);
-                \Log::info('Creating bet', ['choice_id' => $betData['choice_id'], 'amount' => $betData['amount']]);
+                \Log::info('Processing bet', ['choice_id' => $betData['choice_id'], 'amount' => $betData['amount']]);
+                $choice = DB::table('wager_choices')
+                    ->where('wager_id', $wager->id)
+                    ->where('id', $betData['choice_id'])
+                    ->first();
 
-                // Insert bet using raw query to avoid Eloquent issues
+                if (! $choice) {
+                    throw new \Exception('Choice ID ' . $betData['choice_id'] . ' not found for wager ' . $wager->id);
+                }
+
                 $betId = DB::table('wager_bets')->insertGetId([
                     'wager_id'        => $wager->id,
                     'wager_choice_id' => $choice->id,
@@ -237,11 +249,11 @@ class WagerController extends Controller
                     'bet_amount'      => $betData['amount'],
                     'amount'          => $betData['amount'],
                     'status'          => 'pending',
+                    'actual_payout'   => null, // Explicitly null since nullable
                     'created_at'      => now(),
                     'updated_at'      => now(),
                 ]);
 
-                // Update choice total_bet
                 DB::table('wager_choices')
                     ->where('id', $choice->id)
                     ->increment('total_bet', $betData['amount']);
@@ -253,21 +265,13 @@ class WagerController extends Controller
                 ];
             }
 
-            // Update balances and pot in one go
             \Log::info('Updating balances', ['total_amount' => $totalAmount]);
-            DB::table('users')
-                ->where('id', $user->id)
-                ->decrement('balance', $totalAmount);
-            DB::table('wager_players')
-                ->where('id', $player->id)
-                ->increment('bet_amount', $totalAmount);
-            DB::table('wagers')
-                ->where('id', $wager->id)
-                ->increment('pot', $totalAmount);
+            DB::table('users')->where('id', $user->id)->decrement('balance', $totalAmount);
+            DB::table('wager_players')->where('id', $player->id)->increment('bet_amount', $totalAmount);
+            DB::table('wagers')->where('id', $wager->id)->increment('pot', $totalAmount);
 
             DB::commit();
 
-            // Refresh data for response
             $user->refresh();
             $wager->refresh();
             $stats = $this->stats($wager)->getData(true);

@@ -15,17 +15,15 @@ return new class extends Migration
             $table->foreignId('wager_id')->constrained()->onDelete('cascade');
             $table->foreignId('wager_choice_id')->constrained()->onDelete('cascade');
             $table->foreignId('wager_player_id')->constrained()->onDelete('cascade');
-            $table->integer('bet_amount');
-            $table->integer('amount');
+            $table->decimal('bet_amount', 8, 2);
+            $table->decimal('amount', 8, 2);
             $table->string('status')->default('pending');
+            $table->decimal('actual_payout', 8, 2)->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('wager_bets');
     }
