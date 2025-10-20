@@ -8,20 +8,17 @@ return new class extends Migration
 {
     public $withinTransaction = false;
 
-    public function up(): void
+    public function up()
     {
         Schema::create('wager_bets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('wager_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('wager_choice_id')->constrained('wager_choices')->onDelete('cascade');
-            $table->integer('amount')->default(0); // Assuming 'bet_amount' was meant, renamed to 'amount' for clarity
-            $table->decimal('actual_payout', 10, 2)->default(0)->after('amount');
+            $table->foreignId('wager_choice_id')->constrained()->onDelete('cascade');
+            $table->foreignId('wager_player_id')->constrained()->onDelete('cascade');
+            $table->integer('bet_amount');
+            $table->integer('amount');
+            $table->string('status')->default('pending');
             $table->timestamps();
-        });
-
-        Schema::table('wager_bets', function (Blueprint $table) {
-            //
         });
     }
 

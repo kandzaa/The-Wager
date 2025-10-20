@@ -2,7 +2,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Wager;
-use App\Models\WagerBet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -192,66 +191,85 @@ class WagerController extends Controller
     public function bet(Request $request, Wager $wager)
     {
         $validated = $request->validate([
-            'bets'             => 'required|array',
-            'bets.*.choice_id' => 'required|exists:wager_choices,id',
+            'bets'             => 'required|array|min:1',
+            'bets.*.choice_id' => 'required|exists:wager_choices,id,wager_id,' . $wager->id,
             'bets.*.amount'    => 'required|integer|min:1|max:' . Auth::user()->balance,
         ]);
 
         if ($wager->status === 'ended') {
-            return response()->json([
-                'success' => false,
-                'message' => 'This wager has ended.',
-            ], 400);
+            return response()->json(['success' => false, 'message' => 'This wager has ended'], 400);
+        }
+
+        $user        = Auth::user();
+        $totalAmount = collect($validated['bets'])->sum('amount');
+
+        // Validate balance upfront
+        if ($user->balance < $totalAmount) {
+            return response()->json(['success' => false, 'message' => 'Insufficient balance'], 400);
         }
 
         DB::beginTransaction();
-
         try {
-            $user        = Auth::user();
-            $totalAmount = 0;
-            $bets        = [];
+            // Check if player exists without locking first
+            \Log::info('Checking wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
+            $player = $wager->players()->where('user_id', $user->id)->first();
 
+            if (! $player) {
+                \Log::info('Creating wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
+                $player = $wager->players()->create([
+                    'user_id'    => $user->id,
+                    'bet_amount' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            $bets = [];
             foreach ($validated['bets'] as $betData) {
                 $choice = $wager->choices()->findOrFail($betData['choice_id']);
-                $amount = (int) $betData['amount'];
-                $totalAmount += $amount;
+                \Log::info('Creating bet', ['choice_id' => $betData['choice_id'], 'amount' => $betData['amount']]);
 
-                // Get or create player and lock the row for update
-                $player = $wager->players()->firstOrCreate(
-                    ['user_id' => $user->id],
-                    ['bet_amount' => 0]
-                );
-
-                // Create the bet
-                $bet = new WagerBet([
+                // Insert bet using raw query to avoid Eloquent issues
+                $betId = DB::table('wager_bets')->insertGetId([
                     'wager_id'        => $wager->id,
                     'wager_choice_id' => $choice->id,
                     'wager_player_id' => $player->id,
-                    'bet_amount'      => $amount,
-                    'amount'          => $amount,
+                    'bet_amount'      => $betData['amount'],
+                    'amount'          => $betData['amount'],
                     'status'          => 'pending',
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
                 ]);
-                $bet->save();
 
-                $bets[] = $bet;
+                // Update choice total_bet
+                DB::table('wager_choices')
+                    ->where('id', $choice->id)
+                    ->increment('total_bet', $betData['amount']);
 
-                // Update the choice's total bet
-                $choice->increment('total_bet', $amount);
+                $bets[] = (object) [
+                    'id'              => $betId,
+                    'wager_choice_id' => $choice->id,
+                    'bet_amount'      => $betData['amount'],
+                ];
             }
 
-            // Decrement user balance by the total amount once
-            $user->decrement('balance', $totalAmount);
-
-            // Update the player's total bet amount
-            $player->increment('bet_amount', $totalAmount);
+            // Update balances and pot in one go
+            \Log::info('Updating balances', ['total_amount' => $totalAmount]);
+            DB::table('users')
+                ->where('id', $user->id)
+                ->decrement('balance', $totalAmount);
+            DB::table('wager_players')
+                ->where('id', $player->id)
+                ->increment('bet_amount', $totalAmount);
+            DB::table('wagers')
+                ->where('id', $wager->id)
+                ->increment('pot', $totalAmount);
 
             DB::commit();
 
-            // Get fresh data
+            // Refresh data for response
             $user->refresh();
             $wager->refresh();
-
-            // Get updated stats
             $stats = $this->stats($wager)->getData(true);
 
             return response()->json([
@@ -268,11 +286,16 @@ class WagerController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Bet placement failed: ' . $e->getMessage() . '\n' . $e->getTraceAsString());
-
+            \Log::error('Bet placement failed', [
+                'error'     => $e->getMessage(),
+                'trace'     => $e->getTraceAsString(),
+                'wager_id'  => $wager->id,
+                'user_id'   => $user->id,
+                'validated' => $validated,
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to place bets. ' . $e->getMessage(),
+                'message' => 'Failed to place bets: ' . $e->getMessage(),
             ], 500);
         }
     }
