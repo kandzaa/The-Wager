@@ -6,18 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
         Schema::table('wager_bets', function (Blueprint $table) {
-            // Add actual_payout column as integer to match model expectations
-            $table->integer('actual_payout')->nullable()->after('status');
+            //
         });
     }
 
-    public function down()
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
     {
         Schema::table('wager_bets', function (Blueprint $table) {
-            $table->dropColumn('actual_payout');
+            //
         });
     }
 };

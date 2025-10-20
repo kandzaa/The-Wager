@@ -249,7 +249,7 @@ class WagerController extends Controller
                     'bet_amount'      => $betData['amount'],
                     'amount'          => $betData['amount'],
                     'status'          => 'pending',
-                    'actual_payout'   => null, // Explicitly null since nullable
+                    'actual_payout'   => null,
                     'created_at'      => now(),
                     'updated_at'      => now(),
                 ]);
@@ -303,7 +303,6 @@ class WagerController extends Controller
             ], 500);
         }
     }
-
     public function showEndForm(Wager $wager)
     {
         if ($wager->creator_id !== auth()->id()) {
