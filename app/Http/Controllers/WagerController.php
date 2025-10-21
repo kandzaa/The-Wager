@@ -197,11 +197,13 @@ class WagerController extends Controller
         ]);
 
         \Log::info('Bet request validated', [
-            'wager_id' => $wager->id,
-            'user_id'  => Auth::user()->id,
-            'bets'     => $validated['bets'],
+            'wager_id'  => $wager->id,
+            'user_id'   => Auth::user()->id,
+            'bets'      => $validated['bets'],
+            'timestamp' => now()->toDateTimeString(),
         ]);
 
+        // Check wager status
         if ($wager->status === 'ended') {
             \Log::warning('Wager has ended', ['wager_id' => $wager->id]);
             return response()->json(['success' => false, 'message' => 'Wager has ended'], 400);
@@ -210,6 +212,7 @@ class WagerController extends Controller
         $user        = Auth::user();
         $totalAmount = collect($validated['bets'])->sum('amount');
 
+        // Check balance
         if ($user->balance < $totalAmount) {
             \Log::warning('Insufficient balance', [
                 'user_id'      => $user->id,
@@ -219,29 +222,30 @@ class WagerController extends Controller
             return response()->json(['success' => false, 'message' => 'Insufficient balance'], 400);
         }
 
-        // Pre-check data to avoid transaction failures
-        \Log::info('Verifying wager existence', ['wager_id' => $wager->id]);
+        // Pre-transaction checks to avoid aborts
+        \Log::info('Checking wager existence', ['wager_id' => $wager->id]);
         $wagerExists = DB::table('wagers')->where('id', $wager->id)->exists();
         if (! $wagerExists) {
             \Log::error('Wager not found', ['wager_id' => $wager->id]);
             return response()->json(['success' => false, 'message' => 'Wager not found'], 404);
         }
 
-        \Log::info('Verifying user existence', ['user_id' => $user->id]);
+        \Log::info('Checking user existence', ['user_id' => $user->id]);
         $userExists = DB::table('users')->where('id', $user->id)->exists();
         if (! $userExists) {
             \Log::error('User not found', ['user_id' => $user->id]);
             return response()->json(['success' => false, 'message' => 'User not found'], 404);
         }
 
+        // Check all choices
         foreach ($validated['bets'] as $betData) {
-            \Log::info('Verifying choice existence', ['choice_id' => $betData['choice_id'], 'wager_id' => $wager->id]);
+            \Log::info('Checking choice existence', ['wager_id' => $wager->id, 'choice_id' => $betData['choice_id']]);
             $choiceExists = DB::table('wager_choices')
                 ->where('wager_id', $wager->id)
                 ->where('id', $betData['choice_id'])
                 ->exists();
             if (! $choiceExists) {
-                \Log::error('Choice not found', ['choice_id' => $betData['choice_id'], 'wager_id' => $wager->id]);
+                \Log::error('Choice not found', ['wager_id' => $wager->id, 'choice_id' => $betData['choice_id']]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Choice ID ' . $betData['choice_id'] . ' not found for wager ' . $wager->id,
@@ -251,58 +255,51 @@ class WagerController extends Controller
 
         // Check for duplicate wager_players
         \Log::info('Checking for duplicate wager_players', ['wager_id' => $wager->id, 'user_id' => $user->id]);
-        $duplicatePlayer = DB::table('wager_players')
+        $playerCount = DB::table('wager_players')
             ->where('wager_id', $wager->id)
             ->where('user_id', $user->id)
             ->count();
-        if ($duplicatePlayer > 1) {
-            \Log::error('Multiple wager_players entries found', ['wager_id' => $wager->id, 'user_id' => $user->id]);
+        if ($playerCount > 1) {
+            \Log::error('Duplicate wager_players found', ['wager_id' => $wager->id, 'user_id' => $user->id, 'count' => $playerCount]);
             return response()->json(['success' => false, 'message' => 'Duplicate wager player entries detected'], 400);
         }
 
         DB::beginTransaction();
         try {
-            // Check or create player
-            \Log::info('Checking player existence', ['wager_id' => $wager->id, 'user_id' => $user->id]);
+            // Get or create player
+            \Log::info('Fetching wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
             $player = DB::table('wager_players')
                 ->where('wager_id', $wager->id)
                 ->where('user_id', $user->id)
                 ->first();
 
             if (! $player) {
-                \Log::info('Creating player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
-                try {
-                    $playerId = DB::table('wager_players')->insertGetId([
-                        'wager_id'   => $wager->id,
-                        'user_id'    => $user->id,
-                        'bet_amount' => 0,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                    $player = DB::table('wager_players')->find($playerId);
-                    if (! $player) {
-                        throw new \Exception('Failed to create wager_player');
-                    }
-                } catch (\Exception $e) {
-                    \Log::error('Failed to create wager_player', [
-                        'wager_id' => $wager->id,
-                        'user_id'  => $user->id,
-                        'error'    => $e->getMessage(),
-                    ]);
-                    throw $e;
+                \Log::info('Creating wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
+                $playerId = DB::table('wager_players')->insertGetId([
+                    'wager_id'   => $wager->id,
+                    'user_id'    => $user->id,
+                    'bet_amount' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $player = DB::table('wager_players')->find($playerId);
+                if (! $player) {
+                    \Log::error('Failed to create wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
+                    throw new \Exception('Failed to create wager player');
                 }
             }
 
             $bets = [];
             foreach ($validated['bets'] as $betData) {
-                \Log::info('Processing bet', ['choice_id' => $betData['choice_id'], 'amount' => $betData['amount']]);
+                \Log::info('Processing bet', ['wager_id' => $wager->id, 'choice_id' => $betData['choice_id'], 'amount' => $betData['amount']]);
                 $choice = DB::table('wager_choices')
                     ->where('wager_id', $wager->id)
                     ->where('id', $betData['choice_id'])
                     ->first();
 
                 if (! $choice) {
-                    throw new \Exception('Choice ID ' . $betData['choice_id'] . ' not found for wager ' . $wager->id);
+                    \Log::error('Choice not found in transaction', ['wager_id' => $wager->id, 'choice_id' => $betData['choice_id']]);
+                    throw new \Exception('Choice ID ' . $betData['choice_id'] . ' not found');
                 }
 
                 \Log::info('Inserting wager_bet', [
@@ -311,7 +308,6 @@ class WagerController extends Controller
                     'wager_player_id' => $player->id,
                     'bet_amount'      => $betData['amount'],
                 ]);
-
                 $betId = DB::table('wager_bets')->insertGetId([
                     'wager_id'        => $wager->id,
                     'wager_choice_id' => $choice->id,
@@ -324,7 +320,7 @@ class WagerController extends Controller
                     'updated_at'      => now(),
                 ]);
 
-                \Log::info('Updating wager_choices total_bet', ['choice_id' => $choice->id, 'amount' => $betData['amount']]);
+                \Log::info('Updating total_bet', ['wager_choice_id' => $choice->id, 'amount' => $betData['amount']]);
                 DB::table('wager_choices')
                     ->where('id', $choice->id)
                     ->increment('total_bet', $betData['amount']);
@@ -336,7 +332,12 @@ class WagerController extends Controller
                 ];
             }
 
-            \Log::info('Updating balances', ['total_amount' => $totalAmount, 'user_id' => $user->id, 'player_id' => $player->id]);
+            \Log::info('Updating balances', [
+                'user_id'      => $user->id,
+                'player_id'    => $player->id,
+                'wager_id'     => $wager->id,
+                'total_amount' => $totalAmount,
+            ]);
             DB::table('users')->where('id', $user->id)->decrement('balance', $totalAmount);
             DB::table('wager_players')->where('id', $player->id)->increment('bet_amount', $totalAmount);
             DB::table('wagers')->where('id', $wager->id)->increment('pot', $totalAmount);
@@ -368,6 +369,7 @@ class WagerController extends Controller
                 'wager_id'  => $wager->id,
                 'user_id'   => $user->id,
                 'validated' => $validated,
+                'timestamp' => now()->toDateTimeString(),
             ]);
             return response()->json([
                 'success' => false,
