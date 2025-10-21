@@ -9,15 +9,9 @@ class CreateWagerChoicesTable extends Migration
 {
     public function up()
     {
-        // Ensure wagers table exists first
+        // Ensure wagers table exists (should already be created by 2025_09_04)
         if (! Schema::hasTable('wagers')) {
-            Schema::create('wagers', function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->integer('pot')->default(0);
-                $table->string('status')->default('open');
-                $table->timestamps();
-            });
-            Log::info('Created wagers table as dependency');
+            throw new \Exception('wagers table not found, migration order may be incorrect');
         }
 
         Schema::create('wager_choices', function (Blueprint $table) {
@@ -28,7 +22,7 @@ class CreateWagerChoicesTable extends Migration
             $table->timestamps();
         });
 
-        // Add foreign key in a separate step to avoid transaction abort
+        // Add foreign key in a separate step
         Schema::table('wager_choices', function (Blueprint $table) {
             $table->foreign('wager_id')->references('id')->on('wagers')->onDelete('cascade')->change();
         });
@@ -38,7 +32,6 @@ class CreateWagerChoicesTable extends Migration
     public function down()
     {
         Schema::dropIfExists('wager_choices');
-        Schema::dropIfExists('wagers'); // Clean up if created here
-        Log::info('Dropped wager_choices and wagers tables');
+        Log::info('Dropped wager_choices table');
     }
 }
