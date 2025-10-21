@@ -196,127 +196,55 @@ class WagerController extends Controller
             'bets.*.amount'    => 'required|integer|min:1|max:' . Auth::user()->balance,
         ]);
 
-        \Log::info('Bet request validated', [
-            'wager_id'  => $wager->id,
-            'user_id'   => Auth::user()->id,
-            'bets'      => $validated['bets'],
-            'timestamp' => now()->toDateTimeString(),
-        ]);
+        Log::info('BET START', ['wager_id' => $wager->id, 'user_id' => Auth::user()->id, 'bets' => $validated['bets']]);
 
-        // Check wager status
         if ($wager->status === 'ended') {
-            \Log::warning('Wager has ended', ['wager_id' => $wager->id]);
-            return response()->json(['success' => false, 'message' => 'Wager has ended'], 400);
+            return response()->json(['success' => false, 'message' => 'Wager ended'], 400);
         }
 
         $user        = Auth::user();
         $totalAmount = collect($validated['bets'])->sum('amount');
 
-        // Check balance
         if ($user->balance < $totalAmount) {
-            \Log::warning('Insufficient balance', [
-                'user_id'      => $user->id,
-                'balance'      => $user->balance,
-                'total_amount' => $totalAmount,
-            ]);
             return response()->json(['success' => false, 'message' => 'Insufficient balance'], 400);
         }
 
-        // Pre-transaction checks
-        \Log::info('Checking wager existence', ['wager_id' => $wager->id]);
-        $wagerExists = DB::table('wagers')->where('id', $wager->id)->exists();
-        if (! $wagerExists) {
-            \Log::error('Wager not found', ['wager_id' => $wager->id]);
-            return response()->json(['success' => false, 'message' => 'Wager not found'], 404);
-        }
-
-        \Log::info('Checking user existence', ['user_id' => $user->id]);
-        $userExists = DB::table('users')->where('id', $user->id)->exists();
-        if (! $userExists) {
-            \Log::error('User not found', ['user_id' => $user->id]);
-            return response()->json(['success' => false, 'message' => 'User not found'], 404);
-        }
-
-        // Verify choices
-        foreach ($validated['bets'] as $betData) {
-            \Log::info('Checking choice', ['wager_id' => $wager->id, 'choice_id' => $betData['choice_id']]);
-            $choiceExists = DB::table('wager_choices')
-                ->where('wager_id', $wager->id)
-                ->where('id', $betData['choice_id'])
-                ->exists();
-            if (! $choiceExists) {
-                \Log::error('Choice not found', ['wager_id' => $wager->id, 'choice_id' => $betData['choice_id']]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Choice ID ' . $betData['choice_id'] . ' not found for wager ' . $wager->id,
-                ], 404);
-            }
-        }
-
-        // Check for duplicate wager_players
-        \Log::info('Checking wager_players duplicates', ['wager_id' => $wager->id, 'user_id' => $user->id]);
-        $playerCount = DB::table('wager_players')
-            ->where('wager_id', $wager->id)
-            ->where('user_id', $user->id)
-            ->count();
-        if ($playerCount > 1) {
-            \Log::error('Duplicate wager_players detected', ['wager_id' => $wager->id, 'user_id' => $user->id, 'count' => $playerCount]);
-            return response()->json(['success' => false, 'message' => 'Duplicate wager player entries detected'], 400);
-        }
-
-        DB::beginTransaction();
+        // NO TRANSACTION - Run step by step to avoid abort
         try {
-            // Get or create player
-            \Log::info('Fetching wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
+            // 1. Get or create player
+            Log::info('PLAYER CHECK');
             $player = DB::table('wager_players')
                 ->where('wager_id', $wager->id)
                 ->where('user_id', $user->id)
                 ->first();
 
             if (! $player) {
-                \Log::info('Inserting wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
-                try {
-                    $playerId = DB::table('wager_players')->insertGetId([
-                        'wager_id'   => $wager->id,
-                        'user_id'    => $user->id,
-                        'bet_amount' => 0,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                    $player = DB::table('wager_players')->find($playerId);
-                    if (! $player) {
-                        \Log::error('Failed to create wager_player', ['wager_id' => $wager->id, 'user_id' => $user->id]);
-                        throw new \Exception('Failed to create wager player');
-                    }
-                } catch (\Exception $e) {
-                    \Log::error('Wager_player insert failed', [
-                        'wager_id' => $wager->id,
-                        'user_id'  => $user->id,
-                        'error'    => $e->getMessage(),
-                    ]);
-                    throw $e;
-                }
+                Log::info('INSERT PLAYER');
+                $playerId = DB::table('wager_players')->insertGetId([
+                    'wager_id'   => $wager->id,
+                    'user_id'    => $user->id,
+                    'bet_amount' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $player = (object) ['id' => $playerId];
             }
 
             $bets = [];
             foreach ($validated['bets'] as $betData) {
-                \Log::info('Processing bet', ['wager_id' => $wager->id, 'choice_id' => $betData['choice_id'], 'amount' => $betData['amount']]);
+                Log::info('BET LOOP', ['choice_id' => $betData['choice_id']]);
+
+                // 2. Get choice
                 $choice = DB::table('wager_choices')
                     ->where('wager_id', $wager->id)
                     ->where('id', $betData['choice_id'])
                     ->first();
 
                 if (! $choice) {
-                    \Log::error('Choice not found in transaction', ['wager_id' => $wager->id, 'choice_id' => $betData['choice_id']]);
-                    throw new \Exception('Choice ID ' . $betData['choice_id'] . ' not found');
+                    return response()->json(['success' => false, 'message' => 'Choice not found'], 404);
                 }
 
-                \Log::info('Inserting wager_bet', [
-                    'wager_id'        => $wager->id,
-                    'wager_choice_id' => $choice->id,
-                    'wager_player_id' => $player->id,
-                    'bet_amount'      => $betData['amount'],
-                ]);
+                // 3. Insert bet
                 $betId = DB::table('wager_bets')->insertGetId([
                     'wager_id'        => $wager->id,
                     'wager_choice_id' => $choice->id,
@@ -329,56 +257,37 @@ class WagerController extends Controller
                     'updated_at'      => now(),
                 ]);
 
-                \Log::info('Updating total_bet', ['wager_choice_id' => $choice->id, 'amount' => $betData['amount']]);
+                // 4. Update choice total_bet
                 DB::table('wager_choices')
                     ->where('id', $choice->id)
                     ->increment('total_bet', $betData['amount']);
 
-                $bets[] = (object) [
-                    'id'              => $betId,
-                    'wager_choice_id' => $choice->id,
-                    'bet_amount'      => $betData['amount'],
-                ];
+                $bets[] = (object) ['id' => $betId, 'bet_amount' => $betData['amount']];
             }
 
-            \Log::info('Updating balances', [
-                'user_id'      => $user->id,
-                'player_id'    => $player->id,
-                'wager_id'     => $wager->id,
-                'total_amount' => $totalAmount,
-            ]);
+            // 5. Update balances
+            Log::info('UPDATE BALANCES', ['total_amount' => $totalAmount]);
             DB::table('users')->where('id', $user->id)->decrement('balance', $totalAmount);
             DB::table('wager_players')->where('id', $player->id)->increment('bet_amount', $totalAmount);
             DB::table('wagers')->where('id', $wager->id)->increment('pot', $totalAmount);
 
-            DB::commit();
-            \Log::info('Transaction committed', ['wager_id' => $wager->id]);
-
             $user->refresh();
             $wager->refresh();
-            $stats = $this->stats($wager)->getData(true);
+
+            Log::info('BET SUCCESS', ['wager_id' => $wager->id, 'bets_count' => count($bets)]);
 
             return response()->json([
-                'success'      => true,
-                'message'      => 'Bets placed successfully!',
-                'bets'         => $bets,
-                'pot'          => $wager->pot,
-                'distribution' => $stats['distribution'] ?? [],
-                'wager'        => [
-                    'user_balance' => $user->balance,
-                    'status'       => $wager->status,
-                ],
+                'success' => true,
+                'message' => 'Bets placed successfully!',
+                'bets'    => $bets,
+                'pot'     => $wager->pot,
             ]);
 
         } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Bet placement failed', [
-                'error'     => $e->getMessage(),
-                'trace'     => $e->getTraceAsString(),
-                'wager_id'  => $wager->id,
-                'user_id'   => $user->id,
-                'validated' => $validated,
-                'timestamp' => now()->toDateTimeString(),
+            Log::error('BET FAILED', [
+                'error'    => $e->getMessage(),
+                'wager_id' => $wager->id,
+                'user_id'  => $user->id,
             ]);
             return response()->json([
                 'success' => false,
