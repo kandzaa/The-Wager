@@ -9,11 +9,6 @@ class CreateWagerChoicesTable extends Migration
 {
     public function up()
     {
-        // Ensure wagers table exists (should already be created by 2025_09_04)
-        if (! Schema::hasTable('wagers')) {
-            throw new \Exception('wagers table not found, migration order may be incorrect');
-        }
-
         Schema::create('wager_choices', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('wager_id');
