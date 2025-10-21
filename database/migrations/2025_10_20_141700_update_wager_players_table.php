@@ -9,6 +9,15 @@ return new class extends Migration
 {
     public function up()
     {
+        DB::transaction(function () {
+            // No-op, we just want to disable transactions
+        }, 1); 
+
+        if (!Schema::hasTable('wager_players')) {
+            \Log::warning('wager_players table does not exist, skipping migration');
+            return;
+        }
+
         Schema::table('wager_players', function (Blueprint $table) {
             $table->unsignedBigInteger('choice_id')->nullable()->after('user_id');
             $table->integer('potential_payout')->nullable()->after('bet_amount');
