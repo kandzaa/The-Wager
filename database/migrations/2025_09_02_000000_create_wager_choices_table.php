@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 class CreateWagerChoicesTable extends Migration
@@ -15,11 +16,12 @@ class CreateWagerChoicesTable extends Migration
             $table->string('label')->nullable();
             $table->timestamps();
         });
-
+        Log::info('Created wager_choices table');
     }
 
     public function down()
     {
         Schema::dropIfExists('wager_choices');
+        Log::info('Dropped wager_choices table');
     }
 }

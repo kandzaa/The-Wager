@@ -26,5 +26,6 @@ class CreateWagerBetsTable extends Migration
     public function down()
     {
         Schema::dropIfExists('wager_bets');
+        Log::info('Dropped wager_bets table');
     }
 }
