@@ -10,46 +10,105 @@ return new class extends Migration
     public function up()
     {
         DB::transaction(function () {
-            // No-op, we just want to disable transactions
-        }, 1); 
+        }, 1);
 
-        if (!Schema::hasTable('wager_players')) {
+        if (! Schema::hasTable('wager_players')) {
             \Log::warning('wager_players table does not exist, skipping migration');
             return;
         }
 
         Schema::table('wager_players', function (Blueprint $table) {
-            $table->unsignedBigInteger('choice_id')->nullable()->after('user_id');
-            $table->integer('potential_payout')->nullable()->after('bet_amount');
-            $table->integer('actual_payout')->nullable()->after('potential_payout');
-        });
-        if (Schema::hasTable('wager_choices')) {
-            try {
-                DB::statement('ALTER TABLE wager_players
-                    ADD CONSTRAINT wager_players_choice_id_foreign
-                    FOREIGN KEY (choice_id)
-                    REFERENCES wager_choices(id)
-                    ON DELETE SET NULL');
-            } catch (\Exception $e) {
-                // Log the error but don't fail the migration
-                \Illuminate\Support\Facades\Log::error('Failed to add foreign key constraint: ' . $e->getMessage());
+            // Add choice_id column if not exists
+            if (! Schema::hasColumn('wager_players', 'choice_id')) {
+                try {
+                    $table->foreignId('choice_id')->nullable()->after('user_id');
+                    \Log::info('Added choice_id column to wager_players');
+                } catch (\Exception $e) {
+                    \Log::error('Failed to add choice_id column to wager_players', ['error' => $e->getMessage()]);
+                    throw $e;
+                }
             }
-        }
+
+            if (! Schema::hasColumn('wager_players', 'potential_payout')) {
+                try {
+                    $table->integer('potential_payout')->nullable()->after('bet_amount');
+                    \Log::info('Added potential_payout column to wager_players');
+                } catch (\Exception $e) {
+                    \Log::error('Failed to add potential_payout column to wager_players', ['error' => $e->getMessage()]);
+                    throw $e;
+                }
+            }
+
+            if (! Schema::hasColumn('wager_players', 'actual_payout')) {
+                try {
+                    $table->integer('actual_payout')->nullable()->after('potential_payout');
+                    \Log::info('Added actual_payout column to wager_players');
+                } catch (\Exception $e) {
+                    \Log::error('Failed to add actual_payout column to wager_players', ['error' => $e->getMessage()]);
+                    throw $e;
+                }
+            }
+
+            if (Schema::hasTable('wager_choices') && Schema::hasColumn('wager_players', 'choice_id')) {
+                try {
+                    $constraintExists = DB::selectOne("
+                        SELECT 1 FROM information_schema.table_constraints
+                        WHERE constraint_name = 'wager_players_choice_id_foreign'
+                        AND table_name = 'wager_players'
+                    ");
+
+                    if (! $constraintExists) {
+                        $table->foreign('choice_id')
+                            ->references('id')
+                            ->on('wager_choices')
+                            ->onDelete('set null');
+                        \Log::info('Added wager_players_choice_id_foreign constraint to wager_players');
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Failed to add wager_players_choice_id_foreign constraint', ['error' => $e->getMessage()]);
+                    throw $e;
+                }
+            }
+        });
     }
 
     public function down()
     {
-        if (Schema::hasTable('wager_players')) {
-            Schema::table('wager_players', function (Blueprint $table) {
-                if (DB::getDriverName() !== 'sqlite') {
-                    $table->dropForeign(['choice_id']);
-                }
-            });
+        DB::transaction(function () {
+        }, 1);
+
+        if (! Schema::hasTable('wager_players')) {
+            \Log::warning('wager_players table does not exist, skipping rollback');
+            return;
         }
 
-        // Then drop the columns
         Schema::table('wager_players', function (Blueprint $table) {
-            $table->dropColumn(['choice_id', 'potential_payout', 'actual_payout']);
+            try {
+                $constraintExists = DB::selectOne("
+                    SELECT 1 FROM information_schema.table_constraints
+                    WHERE constraint_name = 'wager_players_choice_id_foreign'
+                    AND table_name = 'wager_players'
+                ");
+
+                if ($constraintExists) {
+                    $table->dropForeign(['choice_id']);
+                    \Log::info('Dropped wager_players_choice_id_foreign constraint from wager_players');
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to drop wager_players_choice_id_foreign constraint', ['error' => $e->getMessage()]);
+            }
+
+            $columns = ['choice_id', 'potential_payout', 'actual_payout'];
+            foreach ($columns as $column) {
+                if (Schema::hasColumn('wager_players', $column)) {
+                    try {
+                        $table->dropColumn($column);
+                        \Log::info("Dropped $column column from wager_players");
+                    } catch (\Exception $e) {
+                        \Log::error("Failed to drop $column column from wager_players", ['error' => $e->getMessage()]);
+                    }
+                }
+            }
         });
     }
 };
