@@ -4,23 +4,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateWagerChoicesTable extends Migration
 {
-    public $withinTransaction = false;
-
-    public function up(): void
+    public function up()
     {
         Schema::create('wager_choices', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('wager_id');
-            $table->string('label');
-            $table->unsignedBigInteger('total_bet')->default(0);
+            $table->bigIncrements('id');
+            $table->foreignId('wager_id')->constrained('wagers')->onDelete('cascade');
+            $table->integer('total_bet')->default(0);
+            $table->string('label')->nullable();
             $table->timestamps();
         });
+
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('wager_choices');
     }
-};
+}

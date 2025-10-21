@@ -2,30 +2,34 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateUsersTable extends Migration
 {
-    public $withinTransaction = false;
-
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->string('role')->default('user');
+            $table->bigIncrements('id');
+            $table->string('name')->nullable();
+            $table->string('email')->unique()->nullable();
             $table->integer('balance')->default(0);
-            $table->timestamp('last_daily_claim_at')->nullable();
-            $table->rememberToken();
             $table->timestamps();
         });
+
+        // Insert test user
+        DB::table('users')->insert([
+            'id'         => 1,
+            'balance'    => 1000,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        Log::info('Inserted test user id=1');
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('users');
     }
-};
+}
