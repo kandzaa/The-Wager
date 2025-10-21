@@ -11,16 +11,22 @@ class CreateWagerBetsTable extends Migration
     {
         Schema::create('wager_bets', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->foreignId('wager_id')->constrained('wagers')->onDelete('cascade');
-            $table->foreignId('wager_choice_id')->constrained('wager_choices')->onDelete('cascade');
-            $table->foreignId('wager_player_id')->constrained('wager_players')->onDelete('cascade');
+            $table->unsignedBigInteger('wager_id');
+            $table->unsignedBigInteger('wager_choice_id');
+            $table->unsignedBigInteger('wager_player_id');
             $table->integer('bet_amount');
             $table->integer('amount');
             $table->string('status')->default('pending');
             $table->integer('actual_payout')->nullable();
             $table->timestamps();
         });
-        Log::info('Created wager_bets table');
+
+        Schema::table('wager_bets', function (Blueprint $table) {
+            $table->foreign('wager_id')->references('id')->on('wagers')->onDelete('cascade')->change();
+            $table->foreign('wager_choice_id')->references('id')->on('wager_choices')->onDelete('cascade')->change();
+            $table->foreign('wager_player_id')->references('id')->on('wager_players')->onDelete('cascade')->change();
+        });
+        Log::info('Created wager_bets table with foreign keys');
     }
 
     public function down()
