@@ -24,12 +24,22 @@ class WagerController extends Controller
 
     public function history()
     {
-        $wagers = Wager::with(['choices', 'winningChoice'])
+        // Separate queries for user's wagers and public wagers
+        $userWagers = auth()->check()
+            ? Wager::with(['choices', 'winningChoice', 'creator'])
+            ->where('creator_id', auth()->id())
             ->where('status', 'ended')
-            ->latest('ended_at')
-            ->paginate(10);
+            ->orderBy('updated_at', 'desc') // Changed from ended_at
+            ->paginate(10, ['*'], 'user')
+            : collect([]);
 
-        return view('wagers.history', compact('wagers'));
+        $publicWagers = Wager::with(['choices', 'winningChoice', 'creator'])
+            ->where('privacy', 'public')
+            ->where('status', 'ended')
+            ->orderBy('updated_at', 'desc') // Changed from ended_at
+            ->paginate(10, ['*'], 'public');
+
+        return view('wagers.history', compact('userWagers', 'publicWagers'));
     }
 
     public function create()
@@ -384,11 +394,12 @@ class WagerController extends Controller
         DB::beginTransaction();
 
         try {
-            $winningChoice    = $wager->choices()->findOrFail($validated['winning_choice_id']);
-            $totalPot         = $wager->pot;
-            $winningBets      = $wager->bets()->where('wager_choice_id', $winningChoice->id)->with('wagerPlayer.user')->get();
-            $totalWinningBets = $winningBets->sum('bet_amount');
+            $winningChoice = $wager->choices()->findOrFail($validated['winning_choice_id']);
 
+            // Load all bets with relationships BEFORE updating
+            $allBets = $wager->bets()->with(['wagerPlayer.user'])->get();
+
+            // Update wager status
             $wager->update([
                 'status'            => 'ended',
                 'winning_choice_id' => $winningChoice->id,
@@ -398,14 +409,17 @@ class WagerController extends Controller
             // Calculate 1.5x multiplier for winning bets
             $payoutMultiplier = 1.5;
 
-            foreach ($wager->bets as $bet) {
+            foreach ($allBets as $bet) {
                 $isWinner = $bet->wager_choice_id === $winningChoice->id;
 
                 if ($isWinner) {
                     $payout    = $bet->bet_amount * $payoutMultiplier;
                     $winAmount = $payout - $bet->bet_amount;
 
+                    // Update user balance
                     $bet->wagerPlayer->user->increment('balance', $payout);
+
+                    // Update bet record
                     $bet->update([
                         'is_win'     => true,
                         'payout'     => $payout,
@@ -430,10 +444,14 @@ class WagerController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error ending wager: ' . $e->getMessage());
+            Log::error('Error ending wager: ' . $e->getMessage(), [
+                'wager_id' => $wager->id,
+                'trace'    => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to end wager. ' . ($e->getMessage() ?? 'Please try again.'),
+                'message' => 'Failed to end wager. Please try again.',
             ], 500);
         }
     }
