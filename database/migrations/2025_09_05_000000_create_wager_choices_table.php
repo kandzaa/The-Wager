@@ -17,11 +17,7 @@ class CreateWagerChoicesTable extends Migration
             $table->timestamps();
         });
 
-        // Add foreign key in a separate step
-        Schema::table('wager_choices', function (Blueprint $table) {
-            $table->foreign('wager_id')->references('id')->on('wagers')->onDelete('cascade')->change();
-        });
-        Log::info('Created wager_choices table with foreign key to wagers');
+        Log::info('Created wager_choices table');
     }
 
     public function down()
