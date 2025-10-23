@@ -24,8 +24,8 @@ class AdminController extends Controller
             'pending_wagers'   => Wager::where('status', 'pending')->count(),
             'completed_wagers' => Wager::where('status', 'ended')->count(),
             'total_users'      => User::count(),
-            'total_wagered'    => DB::table('wagers')->sum('pot'),
-            'avg_pot'          => DB::table('wagers')->where('pot', '>', 0)->avg('pot') ?? 0,
+            'total_wagered'    => Wager::sum('pot'),
+            'avg_pot'          => Wager::where('pot', '>', 0)->avg('pot') ?? 0,
         ];
 
         // Metrics
@@ -35,12 +35,12 @@ class AdminController extends Controller
                 ->count(),
             'total_wagered_this_week'   => DB::table('wager_bets')
                 ->where('created_at', '>=', now()->subWeek())
-                ->sum('bet_amount'),
+                ->sum('bet_amount') ?? 0,
             'new_users_this_week'       => User::where('created_at', '>=', now()->subWeek())->count(),
             'recent_payouts'            => DB::table('wager_bets')
                 ->where('is_win', true)
                 ->where('updated_at', '>=', now()->subWeek())
-                ->sum('payout'),
+                ->sum('payout') ?? 0,
         ];
 
         // Wagers Over Time (last 14 days)
@@ -80,7 +80,7 @@ class AdminController extends Controller
             });
 
         // Top Wagers by Pot
-        $topWagers = Wager::withCount(['players as player_count'])
+        $topWagers = Wager::withCount('players')
             ->selectRaw('wagers.*, COALESCE(wagers.pot, 0) as total_amount')
             ->orderBy('total_amount', 'desc')
             ->limit(5)
@@ -88,9 +88,9 @@ class AdminController extends Controller
 
         // Recent Activity (bets placed)
         $recentActivity = DB::table('wager_bets')
-            ->join('users', 'wager_bets.wager_player_id', '=', 'users.id')
-            ->join('wagers', 'wager_bets.wager_id', '=', 'wagers.id')
             ->join('wager_players', 'wager_bets.wager_player_id', '=', 'wager_players.id')
+            ->join('users', 'wager_players.user_id', '=', 'users.id')
+            ->join('wagers', 'wager_bets.wager_id', '=', 'wagers.id')
             ->select(
                 'users.name as user_name',
                 'users.avatar as user_avatar',
