@@ -12,10 +12,17 @@ class CreateWagerChoicesTable extends Migration
     {
         Schema::create('wager_choices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('wager_id')->constrained('wagers')->onDelete('cascade');
+            $table->unsignedBigInteger('wager_id');
             $table->integer('total_bet')->default(0);
             $table->string('label')->nullable();
             $table->timestamps();
+        });
+
+        Schema::table('wager_choices', function (Blueprint $table) {
+            $table->foreign('wager_id')
+                ->references('id')
+                ->on('wagers')
+                ->onDelete('cascade');
         });
     }
 

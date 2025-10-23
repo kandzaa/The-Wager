@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateWagersTable extends Migration
 {
+    public $withinTransaction = false;
+
     public function up()
     {
         Schema::create('wagers', function (Blueprint $table) {
