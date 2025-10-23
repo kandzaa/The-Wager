@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('friend_requests', function (Blueprint $table) {
             $table->id('friend_request_id');
-            $table->id('requester_id');
-            $table->id('recipient_id');
+            $table->integer('requester_id');
+            $table->integer('recipient_id');
             $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->timestamps();
 

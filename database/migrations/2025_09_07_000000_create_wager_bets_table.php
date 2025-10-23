@@ -11,16 +11,15 @@ class CreateWagerBetsTable extends Migration
     {
         Schema::create('wager_bets', function (Blueprint $table) {
             $table->id('wager_bet_id');
-            $table->id('wager_id');
-            $table->id('wager_choice_id');
-            $table->id('wager_player_id');
+            $table->integer('wager_id');
+            $table->integer('wager_choice_id');
+            $table->integer('wager_player_id');
             $table->integer('bet_amount');
             $table->integer('amount');
             $table->string('status')->default('pending');
             $table->integer('actual_payout')->nullable();
             $table->timestamps();
         });
-        Log::info('Created wager_bets table');
     }
 
     public function down()

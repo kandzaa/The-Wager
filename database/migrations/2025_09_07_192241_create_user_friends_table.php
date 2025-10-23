@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('user_friends', function (Blueprint $table) {
             $table->id();
-            $table->id('user_id');
-            $table->id('friend_id');
+            $table->integer('user_id');
+            $table->integer('friend_id');
             $table->string('status')->default('pending');
             $table->timestamps();
 
