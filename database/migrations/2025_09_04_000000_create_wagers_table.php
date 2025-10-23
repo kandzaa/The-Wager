@@ -22,18 +22,18 @@ return new class extends Migration
             $table->unsignedBigInteger('winning_choice_id')->nullable();
             $table->timestamps();
 
+            // Add foreign key constraint inline
+            $table->foreign('creator_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
+
+            // Indexes
             $table->index('status');
             $table->index('privacy');
             $table->index('ending_time');
             $table->index('winning_choice_id');
             $table->index('creator_id');
-        });
-
-        Schema::table('wagers', function (Blueprint $table) {
-            $table->foreign('creator_id')
-                ->references('id')
-                ->on('users')
-                ->onDelete('cascade');
         });
     }
 
