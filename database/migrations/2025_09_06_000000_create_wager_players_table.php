@@ -14,7 +14,9 @@ class CreateWagerPlayersTable extends Migration
             $table->id();
             $table->foreignId('wager_id')->constrained('wagers')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('wager_choice_id')->nullable()->constrained('wager_choices')->onDelete('set null');
             $table->integer('bet_amount')->default(0);
+            $table->string('status')->default('active');
             $table->timestamps();
 
             $table->unique(['wager_id', 'user_id']);
