@@ -13,12 +13,12 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->integer('max_players')->default(10);
-            $table->enum('status', ['pending', 'active', 'ended'])->default('pending');
-            $table->enum('privacy', ['public', 'private'])->default('public');
+            $table->string('status', 20)->default('pending');
+            $table->string('privacy', 20)->default('public');
             $table->decimal('pot', 10, 2)->default(0);
             $table->timestamp('starting_time');
             $table->timestamp('ending_time');
-            $table->foreignId('creator_id')->constrained('users')->onDelete('cascade');
+            $table->unsignedBigInteger('creator_id');
             $table->unsignedBigInteger('winning_choice_id')->nullable();
             $table->timestamps();
 
@@ -26,6 +26,14 @@ return new class extends Migration
             $table->index('privacy');
             $table->index('ending_time');
             $table->index('winning_choice_id');
+            $table->index('creator_id');
+        });
+
+        Schema::table('wagers', function (Blueprint $table) {
+            $table->foreign('creator_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
         });
     }
 
