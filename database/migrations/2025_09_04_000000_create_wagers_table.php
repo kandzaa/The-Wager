@@ -13,12 +13,14 @@ class CreateWagersTable extends Migration
         Schema::create('wagers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('creator_id')->constrained('users')->onDelete('cascade');
-            $table->string('title');
+            $table->string('name');
             $table->text('description')->nullable();
-            $table->string('status')->default('active');
-            $table->decimal('entry_fee', 10, 2)->default(0);
+            $table->string('status')->default('pending');
+            $table->string('privacy')->default('public');
+            $table->integer('pot')->default(0);
             $table->integer('max_players')->nullable();
-            $table->timestamp('end_date')->nullable();
+            $table->timestamp('starting_time')->nullable();
+            $table->timestamp('ending_time')->nullable();
             $table->timestamps();
         });
     }
