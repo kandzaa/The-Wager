@@ -6,6 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Set this to false to prevent PostgreSQL from wrapping DDL operations
+     * in a single transaction, which helps prevent the 25P02 error if
+     * a dependency is not immediately available.
+     */
+    public $withinTransaction = false;
 
     public function up(): void
     {
@@ -25,6 +31,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('wager_invitations');
