@@ -10,7 +10,7 @@ class CreateWagerChoicesTable extends Migration
     public function up()
     {
         Schema::create('wager_choices', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->id();
             $table->unsignedBigInteger('wager_id');
             $table->integer('total_bet')->default(0);
             $table->string('label')->nullable();

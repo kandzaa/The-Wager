@@ -10,10 +10,11 @@ class CreateUsersTable extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->id();
             $table->string('name')->nullable();
             $table->string('email')->nullable();
-            $table->integer('balance')->default(0);
+            $table->integer('balance')->default(20);
+            $table->timestamp('last_daily_claim_at');
             $table->timestamps();
         });
         Log::info('Created users table');
