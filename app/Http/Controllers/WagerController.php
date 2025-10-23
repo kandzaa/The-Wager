@@ -117,6 +117,7 @@ class WagerController extends Controller
         DB::beginTransaction();
 
         try {
+            // Update wager details
             $wager->update([
                 'name'          => $validated['name'],
                 'description'   => $validated['description'] ?? null,
@@ -130,20 +131,26 @@ class WagerController extends Controller
 
             // Update or create choices
             foreach ($validated['choices'] as $choiceData) {
-                $updateData = ['label' => trim($choiceData['label'])];
+                $label = trim($choiceData['label']);
 
-                if (isset($choiceData['total_bet'])) {
-                    $updateData['total_bet'] = (float) $choiceData['total_bet'];
+                if (! empty($choiceData['id'])) {
+                    // Update existing choice
+                    $choice = $wager->choices()->find($choiceData['id']);
+                    if ($choice) {
+                        $choice->update(['label' => $label]);
+                        $existingChoiceIds[] = $choice->id;
+                    }
+                } else {
+                    // Create new choice
+                    $choice = $wager->choices()->create([
+                        'label'     => $label,
+                        'total_bet' => 0,
+                    ]);
+                    $existingChoiceIds[] = $choice->id;
                 }
-
-                $choice = $wager->choices()->updateOrCreate(
-                    ['id' => $choiceData['id'] ?? null],
-                    $updateData
-                );
-
-                $existingChoiceIds[] = $choice->id;
             }
 
+            // Delete removed choices (only if they have no bets)
             $wager->choices()
                 ->whereNotIn('id', $existingChoiceIds)
                 ->where('total_bet', 0)
