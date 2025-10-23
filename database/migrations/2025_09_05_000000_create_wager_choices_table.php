@@ -12,6 +12,7 @@ class CreateWagerChoicesTable extends Migration
     {
         Schema::create('wager_choices', function (Blueprint $table) {
             $table->id();
+            // Using constrained() which is the modern Laravel way and assumes 'wagers' has an 'id' column.
             $table->foreignId('wager_id')->constrained('wagers')->onDelete('cascade');
             $table->integer('total_bet')->default(0);
             $table->string('label')->nullable();
