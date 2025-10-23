@@ -9,7 +9,6 @@ class CreateWagerChoicesTable extends Migration
 {
     public function up()
     {
-        // Create the table with the foreign key in a single step
         Schema::create('wager_choices', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('wager_id');
