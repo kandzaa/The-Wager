@@ -6,14 +6,17 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public $withinTransaction = false;
+
     public function up()
     {
         Schema::create('friend_requests', function (Blueprint $table) {
-            $table->id('friend_request_id');
-            $table->integer('requester_id');
-            $table->integer('recipient_id');
+            $table->id();
+            $table->foreignId('requester_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('recipient_id')->constrained('users')->onDelete('cascade');
             $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->timestamps();
+
+            $table->unique(['requester_id', 'recipient_id']);
         });
     }
 
@@ -21,5 +24,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('friend_requests');
     }
-
 };

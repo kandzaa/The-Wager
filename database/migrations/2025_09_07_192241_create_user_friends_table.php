@@ -10,11 +10,12 @@ return new class extends Migration
     {
         Schema::create('user_friends', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
-            $table->integer('friend_id');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('friend_id')->constrained('users')->onDelete('cascade');
             $table->string('status')->default('pending');
             $table->timestamps();
 
+            $table->unique(['user_id', 'friend_id']);
         });
     }
 
