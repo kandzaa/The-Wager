@@ -683,9 +683,8 @@ class WagerController extends Controller
         $friends            = Auth::user()->friends;
         $pendingInvitations = $wager->invitations()->where('status', 'pending')->get();
         $isJoined           = $wager->players()->where('user_id', Auth::id())->exists();
-        $results            = $wager->status === 'ended' ? $this->getWagerResults($wager) : null;
 
-        return view('wagers.wager_detail', compact('wager', 'friends', 'pendingInvitations', 'isJoined', 'results'));
+        return view('wagers.wager_detail', compact('wager', 'friends', 'pendingInvitations', 'isJoined'));
     }
 
     protected function getWagerResults(Wager $wager)

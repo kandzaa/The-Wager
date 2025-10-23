@@ -45,7 +45,7 @@ class HistoryController extends Controller
     }
 
     /**
-     * Show the specified wager's history details.
+     * Show the specified wager's history details and results.
      *
      * @param  Wager  $wager
      * @return \Illuminate\View\View
@@ -58,24 +58,39 @@ class HistoryController extends Controller
                 ->with('error', 'This wager has not ended yet.');
         }
 
-        // Load relationships
+        // Load all necessary relationships safely
         $wager->load([
             'creator',
-            'players.user',
-            'bets.wagerPlayer.user',
+            'players' => function ($query) {
+                $query->with(['user', 'bets']);
+            },
         ]);
 
-        // Calculate stats
-        $totalBets    = $wager->bets()->sum('bet_amount') ?? 0;
-        $totalPlayers = $wager->players()->count();
+        // Calculate stats safely
+        $totalBets    = 0;
+        $totalPlayers = $wager->players->count();
+        $winningBets  = collect();
 
-        // Get winning bets if there's a winning choice
-        $winningBets = collect();
-        if ($wager->winning_choice_id) {
-            $winningBets = $wager->bets()
-                ->where('choice_id', $wager->winning_choice_id)
-                ->with('wagerPlayer.user')
-                ->get();
+        // Calculate total bets and find winners
+        foreach ($wager->players as $player) {
+            if ($player->bets) {
+                $totalBets += $player->bets->sum('bet_amount');
+
+                // Check if this player has winning bets
+                if ($wager->winning_choice_id) {
+                    $playerWinningBets = $player->bets->filter(function ($bet) use ($wager) {
+                        return $bet->choice_id == $wager->winning_choice_id && $bet->is_win == true;
+                    });
+
+                    if ($playerWinningBets->isNotEmpty()) {
+                        // Add player info to bets for display
+                        foreach ($playerWinningBets as $bet) {
+                            $bet->wagerPlayer = $player;
+                            $winningBets->push($bet);
+                        }
+                    }
+                }
+            }
         }
 
         $stats = [
@@ -87,9 +102,6 @@ class HistoryController extends Controller
             'winners_count'     => $winningBets->count(),
         ];
 
-        return view('history.show', [
-            'wager' => $wager,
-            'stats' => $stats,
-        ]);
+        return view('history.show', compact('wager', 'stats'));
     }
 }
