@@ -66,35 +66,51 @@
                                     @enderror
                                 </div>
 
+                                <!-- Privacy -->
                                 <div>
-                                    <label for="status"
+                                    <label for="privacy"
                                         class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Status *
+                                        Privacy *
                                     </label>
-                                    <select id="status" name="status"
+                                    <select id="privacy" name="privacy"
                                         class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                                         required>
                                         <option value="public"
-                                            {{ old('status', $wager->status) === 'public' ? 'selected' : '' }}>Public
+                                            {{ old('privacy', $wager->privacy) === 'public' ? 'selected' : '' }}>Public
                                         </option>
                                         <option value="private"
-                                            {{ old('status', $wager->status) === 'private' ? 'selected' : '' }}>Private
+                                            {{ old('privacy', $wager->privacy) === 'private' ? 'selected' : '' }}>
+                                            Private
                                         </option>
                                     </select>
-                                    @error('status')
+                                    @error('privacy')
+                                        <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <!-- Starting Time -->
+                                <div>
+                                    <label for="starting_time"
+                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        Start Time *
+                                    </label>
+                                    <input type="datetime-local" id="starting_time" name="starting_time"
+                                        value="{{ old('starting_time', \Carbon\Carbon::parse($wager->starting_time)->format('Y-m-d\TH:i')) }}"
+                                        class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
+                                        required>
+                                    @error('starting_time')
                                         <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
                                     @enderror
                                 </div>
 
                                 <!-- End Time -->
-                                <div class="md:col-span-2">
+                                <div>
                                     <label for="ending_time"
                                         class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                         End Time *
                                     </label>
                                     <input type="datetime-local" id="ending_time" name="ending_time"
                                         value="{{ old('ending_time', \Carbon\Carbon::parse($wager->ending_time)->format('Y-m-d\TH:i')) }}"
-                                        min="{{ now()->addHour()->format('Y-m-d\TH:i') }}"
                                         class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                                         required>
                                     @error('ending_time')
@@ -222,11 +238,10 @@
         function reindexChoices() {
             const items = document.querySelectorAll('.choice-item');
             items.forEach((item, index) => {
-                const hiddenInput = item.querySelector('input[type="hidden"]');
-                const textInput = item.querySelector('input[type="text"]');
-
-                hiddenInput.name = `choices[${index}][id]`;
-                textInput.name = `choices[${index}][label]`;
+                const inputs = item.querySelectorAll('input');
+                inputs[0].name = `choices[${index}][id]`;
+                inputs[1].name = `choices[${index}][total_bet]`;
+                inputs[2].name = `choices[${index}][label]`;
             });
         }
 
@@ -235,7 +250,6 @@
             const addBtn = document.getElementById('addChoiceBtn');
             const removeButtons = document.querySelectorAll('.choice-item button');
 
-            // Update add button
             if (count >= 10) {
                 addBtn.disabled = true;
                 addBtn.style.opacity = '0.5';
@@ -244,7 +258,6 @@
                 addBtn.style.opacity = '1';
             }
 
-            // Update remove buttons
             removeButtons.forEach(btn => {
                 if (count <= 2) {
                     btn.disabled = true;
@@ -256,7 +269,6 @@
             });
         }
 
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             updateButtons();
         });

@@ -106,26 +106,29 @@ class WagerController extends Controller
             'name'            => 'required|string|max:255',
             'description'     => 'nullable|string',
             'max_players'     => 'required|integer|min:2|max:100',
-            'ending_time'     => 'required|date|after:now',
+            'privacy'         => 'required|in:public,private',
+            'starting_time'   => 'required|date',
+            'ending_time'     => 'required|date|after:starting_time',
             'choices'         => 'required|array|min:2|max:10',
             'choices.*.id'    => 'nullable|exists:wager_choices,id',
             'choices.*.label' => 'required|string|max:255',
-            'status'          => 'required|in:pending,active',
         ]);
 
         DB::beginTransaction();
 
         try {
             $wager->update([
-                'name'        => $validated['name'],
-                'description' => $validated['description'] ?? null,
-                'max_players' => $validated['max_players'],
-                'ending_time' => $validated['ending_time'],
-                'status'      => $validated['status'],
+                'name'          => $validated['name'],
+                'description'   => $validated['description'] ?? null,
+                'max_players'   => $validated['max_players'],
+                'privacy'       => $validated['privacy'],
+                'starting_time' => $validated['starting_time'],
+                'ending_time'   => $validated['ending_time'],
             ]);
 
             $existingChoiceIds = [];
 
+            // Update or create choices
             foreach ($validated['choices'] as $choiceData) {
                 $updateData = ['label' => trim($choiceData['label'])];
 
