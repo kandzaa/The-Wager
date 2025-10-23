@@ -11,9 +11,9 @@ return new class extends Migration
     {
         Schema::create('wager_invitations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('wager_id')->constrained()->onDelete('cascade');
-            $table->foreignId('inviter_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('invitee_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->foreignId('wager_id')->references('wager_id')->on('wagers')->onDelete('cascade');
+            $table->foreignId('inviter_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->foreignId('invitee_id')->nullable()->references('user_id')->on('users')->onDelete('cascade');
             $table->string('email');
             $table->string('token', 64)->unique();
             $table->string('status')->default('pending');
