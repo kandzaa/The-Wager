@@ -6,14 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public $withinTransaction = false;
+
     public function up(): void
     {
         Schema::create('wager_invitations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('wager_id')->references('wager_id')->on('wagers')->onDelete('cascade');
-            $table->foreignId('inviter_id')->references('user_id')->on('users')->onDelete('cascade');
-            $table->foreignId('invitee_id')->nullable()->references('user_id')->on('users')->onDelete('cascade');
+            $table->foreignId('wager_id')->references('id')->on('wagers')->onDelete('cascade');
+            $table->foreignId('inviter_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreignId('invitee_id')->nullable()->references('id')->on('users')->onDelete('cascade');
+
             $table->string('email');
             $table->string('token', 64)->unique();
             $table->string('status')->default('pending');
@@ -24,9 +25,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('wager_invitations');
