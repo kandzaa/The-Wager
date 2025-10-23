@@ -30,18 +30,20 @@ class WagerController extends Controller
             ->where('creator_id', auth()->id())
             ->where('status', 'ended')
             ->orderBy('updated_at', 'desc')
-            ->paginate(10, ['*'], 'user')
-            : collect([]);
+            ->paginate(10)
+            : null;
 
         $publicWagers = Wager::with(['choices', 'winningChoice', 'creator'])
             ->where('privacy', 'public')
             ->where('status', 'ended')
             ->orderBy('updated_at', 'desc')
-            ->paginate(10, ['*'], 'public');
+            ->paginate(10);
 
-        return view('wagers.history', compact('userWagers', 'publicWagers'));
+        return view('wagers.history', [
+            'userWagers'   => $userWagers ?? collect([]),
+            'publicWagers' => $publicWagers
+        ]);
     }
-
     public function create()
     {
         return view('wagers.create');
@@ -399,6 +401,8 @@ class WagerController extends Controller
         ]);
 
         try {
+            Log::info('ENDING WAGER START', ['wager_id' => $wager->id, 'winning_choice_id' => $validated['winning_choice_id']]);
+
             // Load all necessary data BEFORE starting transaction
             $winningChoiceId = $validated['winning_choice_id'];
 
@@ -407,22 +411,41 @@ class WagerController extends Controller
                 ->where('wager_id', $wager->id)
                 ->get();
 
-            $playerIds = $bets->pluck('wager_player_id')->unique();
-            $players   = DB::table('wager_players')
+            Log::info('BETS LOADED', ['count' => $bets->count()]);
+
+            if ($bets->isEmpty()) {
+                Log::warning('NO BETS FOUND', ['wager_id' => $wager->id]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot end wager with no bets.',
+                ], 400);
+            }
+
+            $playerIds = $bets->pluck('wager_player_id')->unique()->filter();
+            Log::info('PLAYER IDS', ['ids' => $playerIds->toArray()]);
+
+            $players = DB::table('wager_players')
                 ->whereIn('id', $playerIds)
                 ->get()
                 ->keyBy('id');
 
-            $userIds = $players->pluck('user_id')->unique();
-            $users   = DB::table('users')
+            Log::info('PLAYERS LOADED', ['count' => $players->count()]);
+
+            $userIds = $players->pluck('user_id')->unique()->filter();
+            Log::info('USER IDS', ['ids' => $userIds->toArray()]);
+
+            $users = DB::table('users')
                 ->whereIn('id', $userIds)
                 ->get()
                 ->keyBy('id');
 
+            Log::info('USERS LOADED', ['count' => $users->count()]);
+
             DB::beginTransaction();
+            Log::info('TRANSACTION STARTED');
 
             // Update wager status
-            DB::table('wagers')
+            $updated = DB::table('wagers')
                 ->where('id', $wager->id)
                 ->update([
                     'status'            => 'ended',
@@ -430,21 +453,37 @@ class WagerController extends Controller
                     'updated_at'        => now(),
                 ]);
 
+            Log::info('WAGER UPDATED', ['updated' => $updated]);
+
             // Calculate 1.5x multiplier for winning bets
             $payoutMultiplier = 1.5;
 
             foreach ($bets as $bet) {
                 $isWinner = $bet->wager_choice_id == $winningChoiceId;
+                Log::info('PROCESSING BET', [
+                    'bet_id'    => $bet->id,
+                    'choice_id' => $bet->wager_choice_id,
+                    'is_winner' => $isWinner,
+                    'amount'    => $bet->bet_amount,
+                ]);
 
                 if ($isWinner) {
                     $payout    = $bet->bet_amount * $payoutMultiplier;
                     $winAmount = $payout - $bet->bet_amount;
 
                     // Update user balance
+                    if (! isset($players[$bet->wager_player_id])) {
+                        Log::error('PLAYER NOT FOUND', ['player_id' => $bet->wager_player_id]);
+                        throw new \Exception('Player not found for bet ' . $bet->id);
+                    }
+
                     $player = $players[$bet->wager_player_id];
+
                     DB::table('users')
                         ->where('id', $player->user_id)
                         ->increment('balance', $payout);
+
+                    Log::info('USER BALANCE UPDATED', ['user_id' => $player->user_id, 'payout' => $payout]);
 
                     // Update bet record
                     DB::table('wager_bets')
@@ -455,6 +494,8 @@ class WagerController extends Controller
                             'won_amount' => $winAmount,
                             'updated_at' => now(),
                         ]);
+
+                    Log::info('BET UPDATED AS WINNER', ['bet_id' => $bet->id]);
                 } else {
                     DB::table('wager_bets')
                         ->where('id', $bet->id)
@@ -464,10 +505,13 @@ class WagerController extends Controller
                             'won_amount' => 0,
                             'updated_at' => now(),
                         ]);
+
+                    Log::info('BET UPDATED AS LOSER', ['bet_id' => $bet->id]);
                 }
             }
 
             DB::commit();
+            Log::info('TRANSACTION COMMITTED');
 
             return response()->json([
                 'success'  => true,
@@ -477,14 +521,17 @@ class WagerController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error ending wager: ' . $e->getMessage(), [
+            Log::error('ERROR ENDING WAGER', [
                 'wager_id' => $wager->id,
+                'error'    => $e->getMessage(),
+                'line'     => $e->getLine(),
+                'file'     => $e->getFile(),
                 'trace'    => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to end wager. Please try again.',
+                'message' => 'Failed to end wager: ' . $e->getMessage(),
             ], 500);
         }
     }
