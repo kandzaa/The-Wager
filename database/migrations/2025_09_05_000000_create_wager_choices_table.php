@@ -5,24 +5,23 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
-class CreateWagerChoicesTable extends Migration
+class CreateUsersTable extends Migration
 {
     public function up()
     {
-        Schema::create('wager_choices', function (Blueprint $table) {
+        Schema::create('users', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('wager_id');
-            $table->foreign('wager_id')->references('id')->on('wagers')->onDelete('cascade');
-            $table->integer('total_bet')->default(0);
-            $table->string('label')->nullable();
+            $table->string('name')->nullable();
+            $table->string('email')->nullable();
+            $table->integer('balance')->default(0);
             $table->timestamps();
         });
-        Log::info('Created wager_choices table with foreign key to wagers');
+        Log::info('Created users table');
     }
 
     public function down()
     {
-        Schema::dropIfExists('wager_choices');
-        Log::info('Dropped wager_choices table');
+        Schema::dropIfExists('users');
+        Log::info('Dropped users table');
     }
 }
