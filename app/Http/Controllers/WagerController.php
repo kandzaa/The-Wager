@@ -24,19 +24,19 @@ class WagerController extends Controller
 
     public function history()
     {
-        // Separate queries for user's wagers and public wagers
+        // Use updated_at instead of ended_at since column doesn't exist
         $userWagers = auth()->check()
             ? Wager::with(['choices', 'winningChoice', 'creator'])
             ->where('creator_id', auth()->id())
             ->where('status', 'ended')
-            ->orderBy('updated_at', 'desc') // Changed from ended_at
+            ->orderBy('updated_at', 'desc')
             ->paginate(10, ['*'], 'user')
             : collect([]);
 
         $publicWagers = Wager::with(['choices', 'winningChoice', 'creator'])
             ->where('privacy', 'public')
             ->where('status', 'ended')
-            ->orderBy('updated_at', 'desc') // Changed from ended_at
+            ->orderBy('updated_at', 'desc')
             ->paginate(10, ['*'], 'public');
 
         return view('wagers.history', compact('userWagers', 'publicWagers'));
@@ -77,7 +77,7 @@ class WagerController extends Controller
             'name'          => $validated['name'],
             'description'   => $validated['description'],
             'max_players'   => $validated['max_players'],
-            'status'        => $status, // FORCE 'pending' or 'active'
+            'status'        => $status,
             'privacy'       => $validated['privacy'],
             'starting_time' => $validated['starting_time'],
             'ending_time'   => $validated['ending_time'],
@@ -144,24 +144,31 @@ class WagerController extends Controller
                 $label = trim($choiceData['label']);
 
                 if (! empty($choiceData['id'])) {
-                    // Update existing choice
-                    $choice = $wager->choices()->find($choiceData['id']);
-                    if ($choice) {
-                        $choice->update(['label' => $label]);
-                        $existingChoiceIds[] = $choice->id;
+                    // Update existing choice - use direct query to avoid model loading issues
+                    $updated = DB::table('wager_choices')
+                        ->where('id', $choiceData['id'])
+                        ->where('wager_id', $wager->id)
+                        ->update(['label' => $label, 'updated_at' => now()]);
+
+                    if ($updated) {
+                        $existingChoiceIds[] = $choiceData['id'];
                     }
                 } else {
                     // Create new choice
-                    $choice = $wager->choices()->create([
-                        'label'     => $label,
-                        'total_bet' => 0,
+                    $choiceId = DB::table('wager_choices')->insertGetId([
+                        'wager_id'   => $wager->id,
+                        'label'      => $label,
+                        'total_bet'  => 0,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
-                    $existingChoiceIds[] = $choice->id;
+                    $existingChoiceIds[] = $choiceId;
                 }
             }
 
             // Delete removed choices (only if they have no bets)
-            $wager->choices()
+            DB::table('wager_choices')
+                ->where('wager_id', $wager->id)
                 ->whereNotIn('id', $existingChoiceIds)
                 ->where('total_bet', 0)
                 ->delete();
@@ -391,46 +398,72 @@ class WagerController extends Controller
             'winning_choice_id' => 'required|exists:wager_choices,id,wager_id,' . $wager->id,
         ]);
 
-        DB::beginTransaction();
-
         try {
-            $winningChoice = $wager->choices()->findOrFail($validated['winning_choice_id']);
+            // Load all necessary data BEFORE starting transaction
+            $winningChoiceId = $validated['winning_choice_id'];
 
-            // Load all bets with relationships BEFORE updating
-            $allBets = $wager->bets()->with(['wagerPlayer.user'])->get();
+            // Get all bets with player and user info using raw queries to avoid transaction issues
+            $bets = DB::table('wager_bets')
+                ->where('wager_id', $wager->id)
+                ->get();
+
+            $playerIds = $bets->pluck('wager_player_id')->unique();
+            $players   = DB::table('wager_players')
+                ->whereIn('id', $playerIds)
+                ->get()
+                ->keyBy('id');
+
+            $userIds = $players->pluck('user_id')->unique();
+            $users   = DB::table('users')
+                ->whereIn('id', $userIds)
+                ->get()
+                ->keyBy('id');
+
+            DB::beginTransaction();
 
             // Update wager status
-            $wager->update([
-                'status'            => 'ended',
-                'winning_choice_id' => $winningChoice->id,
-                'ended_at'          => now(),
-            ]);
+            DB::table('wagers')
+                ->where('id', $wager->id)
+                ->update([
+                    'status'            => 'ended',
+                    'winning_choice_id' => $winningChoiceId,
+                    'updated_at'        => now(),
+                ]);
 
             // Calculate 1.5x multiplier for winning bets
             $payoutMultiplier = 1.5;
 
-            foreach ($allBets as $bet) {
-                $isWinner = $bet->wager_choice_id === $winningChoice->id;
+            foreach ($bets as $bet) {
+                $isWinner = $bet->wager_choice_id == $winningChoiceId;
 
                 if ($isWinner) {
                     $payout    = $bet->bet_amount * $payoutMultiplier;
                     $winAmount = $payout - $bet->bet_amount;
 
                     // Update user balance
-                    $bet->wagerPlayer->user->increment('balance', $payout);
+                    $player = $players[$bet->wager_player_id];
+                    DB::table('users')
+                        ->where('id', $player->user_id)
+                        ->increment('balance', $payout);
 
                     // Update bet record
-                    $bet->update([
-                        'is_win'     => true,
-                        'payout'     => $payout,
-                        'won_amount' => $winAmount,
-                    ]);
+                    DB::table('wager_bets')
+                        ->where('id', $bet->id)
+                        ->update([
+                            'is_win'     => true,
+                            'payout'     => $payout,
+                            'won_amount' => $winAmount,
+                            'updated_at' => now(),
+                        ]);
                 } else {
-                    $bet->update([
-                        'is_win'     => false,
-                        'payout'     => 0,
-                        'won_amount' => 0,
-                    ]);
+                    DB::table('wager_bets')
+                        ->where('id', $bet->id)
+                        ->update([
+                            'is_win'     => false,
+                            'payout'     => 0,
+                            'won_amount' => 0,
+                            'updated_at' => now(),
+                        ]);
                 }
             }
 
@@ -588,7 +621,7 @@ class WagerController extends Controller
         }
 
         $wagers = Wager::with(['creator', 'choices'])
-            ->where('status', 'public')
+            ->where('privacy', 'public')
             ->where('status', '!=', 'ended')
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
