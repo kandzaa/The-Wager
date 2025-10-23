@@ -10,7 +10,7 @@ class CreateWagersTable extends Migration
     public function up()
     {
         Schema::create('wagers', function (Blueprint $table) {
-            $table->id();
+            $table->id('wager_id');
             $table->integer('pot')->default(0);
             $table->string('status')->default('open');
             $table->timestamps();

@@ -10,12 +10,11 @@ return new class extends Migration
     {
         Schema::create('user_friends', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('friend_id');
+            $table->id('user_id');
+            $table->id('friend_id');
             $table->string('status')->default('pending');
             $table->timestamps();
 
-            $table->unique(['user_id', 'friend_id']);
         });
     }
 

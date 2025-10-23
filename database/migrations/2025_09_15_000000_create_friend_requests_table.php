@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('friend_requests', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('requester_id');
-            $table->unsignedBigInteger('recipient_id');
+            $table->id('friend_request_id');
+            $table->id('requester_id');
+            $table->id('recipient_id');
             $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->timestamps();
 

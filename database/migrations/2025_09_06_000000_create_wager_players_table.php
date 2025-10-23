@@ -10,9 +10,9 @@ class CreateWagerPlayersTable extends Migration
     public function up()
     {
         Schema::create('wager_players', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('wager_id');
-            $table->unsignedBigInteger('user_id');
+            $table->id('wager_player_id');
+            $table->id('wager_id');
+            $table->id('user_id');
             $table->integer('bet_amount')->default(0);
             $table->timestamps();
         });
