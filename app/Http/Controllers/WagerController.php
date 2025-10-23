@@ -22,28 +22,6 @@ class WagerController extends Controller
         ]);
     }
 
-    public function history()
-    {
-        // Use updated_at instead of ended_at since column doesn't exist
-        $userWagers = auth()->check()
-            ? Wager::with(['choices', 'winningChoice', 'creator'])
-            ->where('creator_id', auth()->id())
-            ->where('status', 'ended')
-            ->orderBy('updated_at', 'desc')
-            ->paginate(10)
-            : null;
-
-        $publicWagers = Wager::with(['choices', 'winningChoice', 'creator'])
-            ->where('privacy', 'public')
-            ->where('status', 'ended')
-            ->orderBy('updated_at', 'desc')
-            ->paginate(10);
-
-        return view('wagers.history', [
-            'userWagers'   => $userWagers ?? collect([]),
-            'publicWagers' => $publicWagers
-        ]);
-    }
     public function create()
     {
         return view('wagers.create');
