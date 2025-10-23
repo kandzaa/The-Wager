@@ -9,20 +9,18 @@ return new class extends Migration
     public function up()
     {
         Schema::table('wagers', function (Blueprint $table) {
+            // Add column without foreign key constraint
             $table->unsignedBigInteger('winning_choice_id')->nullable()->after('status');
 
-            // Add foreign key constraint
-            $table->foreign('winning_choice_id')
-                ->references('id')
-                ->on('wager_choices')
-                ->onDelete('set null');
+            // Add index for performance
+            $table->index('winning_choice_id');
         });
     }
 
     public function down()
     {
         Schema::table('wagers', function (Blueprint $table) {
-            $table->dropForeign(['winning_choice_id']);
+            $table->dropIndex(['winning_choice_id']);
             $table->dropColumn('winning_choice_id');
         });
     }
