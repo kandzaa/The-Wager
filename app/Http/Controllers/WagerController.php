@@ -142,17 +142,20 @@ class WagerController extends Controller
             try {
                 DB::statement('SET CONSTRAINTS ALL DEFERRED');
 
+                // Use query builder with proper parameter binding
+                $updateData = [
+                    'name'          => $validated['name'],
+                    'description'   => $validated['description'],
+                    'max_players'   => $validated['max_players'],
+                    'privacy'       => $validated['privacy'],
+                    'starting_time' => $validated['starting_time'],
+                    'ending_time'   => $validated['ending_time'],
+                    'updated_at'    => now(),
+                ];
+                
                 $affected = DB::table('wagers')
                     ->where('id', $wager->id)
-                    ->update([
-                        'name'          => $validated['name'],
-                        'description'   => $validated['description'],
-                        'max_players'   => $validated['max_players'],
-                        'privacy'       => $validated['privacy'],
-                        'starting_time' => $validated['starting_time'],
-                        'ending_time'   => $validated['ending_time'],
-                        'updated_at'    => now(),
-                    ]);
+                    ->update($updateData);
 
                 Log::info('WAGER TABLE UPDATED', [
                     'wager_id'      => $wager->id,
