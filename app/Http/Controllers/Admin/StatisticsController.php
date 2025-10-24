@@ -111,6 +111,7 @@ class StatisticsController extends Controller
                     'total_wagered_this_week'   => (float) Wager::where('created_at', '>=', now()->startOfWeek())
                         ->sum('pot'),
                     'new_users_this_week'       => $stats['new_users_this_week'],
+                    'recent_payouts'            => 0,
                 ],
                 'error'          => null,
             ];
@@ -147,6 +148,7 @@ class StatisticsController extends Controller
                     'active_wagers_ending_soon' => 0,
                     'total_wagered_this_week'   => 0,
                     'new_users_this_week'       => 0,
+                    'recent_payouts'            => 0, // Add this line
                 ],
                 'error'          => 'An error occurred while loading statistics. Please try again later.',
             ]);
