@@ -88,8 +88,13 @@ class WagerController extends Controller
             return back()->with('error', 'Cannot edit an ended wager.');
         }
 
-        // Load choices
-        $wager->load('choices');
+        // Load choices directly from DB
+        $choices = DB::table('wager_choices')
+            ->where('wager_id', $wager->id)
+            ->orderBy('id')
+            ->get();
+
+        $wager->choices = $choices;
 
         return view('wagers.edit', compact('wager'));
     }
@@ -118,11 +123,12 @@ class WagerController extends Controller
             'choices.*.label' => 'required|string|max:255',
         ]);
 
-        DB::beginTransaction();
-
         try {
-            // Update wager details
-            DB::table('wagers')
+            // Start transaction
+            DB::beginTransaction();
+
+            // Update wager details first
+            $wagerUpdated = DB::table('wagers')
                 ->where('id', $wager->id)
                 ->update([
                     'name'          => $validated['name'],
@@ -134,40 +140,53 @@ class WagerController extends Controller
                     'updated_at'    => now(),
                 ]);
 
+            if (! $wagerUpdated && $wagerUpdated !== 0) {
+                throw new \Exception('Failed to update wager');
+            }
+
             Log::info('WAGER UPDATED', [
                 'wager_id' => $wager->id,
                 'name'     => $validated['name'],
             ]);
 
-            $existingChoiceIds = [];
+            // Get all existing choices for this wager BEFORE making changes
+            $existingChoices = DB::table('wager_choices')
+                ->where('wager_id', $wager->id)
+                ->get()
+                ->keyBy('id');
 
-            // Update or create choices
-            foreach ($validated['choices'] as $choiceData) {
+            $processedChoiceIds = [];
+
+            // Process each choice from the form
+            foreach ($validated['choices'] as $index => $choiceData) {
                 $label = trim($choiceData['label']);
 
-                if (! empty($choiceData['id'])) {
-                    // Check if choice exists and belongs to this wager
-                    $existingChoice = DB::table('wager_choices')
-                        ->where('id', $choiceData['id'])
-                        ->where('wager_id', $wager->id)
-                        ->first();
+                if (empty($label)) {
+                    continue; // Skip empty labels
+                }
 
-                    if ($existingChoice) {
-                        // Update existing choice
+                if (! empty($choiceData['id']) && isset($existingChoices[$choiceData['id']])) {
+                    // Update existing choice
+                    $existingChoice = $existingChoices[$choiceData['id']];
+
+                    // Only update if label changed
+                    if ($existingChoice->label !== $label) {
                         DB::table('wager_choices')
                             ->where('id', $choiceData['id'])
+                            ->where('wager_id', $wager->id)
                             ->update([
                                 'label'      => $label,
                                 'updated_at' => now(),
                             ]);
 
-                        $existingChoiceIds[] = $choiceData['id'];
-
                         Log::info('CHOICE UPDATED', [
                             'choice_id' => $choiceData['id'],
-                            'label'     => $label,
+                            'old_label' => $existingChoice->label,
+                            'new_label' => $label,
                         ]);
                     }
+
+                    $processedChoiceIds[] = (int) $choiceData['id'];
                 } else {
                     // Create new choice
                     $choiceId = DB::table('wager_choices')->insertGetId([
@@ -178,7 +197,7 @@ class WagerController extends Controller
                         'updated_at' => now(),
                     ]);
 
-                    $existingChoiceIds[] = $choiceId;
+                    $processedChoiceIds[] = $choiceId;
 
                     Log::info('CHOICE CREATED', [
                         'choice_id' => $choiceId,
@@ -187,23 +206,42 @@ class WagerController extends Controller
                 }
             }
 
-            // Delete removed choices (only if they have no bets)
-            if (! empty($existingChoiceIds)) {
+            // Delete choices that were removed (only if they have no bets)
+            $choicesToDelete = $existingChoices->keys()->diff($processedChoiceIds);
+
+            if ($choicesToDelete->isNotEmpty()) {
+                // Only delete choices with no bets
                 $deletedCount = DB::table('wager_choices')
                     ->where('wager_id', $wager->id)
-                    ->whereNotIn('id', $existingChoiceIds)
-                    ->where('total_bet', 0)
+                    ->whereIn('id', $choicesToDelete->toArray())
+                    ->where('total_bet', '=', 0)
                     ->delete();
 
                 if ($deletedCount > 0) {
                     Log::info('CHOICES DELETED', [
                         'wager_id' => $wager->id,
                         'count'    => $deletedCount,
+                        'ids'      => $choicesToDelete->toArray(),
+                    ]);
+                }
+
+                // Check if any choices couldn't be deleted due to bets
+                $remainingChoices = DB::table('wager_choices')
+                    ->where('wager_id', $wager->id)
+                    ->whereIn('id', $choicesToDelete->toArray())
+                    ->count();
+
+                if ($remainingChoices > 0) {
+                    Log::warning('SOME CHOICES NOT DELETED (have bets)', [
+                        'wager_id' => $wager->id,
+                        'count'    => $remainingChoices,
                     ]);
                 }
             }
 
             DB::commit();
+
+            Log::info('WAGER UPDATE COMPLETED', ['wager_id' => $wager->id]);
 
             return redirect()->route('wagers.show', $wager->id)
                 ->with('success', 'Wager updated successfully!');
@@ -215,6 +253,8 @@ class WagerController extends Controller
                 'wager_id' => $wager->id,
                 'error'    => $e->getMessage(),
                 'line'     => $e->getLine(),
+                'file'     => $e->getFile(),
+                'trace'    => $e->getTraceAsString(),
             ]);
 
             return back()
