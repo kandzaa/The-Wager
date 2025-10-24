@@ -8,13 +8,24 @@
                         <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Edit Wager</h2>
 
                         @if (session('success'))
-                            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
                                 {{ session('success') }}
                             </div>
                         @endif
+
                         @if (session('error'))
-                            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
                                 {{ session('error') }}
+                            </div>
+                        @endif
+
+                        @if ($errors->any())
+                            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                                <ul class="list-disc list-inside">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
                             </div>
                         @endif
 
@@ -33,11 +44,9 @@
                                     value="{{ old('name', $wager->name) }}"
                                     class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                                     required maxlength="255">
-                                @error('name')
-                                    <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
                             </div>
 
+                            <!-- Description -->
                             <div>
                                 <label for="description"
                                     class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -45,9 +54,6 @@
                                 </label>
                                 <textarea id="description" name="description" rows="3"
                                     class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white">{{ old('description', $wager->description) }}</textarea>
-                                @error('description')
-                                    <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -61,9 +67,6 @@
                                         max="100" value="{{ old('max_players', $wager->max_players) }}"
                                         class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                                         required>
-                                    @error('max_players')
-                                        <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                    @enderror
                                 </div>
 
                                 <!-- Privacy -->
@@ -76,16 +79,14 @@
                                         class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                                         required>
                                         <option value="public"
-                                            {{ old('privacy', $wager->privacy) === 'public' ? 'selected' : '' }}>Public
+                                            {{ old('privacy', $wager->privacy) === 'public' ? 'selected' : '' }}>
+                                            Public
                                         </option>
                                         <option value="private"
                                             {{ old('privacy', $wager->privacy) === 'private' ? 'selected' : '' }}>
                                             Private
                                         </option>
                                     </select>
-                                    @error('privacy')
-                                        <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                    @enderror
                                 </div>
 
                                 <!-- Starting Time -->
@@ -98,9 +99,6 @@
                                         value="{{ old('starting_time', \Carbon\Carbon::parse($wager->starting_time)->format('Y-m-d\TH:i')) }}"
                                         class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                                         required>
-                                    @error('starting_time')
-                                        <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                    @enderror
                                 </div>
 
                                 <!-- End Time -->
@@ -113,9 +111,6 @@
                                         value="{{ old('ending_time', \Carbon\Carbon::parse($wager->ending_time)->format('Y-m-d\TH:i')) }}"
                                         class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
                                         required>
-                                    @error('ending_time')
-                                        <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                    @enderror
                                 </div>
                             </div>
 
@@ -134,35 +129,77 @@
                                 <div id="choicesContainer" class="space-y-2">
                                     @php
                                         $oldChoices = old('choices', []);
-                                        $choices = !empty($oldChoices) ? $oldChoices : $wager->choices;
+                                        if (!empty($oldChoices)) {
+                                            $choices = $oldChoices;
+                                        } else {
+                                            $choices = $wager->choices ?? [];
+                                        }
                                     @endphp
 
-                                    @foreach ($choices as $index => $choice)
-                                        <div class="flex items-center space-x-2 choice-item">
-                                            <input type="hidden" name="choices[{{ $index }}][id]"
-                                                value="{{ is_array($choice) ? $choice['id'] ?? '' : $choice->id }}">
-                                            <input type="hidden" name="choices[{{ $index }}][total_bet]"
-                                                value="{{ is_array($choice) ? $choice['total_bet'] ?? '0' : $choice->total_bet }}">
-                                            <input type="text" name="choices[{{ $index }}][label]"
-                                                value="{{ is_array($choice) ? $choice['label'] ?? '' : $choice->label }}"
-                                                placeholder="Enter choice text"
-                                                class="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                                                required>
-                                            <button type="button" onclick="removeChoice(this)"
-                                                class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                    viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd"
-                                                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    @endforeach
+                                    @if (empty($choices) || count($choices) == 0)
+                                        <!-- Default 2 empty choices if none exist -->
+                                        @for ($i = 0; $i < 2; $i++)
+                                            <div class="flex items-center space-x-2 choice-item">
+                                                <input type="hidden" name="choices[{{ $i }}][id]"
+                                                    value="">
+                                                <input type="hidden" name="choices[{{ $i }}][total_bet]"
+                                                    value="0">
+                                                <input type="text" name="choices[{{ $i }}][label]"
+                                                    value="" placeholder="Enter choice text"
+                                                    class="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
+                                                    required>
+                                                <button type="button" onclick="removeChoice(this)"
+                                                    class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                        viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        @endfor
+                                    @else
+                                        @foreach ($choices as $index => $choice)
+                                            @php
+                                                $choiceId = is_array($choice)
+                                                    ? $choice['id'] ?? ''
+                                                    : (is_object($choice)
+                                                        ? $choice->id
+                                                        : '');
+                                                $choiceLabel = is_array($choice)
+                                                    ? $choice['label'] ?? ''
+                                                    : (is_object($choice)
+                                                        ? $choice->label
+                                                        : '');
+                                                $totalBet = is_array($choice)
+                                                    ? $choice['total_bet'] ?? 0
+                                                    : (is_object($choice)
+                                                        ? $choice->total_bet
+                                                        : 0);
+                                            @endphp
+                                            <div class="flex items-center space-x-2 choice-item">
+                                                <input type="hidden" name="choices[{{ $index }}][id]"
+                                                    value="{{ $choiceId }}">
+                                                <input type="hidden" name="choices[{{ $index }}][total_bet]"
+                                                    value="{{ $totalBet }}">
+                                                <input type="text" name="choices[{{ $index }}][label]"
+                                                    value="{{ $choiceLabel }}" placeholder="Enter choice text"
+                                                    class="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
+                                                    required>
+                                                <button type="button" onclick="removeChoice(this)"
+                                                    class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                                        viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    @endif
                                 </div>
-                                @error('choices')
-                                    <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
                             </div>
 
                             <!-- Form Actions -->
@@ -183,23 +220,24 @@
         </div>
     </div>
 
-    <script>
-        function getChoiceCount() {
-            return document.querySelectorAll('.choice-item').length;
-        }
-
-        function addChoice() {
-            const container = document.getElementById('choicesContainer');
-            const count = getChoiceCount();
-
-            if (count >= 10) {
-                alert('Maximum 10 choices allowed');
-                return;
+    @push('scripts')
+        <script>
+            function getChoiceCount() {
+                return document.querySelectorAll('.choice-item').length;
             }
 
-            const newChoice = document.createElement('div');
-            newChoice.className = 'flex items-center space-x-2 choice-item';
-            newChoice.innerHTML = `
+            function addChoice() {
+                const container = document.getElementById('choicesContainer');
+                const count = getChoiceCount();
+
+                if (count >= 10) {
+                    alert('Maximum 10 choices allowed');
+                    return;
+                }
+
+                const newChoice = document.createElement('div');
+                newChoice.className = 'flex items-center space-x-2 choice-item';
+                newChoice.innerHTML = `
                 <input type="hidden" name="choices[${count}][id]" value="">
                 <input type="hidden" name="choices[${count}][total_bet]" value="0">
                 <input type="text" name="choices[${count}][label]" 
@@ -215,62 +253,62 @@
                 </button>
             `;
 
-            container.appendChild(newChoice);
-            newChoice.querySelector('input[type="text"]').focus();
-            updateButtons();
-        }
-
-        function removeChoice(button) {
-            const count = getChoiceCount();
-
-            if (count <= 2) {
-                alert('Minimum 2 choices required');
-                return;
+                container.appendChild(newChoice);
+                newChoice.querySelector('input[type="text"]').focus();
+                updateButtons();
             }
 
-            const item = button.closest('.choice-item');
-            item.remove();
+            function removeChoice(button) {
+                const count = getChoiceCount();
 
-            reindexChoices();
-            updateButtons();
-        }
-
-        function reindexChoices() {
-            const items = document.querySelectorAll('.choice-item');
-            items.forEach((item, index) => {
-                const inputs = item.querySelectorAll('input');
-                inputs[0].name = `choices[${index}][id]`;
-                inputs[1].name = `choices[${index}][total_bet]`;
-                inputs[2].name = `choices[${index}][label]`;
-            });
-        }
-
-        function updateButtons() {
-            const count = getChoiceCount();
-            const addBtn = document.getElementById('addChoiceBtn');
-            const removeButtons = document.querySelectorAll('.choice-item button');
-
-            if (count >= 10) {
-                addBtn.disabled = true;
-                addBtn.style.opacity = '0.5';
-            } else {
-                addBtn.disabled = false;
-                addBtn.style.opacity = '1';
-            }
-
-            removeButtons.forEach(btn => {
                 if (count <= 2) {
-                    btn.disabled = true;
-                    btn.style.opacity = '0.5';
-                } else {
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
+                    alert('Minimum 2 choices required');
+                    return;
                 }
-            });
-        }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            updateButtons();
-        });
-    </script>
+                const item = button.closest('.choice-item');
+                item.remove();
+                reindexChoices();
+                updateButtons();
+            }
+
+            function reindexChoices() {
+                const items = document.querySelectorAll('.choice-item');
+                items.forEach((item, index) => {
+                    const inputs = item.querySelectorAll('input');
+                    inputs[0].name = `choices[${index}][id]`;
+                    inputs[1].name = `choices[${index}][total_bet]`;
+                    inputs[2].name = `choices[${index}][label]`;
+                });
+            }
+
+            function updateButtons() {
+                const count = getChoiceCount();
+                const addBtn = document.getElementById('addChoiceBtn');
+                const removeButtons = document.querySelectorAll('.choice-item button');
+
+                if (count >= 10) {
+                    addBtn.disabled = true;
+                    addBtn.style.opacity = '0.5';
+                } else {
+                    addBtn.disabled = false;
+                    addBtn.style.opacity = '1';
+                }
+
+                removeButtons.forEach(btn => {
+                    if (count <= 2) {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                    } else {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    }
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                updateButtons();
+            });
+        </script>
+    @endpush
 </x-app-layout>
