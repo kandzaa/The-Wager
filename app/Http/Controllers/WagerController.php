@@ -124,36 +124,48 @@ class WagerController extends Controller
         ]);
 
         try {
-            // Start transaction
-            DB::beginTransaction();
-
-            // Update wager details first
-            $wagerUpdated = DB::table('wagers')
-                ->where('id', $wager->id)
-                ->update([
-                    'name'          => $validated['name'],
-                    'description'   => $validated['description'] ?? null,
-                    'max_players'   => $validated['max_players'],
-                    'privacy'       => $validated['privacy'],
-                    'starting_time' => $validated['starting_time'],
-                    'ending_time'   => $validated['ending_time'],
-                    'updated_at'    => now(),
-                ]);
-
-            if (! $wagerUpdated && $wagerUpdated !== 0) {
-                throw new \Exception('Failed to update wager');
-            }
-
-            Log::info('WAGER UPDATED', [
-                'wager_id' => $wager->id,
-                'name'     => $validated['name'],
-            ]);
-
-            // Get all existing choices for this wager BEFORE making changes
+            // Get all existing choices BEFORE transaction
             $existingChoices = DB::table('wager_choices')
                 ->where('wager_id', $wager->id)
                 ->get()
                 ->keyBy('id');
+
+            Log::info('STARTING WAGER UPDATE', [
+                'wager_id'         => $wager->id,
+                'existing_choices' => $existingChoices->count(),
+            ]);
+
+            // Start transaction
+            DB::beginTransaction();
+
+            // Update wager details - use exact column names
+            try {
+                DB::statement('SET CONSTRAINTS ALL DEFERRED');
+
+                $affected = DB::table('wagers')
+                    ->where('id', $wager->id)
+                    ->update([
+                        'name'          => $validated['name'],
+                        'description'   => $validated['description'],
+                        'max_players'   => $validated['max_players'],
+                        'privacy'       => $validated['privacy'],
+                        'starting_time' => $validated['starting_time'],
+                        'ending_time'   => $validated['ending_time'],
+                        'updated_at'    => now(),
+                    ]);
+
+                Log::info('WAGER TABLE UPDATED', [
+                    'wager_id'      => $wager->id,
+                    'affected_rows' => $affected,
+                ]);
+
+            } catch (\Exception $e) {
+                Log::error('WAGER UPDATE FAILED', [
+                    'wager_id' => $wager->id,
+                    'error'    => $e->getMessage(),
+                ]);
+                throw $e;
+            }
 
             $processedChoiceIds = [];
 
@@ -162,47 +174,54 @@ class WagerController extends Controller
                 $label = trim($choiceData['label']);
 
                 if (empty($label)) {
-                    continue; // Skip empty labels
+                    continue;
                 }
 
-                if (! empty($choiceData['id']) && isset($existingChoices[$choiceData['id']])) {
-                    // Update existing choice
-                    $existingChoice = $existingChoices[$choiceData['id']];
+                try {
+                    if (! empty($choiceData['id']) && isset($existingChoices[$choiceData['id']])) {
+                        // Update existing choice
+                        $existingChoice = $existingChoices[$choiceData['id']];
 
-                    // Only update if label changed
-                    if ($existingChoice->label !== $label) {
-                        DB::table('wager_choices')
-                            ->where('id', $choiceData['id'])
-                            ->where('wager_id', $wager->id)
-                            ->update([
-                                'label'      => $label,
-                                'updated_at' => now(),
+                        if ($existingChoice->label !== $label) {
+                            $updated = DB::table('wager_choices')
+                                ->where('id', $choiceData['id'])
+                                ->where('wager_id', $wager->id)
+                                ->update([
+                                    'label'      => $label,
+                                    'updated_at' => now(),
+                                ]);
+
+                            Log::info('CHOICE UPDATED', [
+                                'choice_id' => $choiceData['id'],
+                                'updated'   => $updated,
                             ]);
+                        }
 
-                        Log::info('CHOICE UPDATED', [
-                            'choice_id' => $choiceData['id'],
-                            'old_label' => $existingChoice->label,
-                            'new_label' => $label,
+                        $processedChoiceIds[] = (int) $choiceData['id'];
+
+                    } else {
+                        // Create new choice
+                        $choiceId = DB::table('wager_choices')->insertGetId([
+                            'wager_id'   => $wager->id,
+                            'label'      => $label,
+                            'total_bet'  => 0,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
+                        $processedChoiceIds[] = $choiceId;
+
+                        Log::info('CHOICE CREATED', [
+                            'choice_id' => $choiceId,
+                            'label'     => $label,
                         ]);
                     }
-
-                    $processedChoiceIds[] = (int) $choiceData['id'];
-                } else {
-                    // Create new choice
-                    $choiceId = DB::table('wager_choices')->insertGetId([
-                        'wager_id'   => $wager->id,
-                        'label'      => $label,
-                        'total_bet'  => 0,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                } catch (\Exception $e) {
+                    Log::error('CHOICE PROCESSING FAILED', [
+                        'index' => $index,
+                        'error' => $e->getMessage(),
                     ]);
-
-                    $processedChoiceIds[] = $choiceId;
-
-                    Log::info('CHOICE CREATED', [
-                        'choice_id' => $choiceId,
-                        'label'     => $label,
-                    ]);
+                    throw $e;
                 }
             }
 
@@ -210,38 +229,31 @@ class WagerController extends Controller
             $choicesToDelete = $existingChoices->keys()->diff($processedChoiceIds);
 
             if ($choicesToDelete->isNotEmpty()) {
-                // Only delete choices with no bets
-                $deletedCount = DB::table('wager_choices')
-                    ->where('wager_id', $wager->id)
-                    ->whereIn('id', $choicesToDelete->toArray())
-                    ->where('total_bet', '=', 0)
-                    ->delete();
+                try {
+                    $deletedCount = DB::table('wager_choices')
+                        ->where('wager_id', $wager->id)
+                        ->whereIn('id', $choicesToDelete->toArray())
+                        ->where(function ($query) {
+                            $query->where('total_bet', '=', 0)
+                                ->orWhereNull('total_bet');
+                        })
+                        ->delete();
 
-                if ($deletedCount > 0) {
                     Log::info('CHOICES DELETED', [
                         'wager_id' => $wager->id,
-                        'count'    => $deletedCount,
-                        'ids'      => $choicesToDelete->toArray(),
+                        'deleted'  => $deletedCount,
                     ]);
-                }
-
-                // Check if any choices couldn't be deleted due to bets
-                $remainingChoices = DB::table('wager_choices')
-                    ->where('wager_id', $wager->id)
-                    ->whereIn('id', $choicesToDelete->toArray())
-                    ->count();
-
-                if ($remainingChoices > 0) {
-                    Log::warning('SOME CHOICES NOT DELETED (have bets)', [
-                        'wager_id' => $wager->id,
-                        'count'    => $remainingChoices,
+                } catch (\Exception $e) {
+                    Log::error('CHOICE DELETION FAILED', [
+                        'error' => $e->getMessage(),
                     ]);
+                    // Don't throw - deletion failure is not critical
                 }
             }
 
             DB::commit();
 
-            Log::info('WAGER UPDATE COMPLETED', ['wager_id' => $wager->id]);
+            Log::info('WAGER UPDATE COMPLETED SUCCESSFULLY', ['wager_id' => $wager->id]);
 
             return redirect()->route('wagers.show', $wager->id)
                 ->with('success', 'Wager updated successfully!');
@@ -253,13 +265,12 @@ class WagerController extends Controller
                 'wager_id' => $wager->id,
                 'error'    => $e->getMessage(),
                 'line'     => $e->getLine(),
-                'file'     => $e->getFile(),
-                'trace'    => $e->getTraceAsString(),
+                'file'     => basename($e->getFile()),
             ]);
 
             return back()
                 ->withInput()
-                ->with('error', 'An error occurred while updating the wager: ' . $e->getMessage());
+                ->with('error', 'Failed to update wager. Please check the logs for details.');
         }
     }
 
@@ -495,46 +506,44 @@ class WagerController extends Controller
         }
 
         $validated = $request->validate([
-            'winning_choice_id' => 'required|exists:wager_choices,id',
+            'winning_choice_id' => 'required|integer',
         ]);
 
-        // Verify the choice belongs to this wager
-        $winningChoice = DB::table('wager_choices')
-            ->where('id', $validated['winning_choice_id'])
-            ->where('wager_id', $wager->id)
-            ->first();
-
-        if (! $winningChoice) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid winning choice for this wager.',
-            ], 400);
-        }
-
         try {
-            DB::beginTransaction();
+            // Verify the choice exists and belongs to this wager BEFORE transaction
+            $winningChoice = DB::table('wager_choices')
+                ->where('id', $validated['winning_choice_id'])
+                ->where('wager_id', $wager->id)
+                ->first();
 
-            Log::info('ENDING WAGER', [
-                'wager_id'          => $wager->id,
-                'winning_choice_id' => $validated['winning_choice_id'],
-            ]);
+            if (! $winningChoice) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid winning choice for this wager.',
+                ], 400);
+            }
 
-            // Update wager status
-            DB::table('wagers')
-                ->where('id', $wager->id)
-                ->update([
-                    'status'            => 'ended',
-                    'winning_choice_id' => $validated['winning_choice_id'],
-                    'updated_at'        => now(),
-                ]);
-
-            // Get all bets for this wager
+            // Get all bets BEFORE transaction
             $bets = DB::table('wager_bets')
                 ->where('wager_id', $wager->id)
                 ->get();
 
+            Log::info('ENDING WAGER', [
+                'wager_id'          => $wager->id,
+                'winning_choice_id' => $validated['winning_choice_id'],
+                'total_bets'        => $bets->count(),
+            ]);
+
             if ($bets->isEmpty()) {
-                DB::commit();
+                // No bets, just mark as ended
+                DB::table('wagers')
+                    ->where('id', $wager->id)
+                    ->update([
+                        'status'            => 'ended',
+                        'winning_choice_id' => $validated['winning_choice_id'],
+                        'updated_at'        => now(),
+                    ]);
+
                 return response()->json([
                     'success'  => true,
                     'message'  => 'Wager ended successfully (no bets to process).',
@@ -542,114 +551,115 @@ class WagerController extends Controller
                 ]);
             }
 
-            // 1.5x payout for winners
-            $payoutMultiplier = 1.5;
+            // Get all players BEFORE transaction
+            $playerIds = $bets->pluck('wager_player_id')->unique();
+            $players   = DB::table('wager_players')
+                ->whereIn('id', $playerIds)
+                ->get()
+                ->keyBy('id');
 
-            foreach ($bets as $bet) {
-                $isWinner = $bet->wager_choice_id == $validated['winning_choice_id'];
-
-                if ($isWinner) {
-                    $payout = $bet->bet_amount * $payoutMultiplier;
-
-                    // Get the player to find the user
-                    $player = DB::table('wager_players')
-                        ->where('id', $bet->wager_player_id)
-                        ->first();
-
-                    if ($player) {
-                        // Credit user's balance
-                        DB::table('users')
-                            ->where('id', $player->user_id)
-                            ->increment('balance', $payout);
-
-                        Log::info('WINNER PAID', [
-                            'user_id'    => $player->user_id,
-                            'bet_amount' => $bet->bet_amount,
-                            'payout'     => $payout,
-                        ]);
-                    }
-
-                    // Update bet record
-                    DB::table('wager_bets')
-                        ->where('id', $bet->id)
-                        ->update([
-                            'is_win'     => true,
-                            'payout'     => $payout,
-                            'updated_at' => now(),
-                        ]);
-                } else {
-                    // Mark as loser
-                    DB::table('wager_bets')
-                        ->where('id', $bet->id)
-                        ->update([
-                            'is_win'     => false,
-                            'payout'     => 0,
-                            'updated_at' => now(),
-                        ]);
-                }
-            }
-
-            DB::commit();
-
-            Log::info('WAGER ENDED SUCCESSFULLY', ['wager_id' => $wager->id]);
-
-            return response()->json([
-                'success'  => true,
-                'message'  => 'Wager ended successfully!',
-                'redirect' => route('history.wager.show', $wager->id),
+            Log::info('LOADED DATA', [
+                'bets'    => $bets->count(),
+                'players' => $players->count(),
             ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+            DB::beginTransaction();
 
+            try {
+                DB::statement('SET CONSTRAINTS ALL DEFERRED');
+
+                // Update wager status
+                $updated = DB::table('wagers')
+                    ->where('id', $wager->id)
+                    ->update([
+                        'status'            => 'ended',
+                        'winning_choice_id' => $validated['winning_choice_id'],
+                        'updated_at'        => now(),
+                    ]);
+
+                Log::info('WAGER STATUS UPDATED', ['affected' => $updated]);
+
+                // 1.5x payout for winners
+                $payoutMultiplier = 1.5;
+                $winnersCount     = 0;
+                $losersCount      = 0;
+
+                foreach ($bets as $bet) {
+                    $isWinner = $bet->wager_choice_id == $validated['winning_choice_id'];
+
+                    if ($isWinner) {
+                        $payout = $bet->bet_amount * $payoutMultiplier;
+
+                        // Get player to find user
+                        if (isset($players[$bet->wager_player_id])) {
+                            $player = $players[$bet->wager_player_id];
+
+                            // Credit user's balance
+                            DB::table('users')
+                                ->where('id', $player->user_id)
+                                ->increment('balance', $payout);
+
+                            $winnersCount++;
+
+                            Log::info('WINNER CREDITED', [
+                                'user_id' => $player->user_id,
+                                'payout'  => $payout,
+                            ]);
+                        }
+
+                        // Update bet record
+                        DB::table('wager_bets')
+                            ->where('id', $bet->id)
+                            ->update([
+                                'is_win'     => true,
+                                'payout'     => $payout,
+                                'updated_at' => now(),
+                            ]);
+                    } else {
+                        // Mark as loser
+                        DB::table('wager_bets')
+                            ->where('id', $bet->id)
+                            ->update([
+                                'is_win'     => false,
+                                'payout'     => 0,
+                                'updated_at' => now(),
+                            ]);
+
+                        $losersCount++;
+                    }
+                }
+
+                DB::commit();
+
+                Log::info('WAGER ENDED SUCCESSFULLY', [
+                    'wager_id' => $wager->id,
+                    'winners'  => $winnersCount,
+                    'losers'   => $losersCount,
+                ]);
+
+                return response()->json([
+                    'success'  => true,
+                    'message'  => 'Wager ended successfully!',
+                    'redirect' => route('history.wager.show', $wager->id),
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
             Log::error('ERROR ENDING WAGER', [
                 'wager_id' => $wager->id,
                 'error'    => $e->getMessage(),
                 'line'     => $e->getLine(),
-                'file'     => $e->getFile(),
+                'file'     => basename($e->getFile()),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to end wager: ' . $e->getMessage(),
+                'message' => 'Failed to end wager. Please try again.',
             ], 500);
-        }
-    }
-
-    public function destroy(Wager $wager)
-    {
-        try {
-            DB::beginTransaction();
-            $refundedAmount = 0;
-
-            foreach ($wager->bets as $bet) {
-                $bet->user->increment('balance', $bet->amount);
-                $refundedAmount += $bet->amount;
-                $bet->delete();
-            }
-
-            $wager->delete();
-
-            DB::commit();
-
-            Log::info("Wager {$wager->id} deleted. Refunded {$refundedAmount} to users.");
-
-            if (request()->ajax() || request()->wantsJson()) {
-                return response()->json(['success' => true, 'message' => 'Wager deleted successfully']);
-            }
-
-            return redirect()->route('wagers.index')
-                ->with('success', 'Wager deleted successfully and bets refunded.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error deleting wager: ' . $e->getMessage());
-
-            if (request()->ajax() || request()->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Failed to delete wager'], 500);
-            }
-
-            return back()->with('error', 'Failed to delete wager. Please try again.');
         }
     }
 
