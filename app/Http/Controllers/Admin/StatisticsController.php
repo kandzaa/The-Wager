@@ -5,7 +5,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Wager;
 use App\Models\WagerBet;
-use App\Models\WagerPlayer;
 use Illuminate\Support\Facades\DB;
 
 class StatisticsController extends Controller
@@ -20,27 +19,27 @@ class StatisticsController extends Controller
                 'completed_wagers'    => Wager::where('status', 'ended')->count(),
                 'pending_wagers'      => Wager::where('status', 'pending')->count(),
                 'total_pot'           => (float) Wager::sum('pot'),
-                'avg_pot'             => (float) Wager::avg('pot'),
+                'avg_pot'             => (float) Wager::avg('pot') ?: 0,
                 'total_users'         => User::count(),
                 'active_users'        => User::whereNotNull('email_verified_at')->count(),
                 'total_wagered'       => (float) WagerBet::sum('bet_amount'),
-                'avg_wager_amount'    => (float) WagerBet::avg('bet_amount'),
+                'avg_wager_amount'    => (float) WagerBet::avg('bet_amount') ?: 0,
                 'new_users_this_week' => User::where('created_at', '>=', now()->startOfWeek())->count(),
             ];
 
-            // Wagers over time (last 7 days)
+            // Wagers over time (last 14 days)
             $wagersOverTime = Wager::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('COUNT(*) as count'),
                 DB::raw('COALESCE(SUM(pot), 0) as total_amount')
             )
-                ->where('created_at', '>=', now()->subDays(7))
+                ->where('created_at', '>=', now()->subDays(14))
                 ->groupBy('date')
                 ->orderBy('date')
                 ->get();
 
-            // Fill in missing dates
-            $dates = collect(range(0, 6))->map(function ($days) {
+            // Fill in missing dates for the last 14 days
+            $dates = collect(range(0, 13))->map(function ($days) {
                 return now()->subDays($days)->format('Y-m-d');
             })->reverse();
 
@@ -63,8 +62,9 @@ class StatisticsController extends Controller
                 ->groupBy('status')
                 ->get();
 
-            // Top wagers
-            $topWagers = Wager::withCount('players')
+            // Top wagers by pot
+            $topWagers = Wager::select('wagers.*')
+                ->withCount('players')
                 ->orderBy('pot', 'desc')
                 ->take(5)
                 ->get()
@@ -73,28 +73,50 @@ class StatisticsController extends Controller
                         'id'           => $wager->id,
                         'name'         => $wager->name,
                         'pot'          => $wager->pot,
+                        'total_amount' => $wager->pot, // Add this for the view
                         'player_count' => $wager->players_count,
                         'status'       => $wager->status,
                     ];
                 });
 
-            // Recent activity
-            $recentActivity = WagerPlayer::with(['wager', 'user'])
-                ->latest()
+            // Recent activity - Get the latest bets with proper joins
+            $recentActivity = DB::table('wager_bets')
+                ->join('wager_players', 'wager_bets.wager_player_id', '=', 'wager_players.id')
+                ->join('wagers', 'wager_bets.wager_id', '=', 'wagers.id')
+                ->join('users', 'wager_players.user_id', '=', 'users.id')
+                ->select(
+                    'wager_bets.id',
+                    'wager_bets.wager_id',
+                    'wagers.name as wager_name',
+                    'wagers.pot as wager_pot',
+                    'users.name as user_name',
+                    'wager_bets.bet_amount as amount',
+                    'wager_bets.created_at',
+                    DB::raw("CASE
+                        WHEN wager_bets.is_win = 1 THEN 'won'
+                        WHEN wager_bets.is_win = 0 THEN 'lost'
+                        ELSE 'pending'
+                    END as status")
+                )
+                ->orderBy('wager_bets.created_at', 'desc')
                 ->take(5)
                 ->get()
                 ->map(function ($activity) {
                     return (object) [
                         'wager_id'   => $activity->wager_id,
-                        'wager_name' => $activity->wager->name ?? 'Deleted Wager',
-                        'user_name'  => $activity->user->name ?? 'Deleted User',
-                        'amount'     => $activity->bet_amount,
-                        'created_at' => $activity->created_at->diffForHumans(),
+                        'wager_name' => $activity->wager_name ?? 'Unknown Wager',
+                        'wager_pot'  => $activity->wager_pot ?? 0,
+                        'user_name'  => $activity->user_name ?? 'Unknown User',
+                        'amount'     => $activity->amount,
+                        'status'     => $activity->status,
+                        'created_at' => \Carbon\Carbon::parse($activity->created_at),
                     ];
                 });
 
-                                        // Recent payouts
-            $recentPayouts = collect(); // You'll need to implement this based on your payout logic
+            // Calculate recent payouts (last 7 days)
+            $recentPayouts = WagerBet::where('is_win', true)
+                ->where('created_at', '>=', now()->subDays(7))
+                ->sum('payout') ?: 0;
 
             // Prepare view data
             $viewData = [
@@ -103,7 +125,7 @@ class StatisticsController extends Controller
                 'wagersByStatus' => $wagersByStatus,
                 'topWagers'      => $topWagers,
                 'recentActivity' => $recentActivity,
-                'recent_payouts' => $recentPayouts,
+                'recent_payouts' => collect(), // Keep empty collection for compatibility
                 'metrics'        => [
                     'active_wagers_ending_soon' => Wager::where('status', 'active')
                         ->where('ending_time', '<=', now()->addDays(3))
@@ -111,7 +133,7 @@ class StatisticsController extends Controller
                     'total_wagered_this_week'   => (float) Wager::where('created_at', '>=', now()->startOfWeek())
                         ->sum('pot'),
                     'new_users_this_week'       => $stats['new_users_this_week'],
-                    'recent_payouts'            => 0,
+                    'recent_payouts'            => (float) $recentPayouts,
                 ],
                 'error'          => null,
             ];
@@ -122,6 +144,8 @@ class StatisticsController extends Controller
             \Log::error('Error in StatisticsController: ' . $e->getMessage(), [
                 'exception' => $e,
                 'trace'     => $e->getTraceAsString(),
+                'line'      => $e->getLine(),
+                'file'      => $e->getFile(),
             ]);
 
             // Return a safe response with minimal data
@@ -148,7 +172,7 @@ class StatisticsController extends Controller
                     'active_wagers_ending_soon' => 0,
                     'total_wagered_this_week'   => 0,
                     'new_users_this_week'       => 0,
-                    'recent_payouts'            => 0, // Add this line
+                    'recent_payouts'            => 0,
                 ],
                 'error'          => 'An error occurred while loading statistics. Please try again later.',
             ]);
