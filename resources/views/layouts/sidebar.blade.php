@@ -60,12 +60,6 @@
                 <ion-icon name="construct-outline" class="size-5 mr-2"></ion-icon>
                 {{ __('Manage') }}
             </x-nav-link>
-
-            <x-nav-link :href="route('admin.statistics')" :active="request()->routeIs('admin.statistics')"
-                class="block px-4 py-4 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
-                <ion-icon name="stats-chart" class="size-5 mr-2"></ion-icon>
-                {{ __('Statistics') }}
-            </x-nav-link>
         @endif
         <div
             class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">

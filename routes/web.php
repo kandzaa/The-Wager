@@ -113,6 +113,5 @@ Route::prefix('admin/Manage/users')->middleware(['auth', 'verified', AdminMiddle
 
 // Admin routes
 Route::get('/admin', [AdminController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
-Route::get('/admin/statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin.statistics');
 
 require __DIR__ . '/auth.php';
