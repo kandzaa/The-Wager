@@ -16,52 +16,35 @@ class HistoryController extends Controller
     public function index()
     {
         try {
-            // Get wagers where user participated (either as creator or player)
+            $userId = Auth::id();
+
+            // User's wagers (participated in)
             $userWagers = Wager::where('status', 'ended')
-                ->where(function ($query) {
-                    $query->where('creator_id', Auth::id())
-                        ->orWhereHas('players', function ($q) {
-                            $q->where('user_id', Auth::id());
-                        });
+                ->where(function ($q) use ($userId) {
+                    $q->where('creator_id', $userId)
+                      ->orWhereHas('players', fn($q) => $q->where('user_id', $userId));
                 })
-                ->with(['creator'])
+                ->with('creator')
                 ->withCount('players')
-                ->orderBy('updated_at', 'desc')
+                ->latest('updated_at')
                 ->paginate(9, ['*'], 'user_wagers');
 
-            // Get public ended wagers where user didn't participate
+            // Public wagers (not participated in)
             $publicWagers = Wager::where('status', 'ended')
                 ->where('privacy', 'public')
-                ->where('creator_id', '!=', Auth::id())
-                ->whereDoesntHave('players', function ($query) {
-                    $query->where('user_id', Auth::id());
-                })
-                ->with(['creator'])
+                ->where('creator_id', '!=', $userId)
+                ->whereDoesntHave('players', fn($q) => $q->where('user_id', $userId))
+                ->with('creator')
                 ->withCount('players')
-                ->orderBy('updated_at', 'desc')
+                ->latest('updated_at')
                 ->paginate(9, ['*'], 'public_wagers');
 
-            Log::info('HISTORY INDEX', [
-                'user_wagers_count'   => $userWagers->count(),
-                'public_wagers_count' => $publicWagers->count(),
-            ]);
-
-            return view('history', [
-                'userWagers'   => $userWagers,
-                'publicWagers' => $publicWagers,
-            ]);
+            return view('history', compact('userWagers', 'publicWagers'));
         } catch (\Exception $e) {
-            Log::error('Error loading history index', [
-                'error' => $e->getMessage(),
-                'line'  => $e->getLine(),
-                'file'  => $e->getFile(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
+            Log::error('History index error', ['error' => $e->getMessage()]);
             return view('history', [
-                'userWagers'   => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 9),
+                'userWagers' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 9),
                 'publicWagers' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 9),
-                'error'        => 'Failed to load wager history: ' . $e->getMessage(),
             ]);
         }
     }
@@ -74,145 +57,95 @@ class HistoryController extends Controller
      */
     public function show(Wager $wager)
     {
+        if ($wager->status !== 'ended') {
+            return redirect()->route('wagers.index')->with('error', 'Wager not ended yet.');
+        }
+
         try {
-            Log::info('HISTORY SHOW START', [
-                'wager_id'     => $wager->id,
-                'wager_status' => $wager->status,
-            ]);
-
-            // Ensure the wager is ended
-            if ($wager->status !== 'ended') {
-                Log::warning('Attempted to view non-ended wager history', [
-                    'wager_id' => $wager->id,
-                    'status'   => $wager->status,
-                ]);
-                return redirect()->route('wagers.index')
-                    ->with('error', 'This wager has not ended yet.');
-            }
-
-            // Load basic relationships
             $wager->load(['creator', 'choices', 'winningChoice']);
 
-            // Get all bets for this wager with player and user info
+            // Get bets with user info
             $bets = DB::table('wager_bets')
                 ->join('wager_players', 'wager_bets.wager_player_id', '=', 'wager_players.id')
                 ->join('users', 'wager_players.user_id', '=', 'users.id')
                 ->join('wager_choices', 'wager_bets.wager_choice_id', '=', 'wager_choices.id')
                 ->where('wager_bets.wager_id', $wager->id)
                 ->select(
-                    'wager_bets.id as bet_id',
                     'wager_bets.bet_amount',
                     'wager_bets.payout',
                     'wager_bets.is_win',
-                    'wager_bets.wager_choice_id',
                     'users.id as user_id',
                     'users.name as user_name',
-                    'wager_choices.label as choice_label',
-                    'wager_players.bet_amount as player_total_bet'
+                    'wager_choices.label as choice_label'
                 )
                 ->get();
 
-            Log::info('HISTORY SHOW - Loaded bets', [
-                'wager_id'   => $wager->id,
-                'bets_count' => $bets->count(),
-            ]);
-
-            // Group by user and calculate results
-            $userResults  = [];
-            $totalPot     = 0;
-            $winnersCount = 0;
+            // Calculate user results
+            $userResults = [];
+            $totalPot = 0;
 
             foreach ($bets as $bet) {
                 $userId = $bet->user_id;
-
-                if (! isset($userResults[$userId])) {
+                if (!isset($userResults[$userId])) {
                     $userResults[$userId] = [
-                        'user_id'   => $userId,
+                        'user_id' => $userId,
                         'user_name' => $bet->user_name,
                         'total_bet' => 0,
-                        'payout'    => 0,
-                        'profit'    => 0,
-                        'status'    => 'lost',
-                        'bets'      => [],
+                        'payout' => 0,
+                        'profit' => 0,
+                        'status' => 'lost',
+                        'bets' => [],
                     ];
                 }
 
-                $isWinner  = $bet->is_win === 1 || $bet->is_win === true;
-                $betAmount = (float) $bet->bet_amount;
-                $payout    = (float) ($bet->payout ?? 0);
-                $profit    = $payout - $betAmount;
+                $isWinner = (bool)$bet->is_win;
+                $amount = (float)$bet->bet_amount;
+                $payout = (float)($bet->payout ?? 0);
 
                 $userResults[$userId]['bets'][] = [
-                    'choice'    => $bet->choice_label,
-                    'amount'    => $betAmount,
+                    'choice' => $bet->choice_label,
+                    'amount' => $amount,
                     'is_winner' => $isWinner,
-                    'payout'    => $payout,
-                    'profit'    => $profit,
+                    'payout' => $payout,
+                    'profit' => $payout - $amount,
                 ];
 
-                $userResults[$userId]['total_bet'] += $betAmount;
+                $userResults[$userId]['total_bet'] += $amount;
                 $userResults[$userId]['payout'] += $payout;
-                $userResults[$userId]['profit'] += $profit;
-
-                $totalPot += $betAmount;
+                $userResults[$userId]['profit'] += $payout - $amount;
+                $totalPot += $amount;
 
                 if ($isWinner) {
                     $userResults[$userId]['status'] = 'won';
                 }
             }
 
-            // Count winners (unique users who won)
-            $winnersCount = collect($userResults)->where('status', 'won')->count();
+            $userResults = collect($userResults)->sortByDesc('payout')->values();
 
-            // Sort by payout (winners first)
-            $userResults = collect($userResults)
-                ->sortByDesc('payout')
-                ->values();
-
-            // Get choice distribution
+            // Choice distribution
             $choiceDistribution = DB::table('wager_choices')
                 ->where('wager_id', $wager->id)
-                ->select('id', 'label', 'total_bet')
-                ->get()
-                ->map(function ($choice) use ($totalPot) {
-                    $amount = (float) ($choice->total_bet ?? 0);
-                    return [
-                        'id'         => $choice->id,
-                        'label'      => $choice->label,
-                        'total_bet'  => $amount,
-                        'percentage' => $totalPot > 0 ? round(($amount / $totalPot) * 100, 2) : 0,
-                    ];
-                });
+                ->get(['id', 'label', 'total_bet'])
+                ->map(fn($c) => [
+                    'id' => $c->id,
+                    'label' => $c->label,
+                    'total_bet' => (float)($c->total_bet ?? 0),
+                    'percentage' => $totalPot > 0 ? round(((float)($c->total_bet ?? 0) / $totalPot) * 100, 2) : 0,
+                ]);
 
             $stats = [
-                'total_players'       => count($userResults),
-                'total_pot'           => $wager->pot ?? 0,
-                'total_bets'          => $bets->count(),
-                'winning_choice_id'   => $wager->winning_choice_id,
-                'winners_count'       => $winnersCount,
+                'total_players' => count($userResults),
+                'total_pot' => $wager->pot ?? 0,
+                'total_bets' => $bets->count(),
+                'winning_choice_id' => $wager->winning_choice_id,
+                'winners_count' => collect($userResults)->where('status', 'won')->count(),
                 'choice_distribution' => $choiceDistribution,
             ];
 
-            Log::info('HISTORY SHOW - Stats calculated', [
-                'wager_id'      => $wager->id,
-                'total_players' => $stats['total_players'],
-                'total_pot'     => $stats['total_pot'],
-                'winners_count' => $winnersCount,
-            ]);
-
             return view('history.show', compact('wager', 'stats', 'userResults'));
-
         } catch (\Exception $e) {
-            Log::error('ERROR IN HISTORY SHOW', [
-                'wager_id' => $wager->id ?? 'unknown',
-                'error'    => $e->getMessage(),
-                'line'     => $e->getLine(),
-                'file'     => $e->getFile(),
-                'trace'    => $e->getTraceAsString(),
-            ]);
-
-            return redirect()->route('history')
-                ->with('error', 'Failed to load wager details: ' . $e->getMessage());
+            Log::error('History show error', ['wager_id' => $wager->id, 'error' => $e->getMessage()]);
+            return redirect()->route('history')->with('error', 'Failed to load wager details.');
         }
     }
 }

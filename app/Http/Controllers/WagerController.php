@@ -101,12 +101,10 @@ class WagerController extends Controller
 
     public function update(Request $request, Wager $wager)
     {
-        // Check authorization
         if ($wager->creator_id !== Auth::id()) {
             return back()->with('error', 'Not authorized to update this wager.');
         }
 
-        // Don't allow editing ended wagers
         if ($wager->status === 'ended') {
             return back()->with('error', 'Cannot edit an ended wager.');
         }
@@ -124,156 +122,70 @@ class WagerController extends Controller
         ]);
 
         try {
-            // Get all existing choices BEFORE transaction
-            $existingChoices = DB::table('wager_choices')
-                ->where('wager_id', $wager->id)
-                ->get()
-                ->keyBy('id');
-
-            Log::info('STARTING WAGER UPDATE', [
-                'wager_id'         => $wager->id,
-                'existing_choices' => $existingChoices->count(),
-            ]);
-
-            // Start transaction
             DB::beginTransaction();
 
-            // Update wager details - use exact column names
-            try {
-                DB::statement('SET CONSTRAINTS ALL DEFERRED');
+            // Update wager
+            DB::table('wagers')->where('id', $wager->id)->update([
+                'name'          => $validated['name'],
+                'description'   => $validated['description'],
+                'max_players'   => $validated['max_players'],
+                'privacy'       => $validated['privacy'],
+                'starting_time' => $validated['starting_time'],
+                'ending_time'   => $validated['ending_time'],
+                'updated_at'    => now(),
+            ]);
 
-                // Use query builder with proper parameter binding
-                $updateData = [
-                    'name'          => $validated['name'],
-                    'description'   => $validated['description'],
-                    'max_players'   => $validated['max_players'],
-                    'privacy'       => $validated['privacy'],
-                    'starting_time' => $validated['starting_time'],
-                    'ending_time'   => $validated['ending_time'],
-                    'updated_at'    => now(),
-                ];
+            // Get existing choices
+            $existingIds = DB::table('wager_choices')
+                ->where('wager_id', $wager->id)
+                ->pluck('id')
+                ->toArray();
 
-                $affected = DB::table('wagers')
-                    ->where('id', $wager->id)
-                    ->update($updateData);
+            $processedIds = [];
 
-                Log::info('WAGER TABLE UPDATED', [
-                    'wager_id'      => $wager->id,
-                    'affected_rows' => $affected,
-                ]);
+            // Process choices
+            foreach ($validated['choices'] as $choice) {
+                $label = trim($choice['label']);
+                if (empty($label)) continue;
 
-            } catch (\Exception $e) {
-                Log::error('WAGER UPDATE FAILED', [
-                    'wager_id' => $wager->id,
-                    'error'    => $e->getMessage(),
-                ]);
-                throw $e;
-            }
-
-            $processedChoiceIds = [];
-
-            // Process each choice from the form
-            foreach ($validated['choices'] as $index => $choiceData) {
-                $label = trim($choiceData['label']);
-
-                if (empty($label)) {
-                    continue;
-                }
-
-                try {
-                    if (! empty($choiceData['id']) && isset($existingChoices[$choiceData['id']])) {
-                        // Update existing choice
-                        $existingChoice = $existingChoices[$choiceData['id']];
-
-                        if ($existingChoice->label !== $label) {
-                            $updated = DB::table('wager_choices')
-                                ->where('id', $choiceData['id'])
-                                ->where('wager_id', $wager->id)
-                                ->update([
-                                    'label'      => $label,
-                                    'updated_at' => now(),
-                                ]);
-
-                            Log::info('CHOICE UPDATED', [
-                                'choice_id' => $choiceData['id'],
-                                'updated'   => $updated,
-                            ]);
-                        }
-
-                        $processedChoiceIds[] = (int) $choiceData['id'];
-
-                    } else {
-                        // Create new choice
-                        $choiceId = DB::table('wager_choices')->insertGetId([
-                            'wager_id'   => $wager->id,
-                            'label'      => $label,
-                            'total_bet'  => 0,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-
-                        $processedChoiceIds[] = $choiceId;
-
-                        Log::info('CHOICE CREATED', [
-                            'choice_id' => $choiceId,
-                            'label'     => $label,
-                        ]);
-                    }
-                } catch (\Exception $e) {
-                    Log::error('CHOICE PROCESSING FAILED', [
-                        'index' => $index,
-                        'error' => $e->getMessage(),
+                if (!empty($choice['id']) && in_array($choice['id'], $existingIds)) {
+                    // Update existing
+                    DB::table('wager_choices')
+                        ->where('id', $choice['id'])
+                        ->update(['label' => $label, 'updated_at' => now()]);
+                    $processedIds[] = $choice['id'];
+                } else {
+                    // Create new
+                    $newId = DB::table('wager_choices')->insertGetId([
+                        'wager_id'   => $wager->id,
+                        'label'      => $label,
+                        'total_bet'  => 0,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
-                    throw $e;
+                    $processedIds[] = $newId;
                 }
             }
 
-            // Delete choices that were removed (only if they have no bets)
-            $choicesToDelete = $existingChoices->keys()->diff($processedChoiceIds);
-
-            if ($choicesToDelete->isNotEmpty()) {
-                try {
-                    $deletedCount = DB::table('wager_choices')
-                        ->where('wager_id', $wager->id)
-                        ->whereIn('id', $choicesToDelete->toArray())
-                        ->where(function ($query) {
-                            $query->where('total_bet', '=', 0)
-                                ->orWhereNull('total_bet');
-                        })
-                        ->delete();
-
-                    Log::info('CHOICES DELETED', [
-                        'wager_id' => $wager->id,
-                        'deleted'  => $deletedCount,
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('CHOICE DELETION FAILED', [
-                        'error' => $e->getMessage(),
-                    ]);
-                    // Don't throw - deletion failure is not critical
-                }
+            // Delete removed choices (only if no bets)
+            $toDelete = array_diff($existingIds, $processedIds);
+            if (!empty($toDelete)) {
+                DB::table('wager_choices')
+                    ->whereIn('id', $toDelete)
+                    ->where(function($q) {
+                        $q->where('total_bet', 0)->orWhereNull('total_bet');
+                    })
+                    ->delete();
             }
 
             DB::commit();
-
-            Log::info('WAGER UPDATE COMPLETED SUCCESSFULLY', ['wager_id' => $wager->id]);
-
             return redirect()->route('wagers.show', $wager->id)
                 ->with('success', 'Wager updated successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
-
-            Log::error('ERROR UPDATING WAGER', [
-                'wager_id' => $wager->id,
-                'error'    => $e->getMessage(),
-                'line'     => $e->getLine(),
-                'file'     => basename($e->getFile()),
-            ]);
-
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to update wager. Please check the logs for details.');
+            Log::error('Wager update failed', ['error' => $e->getMessage()]);
+            return back()->withInput()->with('error', 'Failed to update wager.');
         }
     }
 
