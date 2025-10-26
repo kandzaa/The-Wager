@@ -138,19 +138,15 @@
                                                 <option value="{{ $friend->id }}">{{ $friend->name }}</option>
                                             @endforeach
                                         </select>
-                                        @error('friend_id')
-                                            <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
-                                        @enderror
                                     </div>
                                     <button type="submit"
-                                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 whitespace-nowrap">
+                                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
                                         Send Invite
                                     </button>
                                 </form>
                             @else
                                 <p class="text-sm text-slate-500 dark:text-slate-400">
-                                    You don't have any friends to invite or all friends are already
-                                    invited/participating.
+                                    You don't have any friends to invite.
                                 </p>
                             @endif
                         </div>
@@ -208,8 +204,8 @@
                                 class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 p-6 text-center">
                                 <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Join this wager to
                                     participate</h3>
-                                <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">You can view details, but you
-                                    must join before placing a bet.</p>
+                                <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">You must join before placing
+                                    a bet.</p>
                                 <form method="POST" action="{{ route('wagers.join', $wager) }}"
                                     class="mt-4 inline-block">
                                     @csrf
@@ -227,8 +223,7 @@
                             <form method="POST" action="{{ route('wagers.bet', $wager) }}" class="space-y-4"
                                 id="bet-form" onsubmit="return handleBetSubmit(event)">
                                 @csrf
-                                @method('POST')
-                                <div id="bets-container"></div> <!-- Container for hidden bets inputs -->
+                                <div id="bets-container"></div>
                                 <div class="space-y-4">
                                     @foreach ($wager->choices as $choice)
                                         <div
@@ -271,42 +266,24 @@
                             @if ($wager->creator_id == Auth::id())
                                 <div class="mt-8 pt-6 border-t border-slate-200/60 dark:border-slate-700/60">
                                     <div class="flex flex-col sm:flex-row gap-3">
-                                        <a href="{{ route('wagers.edit', $wager) }}" class="flex-1 group">
+                                        <a href="{{ route('wagers.edit', $wager) }}" class="flex-1">
                                             <button type="button"
                                                 class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium rounded-lg transition-all duration-200
                                                 bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800
                                                 border border-slate-200/80 hover:border-emerald-300 dark:border-slate-700/80 dark:hover:border-emerald-500/60
                                                 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300
-                                                shadow-sm hover:shadow-md hover:-translate-y-0.5
-                                                focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:ring-offset-2 dark:focus:ring-offset-slate-800">
+                                                shadow-sm hover:shadow-md hover:-translate-y-0.5">
                                                 <ion-icon class="text-base" name="create-outline"></ion-icon>
                                                 <span>Edit Wager</span>
                                             </button>
                                         </a>
 
-                                        <form action="{{ route('wagers.destroy', $wager) }}" method="POST"
-                                            class="flex-1">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" onclick="return deleteWager({{ $wager->id }})"
-                                                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium rounded-lg transition-all duration-200
-                                                bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800
-                                                border border-slate-200/80 hover:border-rose-300 dark:border-slate-700/80 dark:hover:border-rose-500/60
-                                                text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300
-                                                shadow-sm hover:shadow-md hover:-translate-y-0.5
-                                                focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:ring-offset-2 dark:focus:ring-offset-slate-800">
-                                                <ion-icon class="text-base" name="trash-outline"></ion-icon>
-                                                <span>Delete Wager</span>
-                                            </button>
-                                        </form>
-
                                         <button type="button" id="endWagerButton"
-                                            class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium rounded-lg transition-all duration-200
+                                            class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium rounded-lg transition-all duration-200
                                             bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800
-                                            border border-slate-200/80 hover:border-gray-300 dark:border-slate-700/80 dark:hover:border-gray-500/60
-                                            text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300
-                                            shadow-sm hover:shadow-md hover:-translate-y-0.5
-                                            focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:ring-offset-2 dark:focus:ring-offset-slate-800">
+                                            border border-slate-200/80 hover:border-blue-300 dark:border-slate-700/80 dark:hover:border-blue-500/60
+                                            text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300
+                                            shadow-sm hover:shadow-md hover:-translate-y-0.5">
                                             <ion-icon class="text-base" name="flag-outline"></ion-icon>
                                             <span>End Wager</span>
                                         </button>
@@ -320,72 +297,22 @@
                 </div>
             </div>
         </div>
-
-        <!-- End Wager Modal -->
-        <div id="endWagerModal"
-            class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 hidden"
-            x-data="{ selectedChoiceId: null, confirming: false }">
-            <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">End Wager: {{ $wager->name }}</h1>
-                <form method="POST" action="{{ route('wagers.end', $wager) }}" id="endWagerForm"
-                    @submit.prevent="handleEndWagerSubmit">
-                    @csrf
-                    <input type="hidden" name="winning_choice_id" x-model="selectedChoiceId">
-                    <div x-show="!confirming">
-                        <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">Select the winning choice:</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            @foreach ($wager->choices as $choice)
-                                <button type="button"
-                                    @click="selectedChoiceId = {{ $choice->id }}; confirming = true;"
-                                    class="w-full text-left p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-700/80 shadow-sm transition"
-                                    data-choice-id="{{ $choice->id }}">
-                                    <span class="font-medium">{{ $choice->label }}</span>
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div x-show="confirming" x-cloak>
-                        <p class="text-sm text-slate-700 dark:text-slate-200 mb-4">
-                            You've selected:
-                            <span class="font-medium"
-                                x-text="selectedChoiceId ? document.querySelector(`button[data-choice-id='${selectedChoiceId}']`).textContent.trim() : ''"></span>
-                        </p>
-                        <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">
-                            Are you sure you want to end this wager and select this as the winning choice? This action
-                            cannot be undone.
-                        </p>
-                        <div class="flex items-center space-x-3">
-                            <button type="submit"
-                                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition"
-                                x-bind:disabled="!selectedChoiceId">
-                                Confirm and End Wager
-                            </button>
-                            <button type="button" @click="confirming = false; selectedChoiceId = null;"
-                                class="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 rounded-lg font-medium transition">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
     </div>
+
+    <!-- Include the End Wager Modal -->
+    @include('wagers.wagers_end')
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Global variables
         let betChart = null;
         let initialData = [];
         let pollInterval = null;
 
-        // Chart colors
         const chartColors = [
             '#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6',
             '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280'
         ];
 
-        // Initialize data from PHP
         @php
             $chartData = $wager->choices
                 ->map(function ($choice) {
@@ -398,9 +325,7 @@
                 ->toArray();
         @endphp
         initialData = @json($chartData);
-        console.log('Initial data loaded:', initialData);
 
-        // Render chart
         function renderChart(data) {
             const canvas = document.getElementById('betChart');
             if (!canvas) return;
@@ -448,20 +373,11 @@
                                 font: {
                                     size: 13,
                                     weight: '500'
-                                },
-                                usePointStyle: true,
-                                pointStyle: 'circle'
+                                }
                             }
                         },
                         tooltip: {
                             enabled: true,
-                            backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                            titleColor: isDark ? '#e2e8f0' : '#334155',
-                            bodyColor: isDark ? '#cbd5e1' : '#64748b',
-                            borderColor: isDark ? '#334155' : '#e2e8f0',
-                            borderWidth: 1,
-                            padding: 12,
-                            displayColors: true,
                             callbacks: {
                                 label: function(context) {
                                     if (totalBets === 0) return 'No bets yet';
@@ -472,16 +388,11 @@
                                 }
                             }
                         }
-                    },
-                    animation: {
-                        animateRotate: true,
-                        animateScale: true
                     }
                 }
             });
         }
 
-        // Update chart with user's bet inputs
         function updateChartWithUserBets() {
             const inputs = document.querySelectorAll('.bet-input');
             const userBets = {};
@@ -501,7 +412,6 @@
             renderChart(chartData);
         }
 
-        // Fetch stats from server
         async function fetchWagerStats() {
             try {
                 const response = await fetch(`/wagers/{{ $wager->id }}/stats`);
@@ -513,7 +423,6 @@
             }
         }
 
-        // Update UI with server data
         function updateUIWithServerData(data) {
             if (!data) return;
 
@@ -530,7 +439,6 @@
             }
         }
 
-        // Handle bet form submission
         async function handleBetSubmit(e) {
             e.preventDefault();
 
@@ -540,16 +448,10 @@
             const submitSpinner = form.querySelector('#submit-spinner');
             const betsContainer = form.querySelector('#bets-container');
 
-            if (!submitBtn || !submitText || !submitSpinner || !betsContainer) {
-                console.error('Missing form elements');
-                return;
-            }
-
             submitBtn.disabled = true;
             submitText.textContent = 'Validating...';
             submitSpinner.classList.remove('hidden');
 
-            // Clear previous bets
             betsContainer.innerHTML = '';
 
             const bets = [];
@@ -575,7 +477,7 @@
                         amount: amount
                     });
                     totalBetAmount += amount;
-                    input.value = ''; // Clear input after capturing
+                    input.value = '';
                 }
             });
 
@@ -597,28 +499,13 @@
                         'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
-                    body: formData,
-                    credentials: 'same-origin'
+                    body: formData
                 });
 
                 const result = await response.json();
 
                 if (!response.ok) {
                     throw new Error(result.message || 'Failed to place bets');
-                }
-
-                if (result.distribution) {
-                    initialData = result.distribution.map(item => ({
-                        id: item.id,
-                        label: item.label,
-                        total_bet: parseFloat(item.amount) || 0
-                    }));
-                    renderChart(initialData);
-                }
-
-                if (result.wager?.user_balance !== undefined) {
-                    const balanceEl = document.querySelector('.balance-amount');
-                    if (balanceEl) balanceEl.textContent = parseInt(result.wager.user_balance).toLocaleString();
                 }
 
                 const successDiv = document.createElement('div');
@@ -628,13 +515,13 @@
                 document.body.appendChild(successDiv);
                 setTimeout(() => successDiv.remove(), 3000);
 
-                updateChartWithUserBets();
+                // Update chart
+                const statsData = await fetchWagerStats();
+                if (statsData) updateUIWithServerData(statsData);
 
             } catch (error) {
                 console.error('Error placing bets:', error);
-                let errorMessage = error.message || 'An error occurred while placing your bets';
-                if (error.errors && error.errors.amount) errorMessage = error.errors.amount[0];
-                alert(errorMessage);
+                alert(error.message || 'An error occurred while placing your bets');
             } finally {
                 submitBtn.disabled = false;
                 submitText.textContent = 'Place Bet';
@@ -642,7 +529,6 @@
             }
         }
 
-        // Start polling
         function startPolling() {
             if (pollInterval) return;
             pollInterval = setInterval(async () => {
@@ -651,7 +537,6 @@
             }, 10000);
         }
 
-        // Stop polling
         function stopPolling() {
             if (pollInterval) {
                 clearInterval(pollInterval);
@@ -659,91 +544,6 @@
             }
         }
 
-        // Modal functions
-        function openEndWagerModal() {
-            const modal = document.getElementById('endWagerModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-                const firstInput = modal.querySelector('input[type="radio"]');
-                if (firstInput) firstInput.focus();
-            }
-        }
-
-        function closeEndWagerModal() {
-            const modal = document.getElementById('endWagerModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-                const form = document.getElementById('endWagerForm');
-                if (form) form.reset();
-                // Reset Alpine.js state
-                Alpine.$data(modal).selectedChoiceId = null;
-                Alpine.$data(modal).confirming = false;
-            }
-        }
-
-        // Handle end wager form submission
-        async function handleEndWagerSubmit(event) {
-            event.preventDefault();
-            const form = event.target;
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-
-            submitBtn.disabled = true;
-            submitBtn.innerHTML =
-                `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Processing...`;
-
-            const formData = new FormData(form);
-            const headers = new Headers();
-            headers.append('X-Requested-With', 'XMLHttpRequest');
-            headers.append('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
-            headers.append('Accept', 'application/json');
-            headers.append('Content-Type', 'application/json');
-
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({
-                        winning_choice_id: formData.get('winning_choice_id')
-                    }),
-                    credentials: 'same-origin'
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else {
-                        window.location.reload();
-                    }
-                } else {
-                    throw new Error(data.message || 'Failed to end wager');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                let errorMessage = error.message || 'An error occurred';
-                if (error.errors) errorMessage = Object.values(error.errors).flat().join(' ');
-
-                const errorDiv = document.createElement('div');
-                errorDiv.className =
-                    'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-lg p-4';
-                errorDiv.innerHTML =
-                    `<div class="flex items-start gap-3"><svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg><div><h4 class="text-sm font-medium text-red-800 dark:text-red-200">There was an error ending the wager:</h4><p class="text-sm text-red-700 dark:text-red-300">${errorMessage}</p></div></div>`;
-                form.insertBefore(errorDiv, form.firstChild);
-                errorDiv.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            }
-        }
-
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             renderChart(initialData);
 
@@ -764,28 +564,6 @@
             });
 
             window.addEventListener('beforeunload', stopPolling);
-
-            const endWagerButton = document.getElementById('endWagerButton');
-            if (endWagerButton) {
-                endWagerButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    openEndWagerModal();
-                });
-            }
-
-            const modal = document.getElementById('endWagerModal');
-            window.addEventListener('click', function(e) {
-                if (e.target === modal) closeEndWagerModal();
-            });
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeEndWagerModal();
-            });
-
-            // Show modal if session indicates
-            @if (session('show_end_modal'))
-                openEndWagerModal();
-            @endif
         });
     </script>
 </x-app-layout>

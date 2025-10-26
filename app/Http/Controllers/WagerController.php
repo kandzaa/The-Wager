@@ -152,7 +152,7 @@ class WagerController extends Controller
                     'ending_time'   => $validated['ending_time'],
                     'updated_at'    => now(),
                 ];
-                
+
                 $affected = DB::table('wagers')
                     ->where('id', $wager->id)
                     ->update($updateData);
@@ -461,13 +461,9 @@ class WagerController extends Controller
             return back()->with('error', 'This wager has already ended.');
         }
 
-        // Load choices using raw query to ensure they exist
-        $choices = DB::table('wager_choices')
-            ->where('wager_id', $wager->id)
-            ->orderBy('id')
-            ->get();
+        $wager->load('choices');
 
-        if ($choices->isEmpty()) {
+        if ($wager->choices->isEmpty()) {
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -477,12 +473,9 @@ class WagerController extends Controller
             return back()->with('error', 'No choices available for this wager.');
         }
 
-        // Convert to collection for the view
-        $wager->choices = $choices;
-
         Log::info('SHOWING END FORM', [
             'wager_id'      => $wager->id,
-            'choices_count' => $choices->count(),
+            'choices_count' => $wager->choices->count(),
         ]);
 
         if (request()->ajax() || request()->wantsJson()) {
@@ -494,6 +487,7 @@ class WagerController extends Controller
 
     public function end(Request $request, Wager $wager)
     {
+        // Authorization check
         if ($wager->creator_id !== auth()->id()) {
             return response()->json([
                 'success' => false,
@@ -501,6 +495,7 @@ class WagerController extends Controller
             ], 403);
         }
 
+        // Status check
         if ($wager->status === 'ended') {
             return response()->json([
                 'success' => false,
@@ -508,12 +503,13 @@ class WagerController extends Controller
             ], 400);
         }
 
+        // Validate input
         $validated = $request->validate([
-            'winning_choice_id' => 'required|integer',
+            'winning_choice_id' => 'required|integer|exists:wager_choices,id',
         ]);
 
         try {
-            // Verify the choice exists and belongs to this wager BEFORE transaction
+            // Verify the choice belongs to this wager
             $winningChoice = DB::table('wager_choices')
                 ->where('id', $validated['winning_choice_id'])
                 ->where('wager_id', $wager->id)
@@ -526,19 +522,20 @@ class WagerController extends Controller
                 ], 400);
             }
 
-            // Get all bets BEFORE transaction
+            Log::info('STARTING WAGER END PROCESS', [
+                'wager_id'          => $wager->id,
+                'winning_choice_id' => $validated['winning_choice_id'],
+            ]);
+
+            // Get all bets for this wager
             $bets = DB::table('wager_bets')
                 ->where('wager_id', $wager->id)
                 ->get();
 
-            Log::info('ENDING WAGER', [
-                'wager_id'          => $wager->id,
-                'winning_choice_id' => $validated['winning_choice_id'],
-                'total_bets'        => $bets->count(),
-            ]);
+            Log::info('LOADED BETS', ['count' => $bets->count()]);
 
+            // If no bets, just mark as ended
             if ($bets->isEmpty()) {
-                // No bets, just mark as ended
                 DB::table('wagers')
                     ->where('id', $wager->id)
                     ->update([
@@ -547,6 +544,8 @@ class WagerController extends Controller
                         'updated_at'        => now(),
                     ]);
 
+                Log::info('WAGER ENDED (NO BETS)', ['wager_id' => $wager->id]);
+
                 return response()->json([
                     'success'  => true,
                     'message'  => 'Wager ended successfully (no bets to process).',
@@ -554,23 +553,19 @@ class WagerController extends Controller
                 ]);
             }
 
-            // Get all players BEFORE transaction
+            // Get all players
             $playerIds = $bets->pluck('wager_player_id')->unique();
             $players   = DB::table('wager_players')
                 ->whereIn('id', $playerIds)
                 ->get()
                 ->keyBy('id');
 
-            Log::info('LOADED DATA', [
-                'bets'    => $bets->count(),
-                'players' => $players->count(),
-            ]);
+            Log::info('LOADED PLAYERS', ['count' => $players->count()]);
 
+            // Start transaction
             DB::beginTransaction();
 
             try {
-                DB::statement('SET CONSTRAINTS ALL DEFERRED');
-
                 // Update wager status
                 $updated = DB::table('wagers')
                     ->where('id', $wager->id)
@@ -582,7 +577,7 @@ class WagerController extends Controller
 
                 Log::info('WAGER STATUS UPDATED', ['affected' => $updated]);
 
-                // 1.5x payout for winners
+                // Process payouts
                 $payoutMultiplier = 1.5;
                 $winnersCount     = 0;
                 $losersCount      = 0;
@@ -591,9 +586,9 @@ class WagerController extends Controller
                     $isWinner = $bet->wager_choice_id == $validated['winning_choice_id'];
 
                     if ($isWinner) {
-                        $payout = $bet->bet_amount * $payoutMultiplier;
+                        $payout = (int) round($bet->bet_amount * $payoutMultiplier);
 
-                        // Get player to find user
+                        // Get player and credit user
                         if (isset($players[$bet->wager_player_id])) {
                             $player = $players[$bet->wager_player_id];
 
@@ -605,6 +600,7 @@ class WagerController extends Controller
                             $winnersCount++;
 
                             Log::info('WINNER CREDITED', [
+                                'bet_id'  => $bet->id,
                                 'user_id' => $player->user_id,
                                 'payout'  => $payout,
                             ]);
@@ -616,6 +612,7 @@ class WagerController extends Controller
                             ->update([
                                 'is_win'     => true,
                                 'payout'     => $payout,
+                                'status'     => 'won',
                                 'updated_at' => now(),
                             ]);
                     } else {
@@ -625,6 +622,7 @@ class WagerController extends Controller
                             ->update([
                                 'is_win'     => false,
                                 'payout'     => 0,
+                                'status'     => 'lost',
                                 'updated_at' => now(),
                             ]);
 
@@ -632,6 +630,7 @@ class WagerController extends Controller
                     }
                 }
 
+                // Commit transaction
                 DB::commit();
 
                 Log::info('WAGER ENDED SUCCESSFULLY', [
@@ -655,52 +654,15 @@ class WagerController extends Controller
             Log::error('ERROR ENDING WAGER', [
                 'wager_id' => $wager->id,
                 'error'    => $e->getMessage(),
-                'line'     => $e->getLine(),
-                'file'     => basename($e->getFile()),
+                'trace'    => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to end wager. Please try again.',
+                'message' => 'Failed to end wager: ' . $e->getMessage(),
             ], 500);
         }
     }
-
-    public function sendInvitation(Request $request, Wager $wager)
-    {
-        $request->validate([
-            'friend_id' => 'required|exists:users,id',
-        ]);
-
-        if ($wager->creator_id !== Auth::id()) {
-            return back()->with('error', 'Only the wager creator can send invitations.');
-        }
-
-        if ($wager->isFull()) {
-            return back()->with('error', 'This wager is already full.');
-        }
-
-        $friend = User::findOrFail($request->friend_id);
-
-        if ($wager->hasPlayer($friend->id)) {
-            return back()->with('error', 'This user is already a participant in this wager.');
-        }
-
-        if ($wager->isUserInvited($friend->email)) {
-            return back()->with('error', 'An invitation has already been sent to this user.');
-        }
-
-        if (! Auth::user()->friends->contains('id', $friend->id)) {
-            return back()->with('error', 'You can only invite your friends to this wager.');
-        }
-
-        $invitation             = $wager->inviteUser($friend->email, Auth::id());
-        $invitation->invitee_id = $friend->id;
-        $invitation->save();
-
-        return back()->with('success', 'Invitation sent to ' . $friend->name . '!');
-    }
-
     public function acceptInvitation($token)
     {
         $invitation = WagerInvitation::where('token', $token)

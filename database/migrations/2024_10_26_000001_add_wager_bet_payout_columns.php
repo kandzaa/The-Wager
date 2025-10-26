@@ -8,9 +8,6 @@ return new class extends Migration
 {
     public $withinTransaction = false;
 
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('wager_bets', function (Blueprint $table) {
@@ -26,9 +23,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('wager_bets', function (Blueprint $table) {
