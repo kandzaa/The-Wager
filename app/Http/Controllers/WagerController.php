@@ -122,6 +122,12 @@ class WagerController extends Controller
         ]);
 
         try {
+            // Get existing choices BEFORE transaction
+            $existingIds = DB::table('wager_choices')
+                ->where('wager_id', $wager->id)
+                ->pluck('id')
+                ->toArray();
+
             DB::beginTransaction();
 
             // Update wager
@@ -134,12 +140,6 @@ class WagerController extends Controller
                 'ending_time'   => $validated['ending_time'],
                 'updated_at'    => now(),
             ]);
-
-            // Get existing choices
-            $existingIds = DB::table('wager_choices')
-                ->where('wager_id', $wager->id)
-                ->pluck('id')
-                ->toArray();
 
             $processedIds = [];
 
@@ -183,8 +183,10 @@ class WagerController extends Controller
                 ->with('success', 'Wager updated successfully!');
 
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Wager update failed', ['error' => $e->getMessage()]);
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            Log::error('Wager update failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return back()->withInput()->with('error', 'Failed to update wager.');
         }
     }
@@ -414,17 +416,24 @@ class WagerController extends Controller
             'winning_choice_id' => 'required|integer|exists:wager_choices,id',
         ]);
 
-        // Verify choice belongs to wager
-        $winningChoice = DB::table('wager_choices')
-            ->where('id', $validated['winning_choice_id'])
-            ->where('wager_id', $wager->id)
-            ->first();
-
-        if (!$winningChoice) {
-            return response()->json(['success' => false, 'message' => 'Invalid choice.'], 400);
-        }
-
         try {
+            // Verify choice belongs to wager BEFORE transaction
+            $winningChoice = DB::table('wager_choices')
+                ->where('id', $validated['winning_choice_id'])
+                ->where('wager_id', $wager->id)
+                ->first();
+
+            if (!$winningChoice) {
+                return response()->json(['success' => false, 'message' => 'Invalid choice.'], 400);
+            }
+
+            // Get bets with player info BEFORE transaction
+            $bets = DB::table('wager_bets as b')
+                ->join('wager_players as p', 'b.wager_player_id', '=', 'p.id')
+                ->where('b.wager_id', $wager->id)
+                ->select('b.id', 'b.bet_amount', 'b.wager_choice_id', 'p.user_id')
+                ->get();
+
             DB::beginTransaction();
 
             // Update wager status
@@ -433,13 +442,6 @@ class WagerController extends Controller
                 'winning_choice_id' => $validated['winning_choice_id'],
                 'updated_at' => now(),
             ]);
-
-            // Get bets with player info
-            $bets = DB::table('wager_bets as b')
-                ->join('wager_players as p', 'b.wager_player_id', '=', 'p.id')
-                ->where('b.wager_id', $wager->id)
-                ->select('b.id', 'b.bet_amount', 'b.wager_choice_id', 'p.user_id')
-                ->get();
 
             if ($bets->isEmpty()) {
                 DB::commit();
@@ -451,7 +453,6 @@ class WagerController extends Controller
             }
 
             $payoutMultiplier = 1.5;
-            $winners = 0;
 
             foreach ($bets as $bet) {
                 $isWinner = $bet->wager_choice_id == $validated['winning_choice_id'];
@@ -471,8 +472,6 @@ class WagerController extends Controller
                     DB::table('users')
                         ->where('id', $bet->user_id)
                         ->update(['balance' => DB::raw("balance + {$payout}")]);
-                    
-                    $winners++;
                 } else {
                     // Update bet as lost
                     DB::table('wager_bets')->where('id', $bet->id)->update([
@@ -500,6 +499,7 @@ class WagerController extends Controller
             Log::error('Wager end failed', [
                 'wager_id' => $wager->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('role')->default('user');
             $table->integer('balance')->default(0);
+            $table->timestamp('last_daily_claim_at')->nullable();
             $table->timestamp('last_seen')->nullable();
             $table->rememberToken();
             $table->timestamps();
