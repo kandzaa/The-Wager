@@ -437,6 +437,8 @@ class WagerController extends Controller
         }
     }
 
+    // Replace the showEndForm and end methods in your WagerController.php
+
     public function showEndForm(Wager $wager)
     {
         // Check authorization
@@ -461,6 +463,7 @@ class WagerController extends Controller
             return back()->with('error', 'This wager has already ended.');
         }
 
+        // Load choices - use Eloquent relationship instead of raw query
         $wager->load('choices');
 
         if ($wager->choices->isEmpty()) {
@@ -663,6 +666,7 @@ class WagerController extends Controller
             ], 500);
         }
     }
+
     public function acceptInvitation($token)
     {
         $invitation = WagerInvitation::where('token', $token)
