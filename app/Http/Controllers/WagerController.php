@@ -565,6 +565,19 @@ class WagerController extends Controller
 
             Log::info('LOADED PLAYERS', ['count' => $players->count()]);
 
+            // Check if wager is already ended BEFORE starting transaction
+            $currentWager = DB::table('wagers')
+                ->where('id', $wager->id)
+                ->first();
+
+            if ($currentWager->status === 'ended') {
+                Log::warning('WAGER ALREADY ENDED', ['wager_id' => $wager->id]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This wager has already been ended.',
+                ], 400);
+            }
+
             // Start transaction
             DB::beginTransaction();
 
@@ -614,17 +627,14 @@ class WagerController extends Controller
                 // Now process all updates in a single transaction
                 foreach ($payouts as $payout) {
                     if ($payout['is_winner']) {
-                        // Update user balance
-                        $updated = DB::table('users')
-                            ->where('id', $payout['user_id'])
-                            ->increment('balance', $payout['payout']);
+                        Log::info('PROCESSING WINNER', [
+                            'bet_id' => $payout['bet_id'],
+                            'user_id' => $payout['user_id'],
+                            'payout' => $payout['payout']
+                        ]);
 
-                        if ($updated === 0) {
-                            throw new \Exception("Failed to update balance for user: " . $payout['user_id']);
-                        }
-
-                        // Update bet record
-                        $updated = DB::table('wager_bets')
+                        // Update bet record first
+                        $betUpdated = DB::table('wager_bets')
                             ->where('id', $payout['bet_id'])
                             ->update([
                                 'is_win'     => true,
@@ -632,6 +642,19 @@ class WagerController extends Controller
                                 'status'     => 'won',
                                 'updated_at' => now(),
                             ]);
+
+                        Log::info('BET UPDATED', ['bet_id' => $payout['bet_id'], 'affected' => $betUpdated]);
+
+                        // Then update user balance
+                        $balanceUpdated = DB::table('users')
+                            ->where('id', $payout['user_id'])
+                            ->increment('balance', $payout['payout']);
+
+                        Log::info('BALANCE UPDATED', ['user_id' => $payout['user_id'], 'affected' => $balanceUpdated]);
+
+                        if ($balanceUpdated === 0) {
+                            throw new \Exception("User not found or balance update failed for user ID: " . $payout['user_id']);
+                        }
 
                         $winnersCount++;
                     } else {
@@ -663,8 +686,31 @@ class WagerController extends Controller
                     'message'  => 'Wager ended successfully!',
                     'redirect' => route('history.wager.show', $wager->id),
                 ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Database-specific error handling
+                if (DB::transactionLevel() > 0) {
+                    DB::rollBack();
+                }
+
+                Log::error('DATABASE ERROR ENDING WAGER', [
+                    'wager_id' => $wager->id,
+                    'error'    => $e->getMessage(),
+                    'sql'      => $e->getSql() ?? 'N/A',
+                    'bindings' => $e->getBindings() ?? [],
+                    'file'     => $e->getFile() . ':' . $e->getLine(),
+                ]);
+
+                $errorMessage = 'A database error occurred while processing the wager.';
+                if (config('app.debug')) {
+                    $errorMessage .= ' Error: ' . $e->getMessage();
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                ], 500);
             } catch (\Exception $e) {
-                // Ensure we're not in a transaction before trying to rollback
+                // General error handling
                 if (DB::transactionLevel() > 0) {
                     DB::rollBack();
                 }
@@ -676,10 +722,7 @@ class WagerController extends Controller
                     'trace'    => $e->getTraceAsString(),
                 ]);
 
-                // Return a user-friendly error message
                 $errorMessage = 'An error occurred while processing the wager. Please try again or contact support.';
-
-                // For development, include more details
                 if (config('app.debug')) {
                     $errorMessage .= ' Error: ' . $e->getMessage();
                 }
