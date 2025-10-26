@@ -152,8 +152,11 @@ class WagerController extends Controller
                     // Update existing
                     DB::table('wager_choices')
                         ->where('id', $choice['id'])
-                        ->update(['label' => $label, 'updated_at' => now()]);
-                    $processedIds[] = $choice['id'];
+                        ->update([
+                            'label' => $label,
+                            'updated_at' => now(),
+                        ]);
+                    $processedIds[] = (int)$choice['id'];
                 } else {
                     // Create new
                     $newId = DB::table('wager_choices')->insertGetId([
@@ -462,7 +465,7 @@ class WagerController extends Controller
                     
                     // Update bet
                     DB::table('wager_bets')->where('id', $bet->id)->update([
-                        'is_win' => true,
+                        'is_win' => 1,
                         'payout' => $payout,
                         'status' => 'won',
                         'updated_at' => now(),
@@ -471,11 +474,11 @@ class WagerController extends Controller
                     // Update user balance
                     DB::table('users')
                         ->where('id', $bet->user_id)
-                        ->update(['balance' => DB::raw("balance + {$payout}")]);
+                        ->increment('balance', $payout);
                 } else {
                     // Update bet as lost
                     DB::table('wager_bets')->where('id', $bet->id)->update([
-                        'is_win' => false,
+                        'is_win' => 0,
                         'payout' => 0,
                         'status' => 'lost',
                         'updated_at' => now(),
