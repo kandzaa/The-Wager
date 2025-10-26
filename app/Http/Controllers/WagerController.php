@@ -569,14 +569,19 @@ class WagerController extends Controller
             DB::beginTransaction();
 
             try {
-                // Update wager status
+                // Update wager status first
                 $updated = DB::table('wagers')
                     ->where('id', $wager->id)
+                    ->where('status', '!=', 'ended') // Prevent duplicate processing
                     ->update([
                         'status'            => 'ended',
                         'winning_choice_id' => $validated['winning_choice_id'],
                         'updated_at'        => now(),
                     ]);
+
+                if ($updated === 0) {
+                    throw new \Exception('Failed to update wager status. It may have been already ended.');
+                }
 
                 Log::info('WAGER STATUS UPDATED', ['affected' => $updated]);
 
@@ -585,43 +590,54 @@ class WagerController extends Controller
                 $winnersCount     = 0;
                 $losersCount      = 0;
 
+                // First, validate all data before making any updates
+                $payouts = [];
                 foreach ($bets as $bet) {
                     $isWinner = $bet->wager_choice_id == $validated['winning_choice_id'];
 
-                    if ($isWinner) {
-                        $payout = (int) round($bet->bet_amount * $payoutMultiplier);
+                    if ($isWinner && isset($players[$bet->wager_player_id])) {
+                        $payout    = (int) round($bet->bet_amount * $payoutMultiplier);
+                        $payouts[] = [
+                            'bet_id'    => $bet->id,
+                            'user_id'   => $players[$bet->wager_player_id]->user_id,
+                            'payout'    => $payout,
+                            'is_winner' => true,
+                        ];
+                    } else {
+                        $payouts[] = [
+                            'bet_id'    => $bet->id,
+                            'is_winner' => false,
+                        ];
+                    }
+                }
 
-                        // Get player and credit user
-                        if (isset($players[$bet->wager_player_id])) {
-                            $player = $players[$bet->wager_player_id];
+                // Now process all updates in a single transaction
+                foreach ($payouts as $payout) {
+                    if ($payout['is_winner']) {
+                        // Update user balance
+                        $updated = DB::table('users')
+                            ->where('id', $payout['user_id'])
+                            ->increment('balance', $payout['payout']);
 
-                            // Credit user's balance
-                            DB::table('users')
-                                ->where('id', $player->user_id)
-                                ->increment('balance', $payout);
-
-                            $winnersCount++;
-
-                            Log::info('WINNER CREDITED', [
-                                'bet_id'  => $bet->id,
-                                'user_id' => $player->user_id,
-                                'payout'  => $payout,
-                            ]);
+                        if ($updated === 0) {
+                            throw new \Exception("Failed to update balance for user: " . $payout['user_id']);
                         }
 
                         // Update bet record
-                        DB::table('wager_bets')
-                            ->where('id', $bet->id)
+                        $updated = DB::table('wager_bets')
+                            ->where('id', $payout['bet_id'])
                             ->update([
                                 'is_win'     => true,
-                                'payout'     => $payout,
+                                'payout'     => $payout['payout'],
                                 'status'     => 'won',
                                 'updated_at' => now(),
                             ]);
+
+                        $winnersCount++;
                     } else {
-                        // Mark as loser
-                        DB::table('wager_bets')
-                            ->where('id', $bet->id)
+                        // Update bet record for losers
+                        $updated = DB::table('wager_bets')
+                            ->where('id', $payout['bet_id'])
                             ->update([
                                 'is_win'     => false,
                                 'payout'     => 0,
@@ -633,7 +649,7 @@ class WagerController extends Controller
                     }
                 }
 
-                // Commit transaction
+                // Commit transaction if we got here without exceptions
                 DB::commit();
 
                 Log::info('WAGER ENDED SUCCESSFULLY', [
@@ -647,14 +663,34 @@ class WagerController extends Controller
                     'message'  => 'Wager ended successfully!',
                     'redirect' => route('history.wager.show', $wager->id),
                 ]);
-
             } catch (\Exception $e) {
-                DB::rollBack();
-                throw $e;
-            }
+                // Ensure we're not in a transaction before trying to rollback
+                if (DB::transactionLevel() > 0) {
+                    DB::rollBack();
+                }
 
+                Log::error('ERROR ENDING WAGER', [
+                    'wager_id' => $wager->id,
+                    'error'    => $e->getMessage(),
+                    'file'     => $e->getFile() . ':' . $e->getLine(),
+                    'trace'    => $e->getTraceAsString(),
+                ]);
+
+                // Return a user-friendly error message
+                $errorMessage = 'An error occurred while processing the wager. Please try again or contact support.';
+
+                // For development, include more details
+                if (config('app.debug')) {
+                    $errorMessage .= ' Error: ' . $e->getMessage();
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                ], 500);
+            }
         } catch (\Exception $e) {
-            Log::error('ERROR ENDING WAGER', [
+            Log::error('FATAL ERROR IN WAGER END', [
                 'wager_id' => $wager->id,
                 'error'    => $e->getMessage(),
                 'trace'    => $e->getTraceAsString(),
@@ -662,7 +698,7 @@ class WagerController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to end wager: ' . $e->getMessage(),
+                'message' => 'A critical error occurred while processing your request.',
             ], 500);
         }
     }
