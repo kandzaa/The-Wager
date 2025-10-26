@@ -4,40 +4,32 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateWagerBetsTable extends Migration
 {
     public $withinTransaction = false;
 
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::table('wager_bets', function (Blueprint $table) {
-            // Add is_win column (used to mark winners/losers)
-            if (! Schema::hasColumn('wager_bets', 'is_win')) {
-                $table->boolean('is_win')->nullable()->after('amount');
-            }
+        Schema::create('wager_bets', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('wager_id')->constrained('wagers')->onDelete('cascade');
+            $table->foreignId('wager_choice_id')->constrained('wager_choices')->onDelete('cascade');
+            $table->foreignId('wager_player_id')->constrained('wager_players')->onDelete('cascade');
 
-            // Add payout column (stores actual payout amount for winners)
-            if (! Schema::hasColumn('wager_bets', 'payout')) {
-                $table->integer('payout')->default(0)->after('is_win');
-            }
+            $table->integer('bet_amount');
+            $table->integer('amount');
+            $table->string('status')->default('pending');
+            $table->integer('actual_payout')->nullable();
+
+            $table->boolean('is_win')->nullable();
+            $table->integer('payout')->default(0);
+
+            $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::table('wager_bets', function (Blueprint $table) {
-            if (Schema::hasColumn('wager_bets', 'is_win')) {
-                $table->dropColumn('is_win');
-            }
-            if (Schema::hasColumn('wager_bets', 'payout')) {
-                $table->dropColumn('payout');
-            }
-        });
+        Schema::dropIfExists('wager_bets');
     }
-};
+}
