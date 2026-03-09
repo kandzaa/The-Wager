@@ -13,6 +13,8 @@ class WagerBet extends Model
         'amount',
         'status',
         'actual_payout',
+        'is_win',
+        'payout',
     ];
 
     protected $attributes = [
@@ -24,6 +26,8 @@ class WagerBet extends Model
         'amount'        => 'integer',
         'actual_payout' => 'integer',
         'status'        => 'string',
+        'is_win'        => 'boolean',
+        'payout'        => 'integer',
     ];
 
     public static function boot()
