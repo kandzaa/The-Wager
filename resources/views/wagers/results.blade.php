@@ -25,7 +25,7 @@
                         <p class="text-sm text-slate-500 mb-2">{{ $wager->description }}</p>
                     @endif
                     <p class="text-xs text-slate-400 dark:text-slate-600">
-                        {{ $wager->ended_at ? 'Ended ' . $wager->ended_at->format('F j, Y \a\t g:i A') : 'Ended recently' }}
+                        {{ $wager->updated_at->format('F j, Y \a\t g:i A') }}
                     </p>
                 </div>
                 <span class="shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20">Ended</span>
