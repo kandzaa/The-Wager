@@ -445,7 +445,7 @@ public function bet(Request $request, Wager $wager)
                 $payout = (int) round($bet->bet_amount * $payoutMultiplier);
 
                 DB::table('wager_bets')->where('id', $bet->id)->update([
-                    'is_win'     => true,
+                    'is_win'     => 1,
                     'payout'     => $payout,
                     'status'     => 'won',
                     'updated_at' => now(),
@@ -456,7 +456,7 @@ public function bet(Request $request, Wager $wager)
                     ->increment('balance', $payout);
             } else {
                 DB::table('wager_bets')->where('id', $bet->id)->update([
-                    'is_win'     => false,
+                    'is_win'     => 0,
                     'payout'     => 0,
                     'status'     => 'lost',
                     'updated_at' => now(),
