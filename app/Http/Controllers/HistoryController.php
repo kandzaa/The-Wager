@@ -49,12 +49,6 @@ class HistoryController extends Controller
         }
     }
 
-    /**
-     * Show the specified wager's history details and results.
-     *
-     * @param  Wager  $wager
-     * @return \Illuminate\View\View
-     */
     public function show(Wager $wager)
     {
         if ($wager->status !== 'ended') {
