@@ -124,26 +124,7 @@
             @endauth
         </div>
 
-        {{-- Stats strip --}}
-        <div class="mt-24 reveal" style="animation-delay:500ms">
-            <div class="glow-line mb-8 opacity-30"></div>
-            <div class="grid grid-cols-3 gap-8 max-w-lg mx-auto">
-                <div>
-                    <p class="text-3xl font-display font-black text-white">100%</p>
-                    <p class="text-xs text-slate-600 uppercase tracking-widest mt-1">On-chain fair</p>
-                </div>
-                <div>
-                    <p class="text-3xl font-display font-black text-white">∞</p>
-                    <p class="text-xs text-slate-600 uppercase tracking-widest mt-1">Possibilities</p>
-                </div>
-                <div>
-                    <p class="text-3xl font-display font-black text-white">0</p>
-                    <p class="text-xs text-slate-600 uppercase tracking-widest mt-1">Hidden fees</p>
-                </div>
-            </div>
-            <div class="glow-line mt-8 opacity-30"></div>
-        </div>
-
+       
     </main>
 
     {{-- Scrolling ticker --}}
