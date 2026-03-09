@@ -423,6 +423,7 @@ public function bet(Request $request, Wager $wager)
         DB::table('wagers')->where('id', $wager->id)->update([
             'status'            => 'ended',
             'winning_choice_id' => $validated['winning_choice_id'],
+            'ended_at'          => now(),
             'updated_at'        => now(),
         ]);
 

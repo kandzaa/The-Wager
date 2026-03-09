@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+   public function up()
 {
     Schema::table('wagers', function (Blueprint $table) {
         $table->timestamp('ended_at')->nullable()->after('winning_choice_id');

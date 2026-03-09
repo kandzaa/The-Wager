@@ -44,9 +44,6 @@ class Wager extends Model
         return $this->belongsTo(WagerChoice::class, 'winning_choice_id');
     }
 
-    /**
-     * Scope a query to only include wagers that the user has participated in.
-     */
     public function scopeUserParticipated($query, $userId)
     {
         return $query->whereHas('players', function ($q) use ($userId) {
@@ -54,35 +51,22 @@ class Wager extends Model
         })->orWhere('creator_id', $userId);
     }
 
-    /**
-     * Scope a query to only include ended wagers.
-     */
     public function scopeEnded($query)
     {
         return $query->where('status', 'ended')
-            ->whereNotNull('ended_at')
-            ->latest('ended_at');
+         ->latest('updated_at');
     }
 
-    /**
-     * Scope a query to only include public wagers.
-     */
     public function scopePublic($query)
     {
         return $query->where('privacy', 'public');
     }
 
-    /**
-     * Get the URL to the wager's results page.
-     */
     public function getResultsUrlAttribute()
     {
         return route('wagers.results', $this);
     }
 
-    /**
-     * Get the time since the wager ended in a human-readable format.
-     */
     public function getTimeSinceEndedAttribute()
     {
         return $this->ended_at ? $this->ended_at->diffForHumans() : null;
@@ -173,8 +157,8 @@ class Wager extends Model
 
     public function setStatusAttribute($value)
     {
-        $validStatuses              = ['public', 'private', 'active', 'ended']; // ← WRONG!
-        $this->attributes['status'] = in_array($value, $validStatuses) ? $value : 'public';
+        $validStatuses = ['pending', 'active', 'ended'];
+        $this->attributes['status'] = in_array($value, $validStatuses) ? $value : 'pending';
     }
 
     public function getPlayersCountAttribute()
