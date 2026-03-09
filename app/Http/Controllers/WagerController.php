@@ -2,8 +2,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Wager;
+use App\Models\WagerBet;
+use App\Models\WagerInvitation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -418,6 +419,12 @@ public function bet(Request $request, Wager $wager)
             ->select('b.id', 'b.bet_amount', 'b.wager_choice_id', 'p.user_id')
             ->get();
 
+        Log::info('Found bets for wager', [
+            'wager_id' => $wager->id,
+            'bet_count' => $bets->count(),
+            'bets' => $bets->toArray()
+        ]);
+
         DB::beginTransaction();
 
         DB::table('wagers')->where('id', $wager->id)->update([
@@ -450,8 +457,8 @@ public function bet(Request $request, Wager $wager)
                     'payout' => $payout
                 ]);
 
-                DB::table('wager_bets')->where('id', $bet->id)->update([
-                    'is_win'     => 1,
+                WagerBet::where('id', $bet->id)->update([
+                    'is_win'     => true,
                     'payout'     => $payout,
                     'status'     => 'won',
                     'updated_at' => now(),
@@ -462,9 +469,18 @@ public function bet(Request $request, Wager $wager)
                     'amount' => $payout
                 ]);
 
-                DB::table('users')
-                    ->where('id', $bet->user_id)
-                    ->increment('balance', $payout);
+                try {
+                    DB::table('users')
+                        ->where('id', $bet->user_id)
+                        ->increment('balance', $payout);
+                } catch (\Exception $e) {
+                    Log::error('Failed to increment balance', [
+                        'user_id' => $bet->user_id,
+                        'payout' => $payout,
+                        'error' => $e->getMessage()
+                    ]);
+                    throw $e;
+                }
 
                 Log::info('Balance incremented successfully');
             } else {
@@ -473,8 +489,8 @@ public function bet(Request $request, Wager $wager)
                     'user_id' => $bet->user_id
                 ]);
 
-                DB::table('wager_bets')->where('id', $bet->id)->update([
-                    'is_win'     => 0,
+                WagerBet::where('id', $bet->id)->update([
+                    'is_win'     => false,
                     'payout'     => 0,
                     'status'     => 'lost',
                     'updated_at' => now(),
