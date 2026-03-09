@@ -444,6 +444,12 @@ public function bet(Request $request, Wager $wager)
             if ($isWinner) {
                 $payout = (int) round($bet->bet_amount * $payoutMultiplier);
 
+                Log::info('Processing winning bet', [
+                    'bet_id' => $bet->id,
+                    'user_id' => $bet->user_id,
+                    'payout' => $payout
+                ]);
+
                 DB::table('wager_bets')->where('id', $bet->id)->update([
                     'is_win'     => 1,
                     'payout'     => $payout,
@@ -451,10 +457,22 @@ public function bet(Request $request, Wager $wager)
                     'updated_at' => now(),
                 ]);
 
+                Log::info('About to increment user balance', [
+                    'user_id' => $bet->user_id,
+                    'amount' => $payout
+                ]);
+
                 DB::table('users')
                     ->where('id', $bet->user_id)
                     ->increment('balance', $payout);
+
+                Log::info('Balance incremented successfully');
             } else {
+                Log::info('Processing losing bet', [
+                    'bet_id' => $bet->id,
+                    'user_id' => $bet->user_id
+                ]);
+
                 DB::table('wager_bets')->where('id', $bet->id)->update([
                     'is_win'     => 0,
                     'payout'     => 0,
