@@ -1,305 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>The Wager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Space Grotesk', sans-serif;
+        *, body { font-family: 'DM Sans', sans-serif; }
+        .font-display { font-family: 'Syne', sans-serif; }
+
+        .grain {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+            opacity: 0.5;
         }
 
-        .gradient-text {
-            background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .reveal { animation: reveal 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+        @keyframes reveal {
+            from { opacity:0; transform:translateY(32px); }
+            to   { opacity:1; transform:translateY(0); }
         }
 
-        .glow-effect {
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+        .ticker-wrap { overflow: hidden; }
+        .ticker {
+            display: flex;
+            gap: 3rem;
+            animation: ticker 20s linear infinite;
+            white-space: nowrap;
+        }
+        @keyframes ticker {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
         }
 
-        .floating {
-            animation: floating 6s ease-in-out infinite;
+        .btn-primary {
+            position: relative;
+            overflow: hidden;
+            background: #10b981;
+            transition: all 0.3s;
         }
-
-        @keyframes floating {
-
-            0%,
-            100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-20px) rotate(5deg);
-            }
-        }
-
-        .fade-in-up {
-            animation: fadeInUp 1s ease-out forwards;
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .particle {
+        .btn-primary::after {
+            content: '';
             position: absolute;
-            pointer-events: none;
-            opacity: 0.6;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
         }
+        .btn-primary:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 20px 40px rgba(16,185,129,0.3); }
 
-        .particle:nth-child(1) {
-            animation: particle-float-1 15s infinite linear;
-        }
-
-        .particle:nth-child(2) {
-            animation: particle-float-2 20s infinite linear;
-        }
-
-        .particle:nth-child(3) {
-            animation: particle-float-3 18s infinite linear;
-        }
-
-        .particle:nth-child(4) {
-            animation: particle-float-4 22s infinite linear;
-        }
-
-        .particle:nth-child(5) {
-            animation: particle-float-5 16s infinite linear;
-        }
-
-        @keyframes particle-float-1 {
-            0% {
-                transform: translateY(100vh) translateX(-100px) rotate(0deg);
-            }
-
-            100% {
-                transform: translateY(-100px) translateX(100px) rotate(360deg);
-            }
-        }
-
-        @keyframes particle-float-2 {
-            0% {
-                transform: translateY(100vh) translateX(100px) rotate(0deg);
-            }
-
-            100% {
-                transform: translateY(-100px) translateX(-100px) rotate(-360deg);
-            }
-        }
-
-        @keyframes particle-float-3 {
-            0% {
-                transform: translateY(100vh) translateX(50px) rotate(0deg);
-            }
-
-            100% {
-                transform: translateY(-100px) translateX(-50px) rotate(360deg);
-            }
-        }
-
-        @keyframes particle-float-4 {
-            0% {
-                transform: translateY(100vh) translateX(-50px) rotate(0deg);
-            }
-
-            100% {
-                transform: translateY(-100px) translateX(150px) rotate(-360deg);
-            }
-        }
-
-        @keyframes particle-float-5 {
-            0% {
-                transform: translateY(100vh) translateX(0px) rotate(0deg);
-            }
-
-            100% {
-                transform: translateY(-100px) translateX(0px) rotate(360deg);
-            }
-        }
-
-        .hover-lift {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .hover-lift:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .stats-card {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .pulse-glow {
-            animation: pulse-glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulse-glow {
-            from {
-                box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-            }
-
-            to {
-                box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
-            }
+        .glow-line {
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            height: 1px;
         }
     </style>
 </head>
-<div
-    class="select-none min-h-screen bg-gradient-to-br from-gray-900 via-black to-emerald-950 text-white overflow-hidden relative">
+<body class="bg-[#080b0f] text-white min-h-screen overflow-x-hidden">
 
-    <div class="absolute inset-0 opacity-10">
-        <div class="absolute inset-0"
-            style="background-image: radial-gradient(circle at 2px 2px, rgba(16, 185, 129, 0.5) 1px, transparent 1px); background-size: 40px 40px;">
+    {{-- Noise overlay --}}
+    <div class="fixed inset-0 grain pointer-events-none z-10"></div>
+
+    {{-- Glowing orbs --}}
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-emerald-700/15 rounded-full blur-[150px]"></div>
+        <div class="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-emerald-900/20 rounded-full blur-[100px]"></div>
+        <div class="absolute top-1/3 right-0 w-[300px] h-[300px] bg-emerald-800/10 rounded-full blur-[80px]"></div>
+    </div>
+
+    {{-- Grid pattern --}}
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-[0.03]"
+         style="background-image: linear-gradient(rgba(16,185,129,1) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,1) 1px, transparent 1px); background-size: 60px 60px;">
+    </div>
+
+    {{-- Nav --}}
+    <nav class="relative z-20 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto reveal" style="animation-delay:0ms">
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 bg-emerald-500 rounded-lg rotate-12"></div>
+            <span class="font-display font-800 text-lg tracking-tight">TheWager</span>
+        </div>
+        <div class="flex items-center gap-3">
+            @auth
+                <a href="{{ route('dashboard') }}" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition">Dashboard</a>
+            @else
+                <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition">Sign in</a>
+                <a href="{{ route('register') }}" class="btn-primary px-5 py-2 text-sm font-semibold text-white rounded-xl">Get started</a>
+            @endauth
+        </div>
+    </nav>
+
+    {{-- Hero --}}
+    <main class="relative z-20 max-w-7xl mx-auto px-8 pt-24 pb-32 text-center">
+
+        <div class="reveal" style="animation-delay:100ms">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-900/40 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-widest mb-8">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Bets are live
+            </span>
+        </div>
+
+        <h1 class="font-display font-black text-[clamp(3rem,10vw,8rem)] leading-none tracking-tight mb-6 reveal" style="animation-delay:200ms">
+            Make It<br>
+            <span class="relative inline-block">
+                <span class="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent" id="hero-word">INTERESTING</span>
+                <span class="absolute -bottom-2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500 to-transparent"></span>
+            </span>
+        </h1>
+
+        <p class="text-slate-400 text-lg max-w-xl mx-auto mb-12 leading-relaxed reveal" style="animation-delay:300ms">
+            Challenge your friends. Put something on the line.<br>Make every prediction count.
+        </p>
+
+        <div class="flex items-center justify-center gap-4 reveal" style="animation-delay:400ms">
+            @auth
+                <a href="{{ route('dashboard') }}" class="btn-primary px-8 py-4 text-base font-bold text-white rounded-2xl">
+                    Go to Dashboard →
+                </a>
+            @else
+                <a href="{{ route('register') }}" class="btn-primary px-8 py-4 text-base font-bold text-white rounded-2xl">
+                    Start wagering →
+                </a>
+                <a href="{{ route('login') }}" class="px-8 py-4 text-base font-semibold text-slate-300 hover:text-white bg-white/[0.05] hover:bg-white/[0.08] border border-white/10 rounded-2xl transition-all duration-300">
+                    Sign in
+                </a>
+            @endauth
+        </div>
+
+        {{-- Stats strip --}}
+        <div class="mt-24 reveal" style="animation-delay:500ms">
+            <div class="glow-line mb-8 opacity-30"></div>
+            <div class="grid grid-cols-3 gap-8 max-w-lg mx-auto">
+                <div>
+                    <p class="text-3xl font-display font-black text-white">100%</p>
+                    <p class="text-xs text-slate-600 uppercase tracking-widest mt-1">On-chain fair</p>
+                </div>
+                <div>
+                    <p class="text-3xl font-display font-black text-white">∞</p>
+                    <p class="text-xs text-slate-600 uppercase tracking-widest mt-1">Possibilities</p>
+                </div>
+                <div>
+                    <p class="text-3xl font-display font-black text-white">0</p>
+                    <p class="text-xs text-slate-600 uppercase tracking-widest mt-1">Hidden fees</p>
+                </div>
+            </div>
+            <div class="glow-line mt-8 opacity-30"></div>
+        </div>
+
+    </main>
+
+    {{-- Scrolling ticker --}}
+    <div class="relative z-20 border-y border-white/[0.05] py-4 reveal" style="animation-delay:600ms">
+        <div class="ticker-wrap">
+            <div class="ticker">
+                @foreach(range(1,16) as $i)
+                    <span class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">
+                        {{ $i % 4 === 0 ? '✦ THE WAGER' : ($i % 4 === 1 ? '✦ PLACE YOUR BET' : ($i % 4 === 2 ? '✦ WIN BIG' : '✦ CHALLENGE FRIENDS')) }}
+                    </span>
+                @endforeach
+            </div>
         </div>
     </div>
 
-    <div class="absolute top-20 left-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl animate-pulse"></div>
-    <div class="absolute bottom-20 right-10 w-40 h-40 bg-emerald-600/20 rounded-full blur-3xl animate-pulse"
-        style="animation-delay: 2s"></div>
-
-    <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-12">
-
-        <div class="mb-12 animate-fade-in">
-            <div
-                class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl rotate-12 transform hover:rotate-0 transition-transform duration-300">
-            </div>
-        </div>
-
-        <div class="text-center max-w-5xl mx-auto mb-12">
-            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black mb-6 animate-slide-up">
-                Make It
-            </h1>
-
-            <div class="text-5xl md:text-7xl lg:text-8xl font-black mb-8" id="animated-text">
-                <span
-                    class="inline-block bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 bg-clip-text text-transparent animate-gradient">
-                    INTERESTING
-                </span>
-            </div>
-            <p class="text-lg text-gray-400 max-w-2xl mx-auto mb-12 animate-fade-in" style="animation-delay: 0.7s">
-                Welcome to The Wager, where you can challange and bet against your friends.
-            </p>
-        </div>
-
-        @auth
-            <a href="{{ route('dashboard') }}" class="flex flex-col sm:flex-row gap-4 mb-16 animate-fade-in"
-                style="animation-delay: 1s">
-                <button
-                    class="group relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-semibold text-lg overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-emerald-500/25">
-                    <span class="relative z-10">Dashboard</span>
-                    <div
-                        class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    </div>
-                </button>
-            </a>
-        @else
-            <div class="flex flex-col sm:flex-row gap-4 mb-16 animate-fade-in" style="animation-delay: 1s">
-                <a href="{{ route('register') }}"
-                    class="group relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-semibold text-lg overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-emerald-500/25">
-                    <span class="relative z-10">Get Started</span>
-                    <div
-                        class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    </div>
-                </a>
-
-                <a href="{{ route('login') }}"
-                    class="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold text-lg border border-white/20 hover:bg-white/20 transform hover:scale-105 transition-all duration-300">
-                    Sign In
-                </a>
-            </div>
-        @endauth
-
-    </div>
-</div>
-
-<style>
-    @keyframes fade-in {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes slide-up {
-        from {
-            opacity: 0;
-            transform: translateY(40px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes gradient {
-
-        0%,
-        100% {
-            background-position: 0% 50%;
-        }
-
-        50% {
-            background-position: 100% 50%;
-        }
-    }
-
-    .animate-fade-in {
-        animation: fade-in 1s ease-out forwards;
-    }
-
-    .animate-slide-up {
-        animation: slide-up 1s ease-out forwards;
-    }
-
-    .animate-gradient {
-        background-size: 200% 200%;
-        animation: gradient 3s ease infinite;
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const text = 'INTERESTING';
-        const element = document.querySelector('#animated-text span');
-        let currentText = '';
-        let index = 0;
-
-        element.textContent = '';
-
-        function typeWriter() {
-            if (index < text.length) {
-                currentText += text[index];
-                element.textContent = currentText;
-                index++;
-                setTimeout(typeWriter, 150);
-            }
-        }
-
-        setTimeout(typeWriter, 500);
-    });
-</script>
-
+</body>
 </html>

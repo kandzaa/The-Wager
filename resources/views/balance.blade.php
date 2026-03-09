@@ -1,164 +1,174 @@
 <x-app-layout>
-    <x-slot name="header">
+<div class="select-none min-h-screen bg-[#080b0f] text-white relative overflow-hidden">
 
-    </x-slot>
-
-    <div
-        class="select-none min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div
-                    class="bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-sm overflow-hidden shadow-xl sm:rounded-xl border border-slate-300/60 dark:border-slate-800">
-                    <div class="p-8">
-                        <div
-                            class="bg-slate-100/80 dark:bg-slate-800/40 backdrop-blur-sm rounded-xl p-6 mb-8 border border-slate-300/60 dark:border-slate-700">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-2">Current
-                                        Balance</h3>
-                                    <div class="flex items-center space-x-3">
-                                        <span class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                                            {{ Auth::user()->balance }}
-                                        </span>
-                                        <span class="text-slate-600 dark:text-slate-300 text-lg">Coins</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <!-- daily balance, katras 24h -->
-                        <div
-                            class="bg-slate-100/80 dark:bg-slate-800/40 backdrop-blur-sm rounded-xl p-6 mb-8 border border-slate-300/60 dark:border-slate-700">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-2">Daily
-                                        Coins</h3>
-                                    <div class="flex items-center space-x-3" id="daily-claim"
-                                        data-next-eligible-at="{{ optional($nextEligibleAt)->toIso8601String() }}"
-                                        data-can-claim="{{ $canClaim ? '1' : '0' }}">
-                                        @if (!$canClaim)
-                                            <span id="cooldownText"
-                                                class="text-slate-600 dark:text-slate-300 text-lg">Available in
-                                                --:--:--</span>
-                                        @endif
-                                        <form id="claimForm" method="POST" action="{{ url('/dailyBalance') }}"
-                                            class="hidden">
-                                            @csrf
-                                        </form>
-                                        <button id="claimBtn" type="button"
-                                            class="bg-emerald-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-                                            {{ $canClaim ? '' : 'disabled' }}>
-                                            {{ $canClaim ? 'Claim' : 'Claimed' }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-emerald-900/20 rounded-full blur-[130px]"></div>
+        <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-emerald-950/20 rounded-full blur-[100px]"></div>
+        <div class="absolute inset-0" style="background-image:url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E\");opacity:.5"></div>
     </div>
 
-    <script>
-        (function() {
-            const daily = document.getElementById('daily-claim');
-            if (!daily) return;
+    <div class="relative z-10 max-w-xl mx-auto px-6 py-16">
 
-            const balanceEl = document.querySelector('span.text-3xl.font-bold');
-            const btn = document.getElementById('claimBtn');
-            const form = document.getElementById('claimForm');
-            const cooldownText = document.getElementById('cooldownText');
-            const nextEligibleAtStr = daily.getAttribute('data-next-eligible-at');
-            const canClaim = daily.getAttribute('data-can-claim') === '1';
+        {{-- Header --}}
+        <div class="mb-10 fade-up">
+            <p class="text-xs uppercase tracking-[0.25em] text-emerald-500 font-bold mb-2">Wallet</p>
+            <h1 class="text-4xl font-black tracking-tight">Your Balance</h1>
+        </div>
 
-            let countdownTimer = null;
+        {{-- Balance Card --}}
+        <div class="fade-up mb-4 rounded-2xl bg-gradient-to-br from-emerald-900/40 to-emerald-950/20 border border-emerald-500/20 p-8 relative overflow-hidden" style="animation-delay:80ms">
+            <div class="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl"></div>
+            <div class="relative">
+                <p class="text-xs uppercase tracking-[0.2em] text-emerald-500/70 font-semibold mb-3">Available</p>
+                <div class="flex items-end gap-3 mb-2">
+                    <span class="text-6xl font-black text-white leading-none">{{ Auth::user()->balance }}</span>
+                    <span class="text-emerald-400 font-semibold text-lg mb-1">coins</span>
+                </div>
+                <p class="text-slate-600 text-sm">{{ Auth::user()->email }}</p>
+            </div>
+        </div>
 
-            function startCountdown(untilISO) {
-                if (!untilISO) return;
-                const until = new Date(untilISO);
+        {{-- Daily Claim --}}
+        <div class="fade-up rounded-2xl bg-white/[0.03] border border-white/[0.07] overflow-hidden" style="animation-delay:160ms">
+            <div class="px-6 py-5 border-b border-white/[0.05] flex items-center justify-between">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.15em] text-slate-500 font-semibold">Daily Bonus</p>
+                    <p class="text-sm font-bold text-white mt-0.5">Free coins every 24 hours</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-900/40 border border-emerald-500/20 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="px-6 py-5"
+                 id="daily-claim"
+                 data-next-eligible-at="{{ optional($nextEligibleAt)->toIso8601String() }}"
+                 data-can-claim="{{ $canClaim ? '1' : '0' }}">
+                <div class="flex items-center justify-between">
+                    <div>
+                        @if(!$canClaim)
+                            <p class="text-xs text-slate-600 mb-0.5">Next claim in</p>
+                            <p id="cooldownText" class="text-lg font-black text-slate-300 tabular-nums">--:--:--</p>
+                        @else
+                            <p class="text-xs text-emerald-500 mb-0.5">Ready to claim</p>
+                            <p class="text-lg font-black text-emerald-300">Available now!</p>
+                        @endif
+                    </div>
+                    <form id="claimForm" method="POST" action="{{ url('/dailyBalance') }}" class="hidden">@csrf</form>
+                    <button id="claimBtn" type="button"
+                        class="relative px-6 py-3 rounded-xl font-bold text-sm transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed
+                               {{ $canClaim ? 'bg-emerald-600 hover:bg-emerald-500 text-white hover:shadow-lg hover:shadow-emerald-900/50' : 'bg-white/[0.05] border border-white/[0.08] text-slate-500' }}"
+                        {{ $canClaim ? '' : 'disabled' }}>
+                        {{ $canClaim ? '+ Claim coins' : 'Claimed' }}
+                    </button>
+                </div>
 
-                function tick() {
-                    const now = new Date();
-                    const diffMs = until - now;
-                    if (diffMs <= 0) {
-                        if (countdownTimer) clearInterval(countdownTimer);
-                        if (cooldownText) cooldownText.textContent = 'Available now';
-                        btn.disabled = false;
-                        btn.textContent = 'Claim';
-                        return;
-                    }
-                    const totalSeconds = Math.floor(diffMs / 1000);
-                    const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-                    const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-                    const s = String(totalSeconds % 60).padStart(2, '0');
-                    if (cooldownText) cooldownText.textContent = `Available in ${h}:${m}:${s}`;
-                }
-                tick();
-                countdownTimer = setInterval(tick, 1000);
+                {{-- Progress bar for cooldown --}}
+                @if(!$canClaim)
+                <div class="mt-4">
+                    <div class="w-full h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000" style="width:0%"></div>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Flash --}}
+        @if(session('success'))
+        <div class="fade-up mt-4 px-4 py-3 rounded-xl bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 text-sm flex items-center gap-2" style="animation-delay:240ms">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            {{ session('success') }}
+        </div>
+        @endif
+
+    </div>
+</div>
+
+<style>
+.fade-up { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+</style>
+
+<script>
+(function() {
+    const daily = document.getElementById('daily-claim');
+    if (!daily) return;
+
+    const balanceEl = document.querySelector('span.text-6xl');
+    const btn = document.getElementById('claimBtn');
+    const form = document.getElementById('claimForm');
+    const canClaim = daily.getAttribute('data-can-claim') === '1';
+    const nextEligibleAtStr = daily.getAttribute('data-next-eligible-at');
+    let timer = null;
+
+    function startCountdown(untilISO) {
+        if (!untilISO) return;
+        const until = new Date(untilISO);
+        const totalDuration = 24 * 60 * 60 * 1000;
+
+        function tick() {
+            const now = new Date();
+            const diff = until - now;
+            if (diff <= 0) {
+                clearInterval(timer);
+                const ct = document.getElementById('cooldownText');
+                if (ct) ct.textContent = '00:00:00';
+                btn.disabled = false;
+                btn.className = btn.className.replace('bg-white/[0.05] border border-white/[0.08] text-slate-500', 'bg-emerald-600 hover:bg-emerald-500 text-white');
+                btn.textContent = '+ Claim coins';
+                return;
             }
+            const s = Math.floor(diff / 1000);
+            const h = String(Math.floor(s / 3600)).padStart(2,'0');
+            const m = String(Math.floor((s % 3600) / 60)).padStart(2,'0');
+            const sec = String(s % 60).padStart(2,'0');
+            const ct = document.getElementById('cooldownText');
+            if (ct) ct.textContent = `${h}:${m}:${sec}`;
 
-            // Initialize state from server values
-            if (!canClaim) {
-                btn.disabled = true;
+            const pb = document.getElementById('progressBar');
+            if (pb) {
+                const elapsed = totalDuration - diff;
+                pb.style.width = Math.min(100, (elapsed / totalDuration) * 100) + '%';
+            }
+        }
+        tick();
+        timer = setInterval(tick, 1000);
+    }
+
+    if (!canClaim) startCountdown(nextEligibleAtStr);
+
+    async function claim() {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.textContent = 'Claiming...';
+        const csrf = form.querySelector('input[name="_token"]')?.value
+                  || document.querySelector('meta[name="csrf-token"]')?.content;
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                if (balanceEl && typeof data.balance === 'number') balanceEl.textContent = data.balance;
                 btn.textContent = 'Claimed';
-                startCountdown(nextEligibleAtStr);
+                startCountdown(new Date(data.last_daily_claim_at).toISOString());
+            } else if (res.status === 429) {
+                btn.textContent = 'Claimed';
+                if (data.next_eligible_at) startCountdown(data.next_eligible_at);
+            } else {
+                btn.disabled = false;
+                btn.textContent = '+ Claim coins';
             }
+        } catch(e) {
+            btn.disabled = false;
+            btn.textContent = 'Try again';
+        }
+    }
 
-            async function claim() {
-                if (btn.disabled) return;
-                btn.disabled = true;
-                const tokenInput = form.querySelector('input[name="_token"]');
-                const csrf = tokenInput ? tokenInput.value : document.querySelector('meta[name="csrf-token"]')
-                    ?.getAttribute('content');
-                try {
-                    const res = await fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrf,
-                            'Accept': 'application/json'
-                        },
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        // Update balance and start cooldown from server time
-                        if (balanceEl && typeof data.balance === 'number') {
-                            balanceEl.textContent = data.balance;
-                        }
-                        const nextAt = data.last_daily_claim_at;
-                        if (cooldownText) {
-                            cooldownText.textContent = 'Available in 24:00:00';
-                        } else {
-                            const span = document.createElement('span');
-                            span.id = 'cooldownText';
-                            span.className = 'text-slate-600 dark:text-slate-300 text-lg';
-                            span.textContent = 'Available in 24:00:00';
-                            daily.insertBefore(span, btn);
-                        }
-                        btn.textContent = 'Claimed';
-                        startCountdown(new Date(nextAt).toISOString().replace('Z', ''));
-                    } else if (res.status === 429) {
-                        btn.textContent = 'Claimed';
-                        const nextAt = data.next_eligible_at;
-                        if (cooldownText && nextAt) {
-                            startCountdown(nextAt);
-                        }
-                    } else {
-                        // Unexpected error
-                        btn.disabled = false;
-                        btn.textContent = 'Try again';
-                    }
-                } catch (e) {
-                    btn.disabled = false;
-                    btn.textContent = 'Try again';
-                }
-            }
-
-            btn?.addEventListener('click', claim);
-        })();
-    </script>
+    btn?.addEventListener('click', claim);
+})();
+</script>
 </x-app-layout>
