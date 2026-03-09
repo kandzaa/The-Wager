@@ -21,6 +21,7 @@ return new class extends Migration
             $table->timestamp('ending_time');
             $table->unsignedBigInteger('creator_id');
             $table->unsignedBigInteger('winning_choice_id')->nullable();
+            $table->timestamp('ended_at')->nullable();
             $table->timestamps();
 
             // Add foreign key constraint inline
