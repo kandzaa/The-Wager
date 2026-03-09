@@ -1,314 +1,203 @@
 <x-app-layout>
-    <div
-        class="min-h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 transition-colors">
-        <div class="container mx-auto px-4 py-12 max-w-5xl">
-            <div class="max-w-3xl mx-auto">
-                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
-                    <div class="p-6">
-                        <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Edit Wager</h2>
+<div class="select-none min-h-screen bg-slate-50 dark:bg-[#080b0f] text-slate-900 dark:text-white relative overflow-hidden">
 
-                        @if (session('success'))
-                            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-                                {{ session('success') }}
-                            </div>
-                        @endif
-
-                        @if (session('error'))
-                            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                                {{ session('error') }}
-                            </div>
-                        @endif
-
-                        @if ($errors->any())
-                            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                                <ul class="list-disc list-inside">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        <form id="editWagerForm" action="{{ route('wagers.update', $wager) }}" method="POST"
-                            class="space-y-6">
-                            @csrf
-                            @method('PUT')
-
-                            <!-- Wager Name -->
-                            <div>
-                                <label for="name"
-                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Wager Name *
-                                </label>
-                                <input type="text" id="name" name="name"
-                                    value="{{ old('name', $wager->name) }}"
-                                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                                    required maxlength="255">
-                            </div>
-
-                            <!-- Description -->
-                            <div>
-                                <label for="description"
-                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Description
-                                </label>
-                                <textarea id="description" name="description" rows="3"
-                                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white">{{ old('description', $wager->description) }}</textarea>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Max Players -->
-                                <div>
-                                    <label for="max_players"
-                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Max Players *
-                                    </label>
-                                    <input type="number" id="max_players" name="max_players" min="2"
-                                        max="100" value="{{ old('max_players', $wager->max_players) }}"
-                                        class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                                        required>
-                                </div>
-
-                                <!-- Privacy -->
-                                <div>
-                                    <label for="privacy"
-                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Privacy *
-                                    </label>
-                                    <select id="privacy" name="privacy"
-                                        class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                                        required>
-                                        <option value="public"
-                                            {{ old('privacy', $wager->privacy) === 'public' ? 'selected' : '' }}>
-                                            Public
-                                        </option>
-                                        <option value="private"
-                                            {{ old('privacy', $wager->privacy) === 'private' ? 'selected' : '' }}>
-                                            Private
-                                        </option>
-                                    </select>
-                                </div>
-
-                                <!-- Starting Time -->
-                                <div>
-                                    <label for="starting_time"
-                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Start Time *
-                                    </label>
-                                    <input type="datetime-local" id="starting_time" name="starting_time"
-                                        value="{{ old('starting_time', \Carbon\Carbon::parse($wager->starting_time)->format('Y-m-d\TH:i')) }}"
-                                        class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                                        required>
-                                </div>
-
-                                <!-- End Time -->
-                                <div>
-                                    <label for="ending_time"
-                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        End Time *
-                                    </label>
-                                    <input type="datetime-local" id="ending_time" name="ending_time"
-                                        value="{{ old('ending_time', \Carbon\Carbon::parse($wager->ending_time)->format('Y-m-d\TH:i')) }}"
-                                        class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                                        required>
-                                </div>
-                            </div>
-
-                            <!-- Choices -->
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Choices * (minimum 2, maximum 10)
-                                    </label>
-                                    <button type="button" onclick="addChoice()" id="addChoiceBtn"
-                                        class="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-opacity">
-                                        + Add Choice
-                                    </button>
-                                </div>
-
-                                <div id="choicesContainer" class="space-y-2">
-                                    @php
-                                        $oldChoices = old('choices', []);
-                                        if (!empty($oldChoices)) {
-                                            $choices = $oldChoices;
-                                        } else {
-                                            $choices = $wager->choices ?? [];
-                                        }
-                                    @endphp
-
-                                    @if (empty($choices) || count($choices) == 0)
-                                        <!-- Default 2 empty choices if none exist -->
-                                        @for ($i = 0; $i < 2; $i++)
-                                            <div class="flex items-center space-x-2 choice-item">
-                                                <input type="hidden" name="choices[{{ $i }}][id]"
-                                                    value="">
-                                                <input type="hidden" name="choices[{{ $i }}][total_bet]"
-                                                    value="0">
-                                                <input type="text" name="choices[{{ $i }}][label]"
-                                                    value="" placeholder="Enter choice text"
-                                                    class="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                                                    required>
-                                                <button type="button" onclick="removeChoice(this)"
-                                                    class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd"
-                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        @endfor
-                                    @else
-                                        @foreach ($choices as $index => $choice)
-                                            @php
-                                                $choiceId = is_array($choice)
-                                                    ? $choice['id'] ?? ''
-                                                    : (is_object($choice)
-                                                        ? $choice->id
-                                                        : '');
-                                                $choiceLabel = is_array($choice)
-                                                    ? $choice['label'] ?? ''
-                                                    : (is_object($choice)
-                                                        ? $choice->label
-                                                        : '');
-                                                $totalBet = is_array($choice)
-                                                    ? $choice['total_bet'] ?? 0
-                                                    : (is_object($choice)
-                                                        ? $choice->total_bet
-                                                        : 0);
-                                            @endphp
-                                            <div class="flex items-center space-x-2 choice-item">
-                                                <input type="hidden" name="choices[{{ $index }}][id]"
-                                                    value="{{ $choiceId }}">
-                                                <input type="hidden" name="choices[{{ $index }}][total_bet]"
-                                                    value="{{ $totalBet }}">
-                                                <input type="text" name="choices[{{ $index }}][label]"
-                                                    value="{{ $choiceLabel }}" placeholder="Enter choice text"
-                                                    class="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                                                    required>
-                                                <button type="button" onclick="removeChoice(this)"
-                                                    class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                                                        viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd"
-                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        @endforeach
-                                    @endif
-                                </div>
-                            </div>
-
-                            <!-- Form Actions -->
-                            <div class="flex justify-end space-x-3 pt-4">
-                                <a href="{{ route('wagers.show', $wager) }}"
-                                    class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-                                    Cancel
-                                </a>
-                                <button type="submit"
-                                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
-                                    Save Changes
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="absolute inset-0 pointer-events-none hidden dark:block">
+        <div class="absolute top-0 left-1/3 w-[600px] h-[500px] bg-emerald-900/15 rounded-full blur-[130px]"></div>
     </div>
 
-    @push('scripts')
-        <script>
-            function getChoiceCount() {
-                return document.querySelectorAll('.choice-item').length;
-            }
+    <div class="relative z-10 max-w-2xl mx-auto px-6 py-14">
 
-            function addChoice() {
-                const container = document.getElementById('choicesContainer');
-                const count = getChoiceCount();
+        <div class="mb-8 fade-up">
+            <a href="{{ route('wagers.show', $wager) }}" class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Back to Wager
+            </a>
+        </div>
 
-                if (count >= 10) {
-                    alert('Maximum 10 choices allowed');
-                    return;
-                }
+        <div class="fade-up mb-8" style="animation-delay:40ms">
+            <p class="text-xs uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-500 font-bold mb-2">Edit</p>
+            <h1 class="text-3xl font-black tracking-tight">{{ $wager->name }}</h1>
+        </div>
 
-                const newChoice = document.createElement('div');
-                newChoice.className = 'flex items-center space-x-2 choice-item';
-                newChoice.innerHTML = `
-                <input type="hidden" name="choices[${count}][id]" value="">
-                <input type="hidden" name="choices[${count}][total_bet]" value="0">
-                <input type="text" name="choices[${count}][label]" 
-                    value=""
-                    placeholder="Enter choice text"
-                    class="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-700 dark:text-white"
-                    required>
-                <button type="button" onclick="removeChoice(this)"
-                    class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-            `;
+        {{-- Alerts --}}
+        @if(session('success'))
+            <div class="fade-up mb-4 px-4 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-sm flex items-center gap-2">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error') || $errors->any())
+            <div class="fade-up mb-4 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300 text-sm">
+                @if(session('error')) {{ session('error') }} @endif
+                @if($errors->any())
+                    <ul class="list-disc list-inside space-y-1">
+                        @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+                    </ul>
+                @endif
+            </div>
+        @endif
 
-                container.appendChild(newChoice);
-                newChoice.querySelector('input[type="text"]').focus();
-                updateButtons();
-            }
+        <div class="fade-up rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] overflow-hidden shadow-sm dark:shadow-none" style="animation-delay:80ms">
+            <form id="editWagerForm" action="{{ route('wagers.update', $wager) }}" method="POST">
+                @csrf
+                @method('PUT')
 
-            function removeChoice(button) {
-                const count = getChoiceCount();
+                <div class="p-6 space-y-5">
 
-                if (count <= 2) {
-                    alert('Minimum 2 choices required');
-                    return;
-                }
+                    {{-- Name --}}
+                    <div>
+                        <label class="block text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400 mb-2">Wager Name *</label>
+                        <input type="text" name="name" value="{{ old('name', $wager->name) }}" required maxlength="255"
+                            class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"/>
+                    </div>
 
-                const item = button.closest('.choice-item');
-                item.remove();
-                reindexChoices();
-                updateButtons();
-            }
+                    {{-- Description --}}
+                    <div>
+                        <label class="block text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400 mb-2">Description</label>
+                        <textarea name="description" rows="3" maxlength="1000"
+                            class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all resize-none">{{ old('description', $wager->description) }}</textarea>
+                    </div>
 
-            function reindexChoices() {
-                const items = document.querySelectorAll('.choice-item');
-                items.forEach((item, index) => {
-                    const inputs = item.querySelectorAll('input');
-                    inputs[0].name = `choices[${index}][id]`;
-                    inputs[1].name = `choices[${index}][total_bet]`;
-                    inputs[2].name = `choices[${index}][label]`;
-                });
-            }
+                    {{-- Grid fields --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400 mb-2">Max Players *</label>
+                            <input type="number" name="max_players" min="2" max="100" value="{{ old('max_players', $wager->max_players) }}" required
+                                class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400 mb-2">Privacy *</label>
+                            <select name="privacy" required
+                                class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all">
+                                <option value="public" {{ old('privacy',$wager->privacy)==='public'?'selected':'' }}>Public</option>
+                                <option value="private" {{ old('privacy',$wager->privacy)==='private'?'selected':'' }}>Private</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400 mb-2">Start Time *</label>
+                            <input type="datetime-local" name="starting_time" required
+                                value="{{ old('starting_time', \Carbon\Carbon::parse($wager->starting_time)->format('Y-m-d\TH:i')) }}"
+                                class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400 mb-2">End Time *</label>
+                            <input type="datetime-local" name="ending_time" required
+                                value="{{ old('ending_time', \Carbon\Carbon::parse($wager->ending_time)->format('Y-m-d\TH:i')) }}"
+                                class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"/>
+                        </div>
+                    </div>
 
-            function updateButtons() {
-                const count = getChoiceCount();
-                const addBtn = document.getElementById('addChoiceBtn');
-                const removeButtons = document.querySelectorAll('.choice-item button');
+                    {{-- Choices --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400">Choices * (2–10)</label>
+                            <button type="button" onclick="addChoice()" id="addChoiceBtn"
+                                class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+                                + Add
+                            </button>
+                        </div>
+                        <div id="choicesContainer" class="space-y-2">
+                            @php
+                                $choices = old('choices', []);
+                                if (empty($choices)) $choices = $wager->choices ?? [];
+                                if (empty($choices) || count($choices) == 0) $choices = [null, null];
+                            @endphp
+                            @foreach($choices as $index => $choice)
+                            @php
+                                $choiceId = is_array($choice) ? ($choice['id'] ?? '') : (is_object($choice) ? $choice->id : '');
+                                $choiceLabel = is_array($choice) ? ($choice['label'] ?? '') : (is_object($choice) ? $choice->label : '');
+                                $totalBet = is_array($choice) ? ($choice['total_bet'] ?? 0) : (is_object($choice) ? $choice->total_bet : 0);
+                            @endphp
+                            <div class="flex items-center gap-2 choice-item">
+                                <input type="hidden" name="choices[{{ $index }}][id]" value="{{ $choiceId }}">
+                                <input type="hidden" name="choices[{{ $index }}][total_bet]" value="{{ $totalBet }}">
+                                <input type="text" name="choices[{{ $index }}][label]" value="{{ $choiceLabel }}"
+                                    placeholder="Choice text" required
+                                    class="flex-1 px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"/>
+                                <button type="button" onclick="removeChoice(this)"
+                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-slate-200 dark:border-white/[0.08] transition-all duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
 
-                if (count >= 10) {
-                    addBtn.disabled = true;
-                    addBtn.style.opacity = '0.5';
-                } else {
-                    addBtn.disabled = false;
-                    addBtn.style.opacity = '1';
-                }
+                {{-- Footer --}}
+                <div class="px-6 py-4 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/[0.05] flex items-center justify-end gap-3">
+                    <a href="{{ route('wagers.show', $wager) }}"
+                        class="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.08] rounded-xl transition-all duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                        class="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all duration-200 active:scale-95">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-                removeButtons.forEach(btn => {
-                    if (count <= 2) {
-                        btn.disabled = true;
-                        btn.style.opacity = '0.5';
-                    } else {
-                        btn.disabled = false;
-                        btn.style.opacity = '1';
-                    }
-                });
-            }
+<style>
+.fade-up { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+</style>
 
-            document.addEventListener('DOMContentLoaded', function() {
-                updateButtons();
-            });
-        </script>
-    @endpush
+<script>
+function getChoiceCount() { return document.querySelectorAll('.choice-item').length; }
+
+function addChoice() {
+    const container = document.getElementById('choicesContainer');
+    const count = getChoiceCount();
+    if (count >= 10) { alert('Maximum 10 choices'); return; }
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-2 choice-item';
+    div.innerHTML = `
+        <input type="hidden" name="choices[${count}][id]" value="">
+        <input type="hidden" name="choices[${count}][total_bet]" value="0">
+        <input type="text" name="choices[${count}][label]" placeholder="Choice text" required
+            class="flex-1 px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"/>
+        <button type="button" onclick="removeChoice(this)"
+            class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-slate-200 dark:border-white/[0.08] transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>`;
+    container.appendChild(div);
+    div.querySelector('input[type="text"]').focus();
+    updateButtons();
+}
+
+function removeChoice(btn) {
+    if (getChoiceCount() <= 2) { alert('Minimum 2 choices'); return; }
+    btn.closest('.choice-item').remove();
+    reindexChoices();
+    updateButtons();
+}
+
+function reindexChoices() {
+    document.querySelectorAll('.choice-item').forEach((item, i) => {
+        const inputs = item.querySelectorAll('input');
+        inputs[0].name = `choices[${i}][id]`;
+        inputs[1].name = `choices[${i}][total_bet]`;
+        inputs[2].name = `choices[${i}][label]`;
+    });
+}
+
+function updateButtons() {
+    const count = getChoiceCount();
+    const addBtn = document.getElementById('addChoiceBtn');
+    addBtn.disabled = count >= 10;
+    addBtn.style.opacity = count >= 10 ? '0.4' : '1';
+    document.querySelectorAll('.choice-item button').forEach(btn => {
+        btn.disabled = count <= 2;
+        btn.style.opacity = count <= 2 ? '0.3' : '1';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', updateButtons);
+</script>
+
+@push('scripts')
+@endpush
 </x-app-layout>

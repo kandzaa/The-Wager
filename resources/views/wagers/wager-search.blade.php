@@ -1,53 +1,45 @@
-<div class="flex justify-center mb-8">
-    <div class="relative w-full max-w-md">
-        <input type="text" id="wager-search-input" placeholder="Search wagers by name..." autocomplete="off"
-            class="w-full p-3 pl-10 bg-white dark:bg-slate-900/40 backdrop-blur border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 dark:text-slate-400 absolute left-3 top-3.5"
-            viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd"
-                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                clip-rule="evenodd" />
-        </svg>
+<div class="mb-8 fade-up" style="animation-delay:40ms">
+    <div class="relative max-w-md">
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+        </div>
+        <input type="text" id="wager-search-input"
+            placeholder="Search wagers..."
+            autocomplete="off"
+            class="w-full pl-11 pr-4 py-3 rounded-xl text-sm font-medium
+                   bg-white dark:bg-white/[0.04]
+                   border border-slate-200 dark:border-white/[0.08]
+                   text-slate-900 dark:text-white
+                   placeholder-slate-400 dark:placeholder-slate-600
+                   focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/60
+                   focus:ring-2 focus:ring-emerald-500/20
+                   shadow-sm dark:shadow-none transition-all duration-200"/>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        function filterWagers() {
-            const searchInput = document.getElementById('wager-search-input');
-            if (!searchInput) {
-                console.error('Search input not found');
-                return;
-            }
-            const searchTerm = searchInput.value.toLowerCase();
-            const wagerItems = document.querySelectorAll('.wager-item');
-            let hasVisibleItems = false;
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('wager-search-input');
+    if (!input) return;
 
-            wagerItems.forEach(item => {
+    let timer;
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            const term = input.value.toLowerCase();
+            let visible = 0;
+            document.querySelectorAll('.wager-item').forEach(item => {
                 const name = item.getAttribute('data-name')?.toLowerCase() || '';
                 const creator = item.getAttribute('data-creator')?.toLowerCase() || '';
-                const matches = name.includes(searchTerm) || creator.includes(searchTerm);
-
-                item.style.display = (searchTerm === '' || matches) ? 'block' : 'none';
-                if (searchTerm === '' || matches) hasVisibleItems = true;
+                const show = !term || name.includes(term) || creator.includes(term);
+                item.style.display = show ? 'block' : 'none';
+                if (show) visible++;
             });
-
-            const emptyState = document.querySelector('.no-wagers-message');
-            if (emptyState) {
-                emptyState.style.display = hasVisibleItems ? 'none' : 'block';
-            }
-        }
-
-        const searchInput = document.getElementById('wager-search-input');
-        if (searchInput) {
-            let debounceTimer;
-            searchInput.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(filterWagers, 300);
-            });
-            filterWagers();
-        } else {
-            console.error('wager-search-input element not found');
-        }
+            const empty = document.querySelector('.no-wagers-message');
+            if (empty) empty.style.display = visible ? 'none' : 'block';
+        }, 300);
     });
+});
 </script>
