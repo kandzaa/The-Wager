@@ -388,113 +388,107 @@ public function bet(Request $request, Wager $wager)
         return view('wagers.wagers_end', compact('wager'));
     }
 
-    public function end(Request $request, Wager $wager)
-    {
-        if ($wager->creator_id !== auth()->id()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
-        }
-
-        if ($wager->status === 'ended') {
-            return response()->json(['success' => false, 'message' => 'Wager already ended.'], 400);
-        }
-
-        $validated = $request->validate([
-            'winning_choice_id' => 'required|integer|exists:wager_choices,id',
-        ]);
-
-        try {
-            // Verify choice belongs to wager BEFORE transaction
-            $winningChoice = DB::table('wager_choices')
-                ->where('id', $validated['winning_choice_id'])
-                ->where('wager_id', $wager->id)
-                ->first();
-
-            if (!$winningChoice) {
-                return response()->json(['success' => false, 'message' => 'Invalid choice.'], 400);
-            }
-
-            // Get bets with player info BEFORE transaction
-            $bets = DB::table('wager_bets as b')
-                ->join('wager_players as p', 'b.wager_player_id', '=', 'p.id')
-                ->where('b.wager_id', $wager->id)
-                ->select('b.id', 'b.bet_amount', 'b.wager_choice_id', 'p.user_id')
-                ->get();
-
-            DB::beginTransaction();
-
-            // Update wager status
-            DB::table('wagers')->where('id', $wager->id)->update([
-                'status' => 'ended',
-                'winning_choice_id' => $validated['winning_choice_id'],
-                'updated_at' => now(),
-            ]);
-
-            if ($bets->isEmpty()) {
-                DB::commit();
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Wager ended (no bets).',
-                    'redirect' => route('history.wager.show', $wager->id),
-                ]);
-            }
-
-            $payoutMultiplier = 1.5;
-
-            foreach ($bets as $bet) {
-                $isWinner = $bet->wager_choice_id == $validated['winning_choice_id'];
-                
-                if ($isWinner) {
-                    $payout = (int)round($bet->bet_amount * $payoutMultiplier);
-                    
-                    // Update bet
-                    DB::table('wager_bets')->where('id', $bet->id)->update([
-                        'is_win' => 1,
-                        'payout' => $payout,
-                        'status' => 'won',
-                        'updated_at' => now(),
-                    ]);
-                    
-                    // Update user balance
-                    DB::table('users')
-                        ->where('id', $bet->user_id)
-                        ->increment('balance', $payout);
-                } else {
-                    // Update bet as lost
-                    DB::table('wager_bets')->where('id', $bet->id)->update([
-                        'is_win' => 0,
-                        'payout' => 0,
-                        'status' => 'lost',
-                        'updated_at' => now(),
-                    ]);
-                }
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Wager ended successfully!',
-                'redirect' => route('history.wager.show', $wager->id),
-            ]);
-
-        } catch (\Exception $e) {
-            if (DB::transactionLevel() > 0) {
-                DB::rollBack();
-            }
-            
-            Log::error('Wager end failed', [
-                'wager_id' => $wager->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to end wager.',
-            ], 500);
-        }
+   public function end(Request $request, Wager $wager)
+{
+    if ($wager->creator_id !== auth()->id()) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
     }
 
+    if ($wager->status === 'ended') {
+        return response()->json(['success' => false, 'message' => 'Wager already ended.'], 400);
+    }
+
+    $validated = $request->validate([
+        'winning_choice_id' => 'required|integer',
+    ]);
+
+    try {
+        $winningChoice = DB::table('wager_choices')
+            ->where('id', $validated['winning_choice_id'])
+            ->where('wager_id', $wager->id)
+            ->first();
+
+        if (!$winningChoice) {
+            return response()->json(['success' => false, 'message' => 'Invalid choice.'], 400);
+        }
+
+        $bets = DB::table('wager_bets as b')
+            ->join('wager_players as p', 'b.wager_player_id', '=', 'p.id')
+            ->where('b.wager_id', $wager->id)
+            ->select('b.id', 'b.bet_amount', 'b.wager_choice_id', 'p.user_id')
+            ->get();
+
+        DB::beginTransaction();
+
+        DB::table('wagers')->where('id', $wager->id)->update([
+            'status'            => 'ended',
+            'winning_choice_id' => $validated['winning_choice_id'],
+            'ended_at'          => now(),
+            'updated_at'        => now(),
+        ]);
+
+        if ($bets->isEmpty()) {
+            DB::commit();
+            return response()->json([
+                'success'  => true,
+                'message'  => 'Wager ended (no bets).',
+                'redirect' => route('history.wager.show', $wager->id),
+            ]);
+        }
+
+        $payoutMultiplier = 1.5;
+
+        foreach ($bets as $bet) {
+            $isWinner = (int)$bet->wager_choice_id === (int)$validated['winning_choice_id'];
+
+            if ($isWinner) {
+                $payout = (int) round($bet->bet_amount * $payoutMultiplier);
+
+                DB::table('wager_bets')->where('id', $bet->id)->update([
+                    'is_win'     => true,
+                    'payout'     => $payout,
+                    'status'     => 'won',
+                    'updated_at' => now(),
+                ]);
+
+                DB::table('users')
+                    ->where('id', $bet->user_id)
+                    ->increment('balance', $payout);
+            } else {
+                DB::table('wager_bets')->where('id', $bet->id)->update([
+                    'is_win'     => false,
+                    'payout'     => 0,
+                    'status'     => 'lost',
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'Wager ended successfully!',
+            'redirect' => route('history.wager.show', $wager->id),
+        ]);
+
+    } catch (\Exception $e) {
+        if (DB::transactionLevel() > 0) {
+            DB::rollBack();
+        }
+
+        Log::error('Wager end failed', [
+            'wager_id' => $wager->id,
+            'error'    => $e->getMessage(),
+            'trace'    => $e->getTraceAsString(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to end wager.',
+        ], 500);
+    }
+}
     public function acceptInvitation($token)
     {
         $invitation = WagerInvitation::where('token', $token)
