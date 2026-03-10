@@ -42,8 +42,8 @@ class CosmeticController extends Controller
             DB::table('user_cosmetics')->insert([
                 'user_id'     => $user->id,
                 'cosmetic_id' => $cosmetic->id,
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'created_at'  => DB::raw("NOW()"),
+                'updated_at'  => DB::raw("NOW()"),
             ]);
 
             DB::commit();
@@ -108,8 +108,8 @@ class CosmeticController extends Controller
                 'user_id'     => $user->id,
                 'slot'        => $request->slot,
                 'cosmetic_id' => $cosmetic->id,
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'created_at'  => DB::raw("NOW()"),
+                'updated_at'  => DB::raw("NOW()"),
             ]);
 
             DB::commit();
