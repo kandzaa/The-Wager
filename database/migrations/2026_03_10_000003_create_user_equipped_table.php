@@ -1,26 +1,26 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('user_equipped', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('slot');
-            $table->unsignedBigInteger('cosmetic_id')->nullable();
-            $table->timestamps();
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
-            $table->foreign('cosmetic_id')->references('id')->on('cosmetics')->nullOnDelete();
-        });
+        DB::unprepared('
+            CREATE TABLE IF NOT EXISTS user_equipped (
+                id BIGSERIAL PRIMARY KEY,
+                user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                slot VARCHAR(255) NOT NULL,
+                cosmetic_id BIGINT REFERENCES cosmetics(id) ON DELETE SET NULL,
+                created_at TIMESTAMP,
+                updated_at TIMESTAMP
+            )
+        ');
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('user_equipped');
+        DB::unprepared('DROP TABLE IF EXISTS user_equipped');
     }
 };

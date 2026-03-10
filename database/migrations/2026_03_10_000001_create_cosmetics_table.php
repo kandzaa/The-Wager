@@ -1,27 +1,29 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('cosmetics', function (Blueprint $table) {
-            $table->id();
-            $table->string('key');
-            $table->string('name');
-            $table->string('type');
-            $table->string('rarity');
-            $table->integer('price');
-            $table->text('meta')->nullable();
-            $table->timestamps();
-        });
+        DB::unprepared('
+            CREATE TABLE IF NOT EXISTS cosmetics (
+                id BIGSERIAL PRIMARY KEY,
+                key VARCHAR(255) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                type VARCHAR(255) NOT NULL,
+                rarity VARCHAR(255) NOT NULL,
+                price INTEGER NOT NULL,
+                meta TEXT,
+                created_at TIMESTAMP,
+                updated_at TIMESTAMP
+            )
+        ');
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('cosmetics');
+        DB::unprepared('DROP TABLE IF EXISTS cosmetics');
     }
 };
