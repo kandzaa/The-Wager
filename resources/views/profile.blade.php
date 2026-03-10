@@ -68,21 +68,24 @@
 
     $ownedIds = DB::table('user_cosmetics')->where('user_id',$user->id)->pluck('cosmetic_id')->toArray();
 
+    // LEFT JOIN so orphaned cosmetic references never hard-fail and poison the connection
     $equippedRows = DB::table('user_equipped as e')
-        ->join('cosmetics as c','e.cosmetic_id','=','c.id')
-        ->where('e.user_id',$user->id)
+        ->leftJoin('cosmetics as c', 'e.cosmetic_id', '=', 'c.id')
+        ->where('e.user_id', $user->id)
+        ->whereNotNull('c.id')
         ->select('e.slot','c.id','c.key','c.name','c.type','c.meta')
-        ->get()->keyBy('slot');
+        ->get()
+        ->keyBy('slot');
 
     $eFrame  = $equippedRows->get('frame');
     $eTitle  = $equippedRows->get('title');
     $eTheme  = $equippedRows->get('theme');
     $eCharms = collect(['charm_1','charm_2','charm_3'])->map(fn($s)=>$equippedRows->get($s))->filter();
 
-    $frameMeta  = $eFrame ? json_decode($eFrame->meta,true)  : null;
-    $titleMeta  = $eTitle ? json_decode($eTitle->meta,true)  : null;
-    $themeMeta  = $eTheme ? json_decode($eTheme->meta,true)  : null;
-    $frameStyle = $frameMeta ? "background:{$frameMeta['gradient']}" : 'background:rgba(255,255,255,.08)';
+    $frameMeta  = $eFrame ? json_decode($eFrame->meta, true) : null;
+    $titleMeta  = $eTitle ? json_decode($eTitle->meta, true) : null;
+    $themeMeta  = $eTheme ? json_decode($eTheme->meta, true) : null;
+    $frameStyle = ($frameMeta && isset($frameMeta['gradient'])) ? "background:{$frameMeta['gradient']}" : 'background:rgba(255,255,255,.08)';
     $themeClass = $themeMeta['bg_class'] ?? 'bg-default';
 
     $shop = \App\Models\Cosmetic::all()->groupBy('type');
