@@ -88,11 +88,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/user/{id}', [FriendsController::class, 'showUser'])->name('user.show');
 });
 
-// History routes - handles both history and results
+// History routes 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/history', [HistoryController::class, 'index'])->name('history');
-    Route::get('/history/wager/{wager}', [HistoryController::class, 'show'])->name('history.wager.show');
-    // Redirect old results route to history
+    Route::get('/history/wager/{wager}', [WagerController::class, 'results'])->name('history.wager.show');
     Route::get('/wagers/{wager}/results', [HistoryController::class, 'show'])->name('wagers.results');
 });
 
