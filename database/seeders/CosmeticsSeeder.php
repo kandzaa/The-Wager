@@ -23,9 +23,9 @@ class CosmeticsSeeder extends Seeder
             ['key' => 'title_shark',    'name' => 'Card Shark',     'type' => 'title', 'rarity' => 'rare',      'price' => 700,  'meta' => ['color' => 'text-red-400',   'bg' => 'bg-red-500/10 border-red-500/30']],
 
             // Themes
-            ['key' => 'theme_midnight', 'name' => 'Midnight',       'type' => 'theme', 'rarity' => 'common',    'price' => 250,  'meta' => ['gradient' => 'linear-gradient(135deg,#0f0c29,#302b63)', 'bg_class' => 'bg-theme-midnight']],
-            ['key' => 'theme_crimson',  'name' => 'Crimson',        'type' => 'theme', 'rarity' => 'uncommon',  'price' => 450,  'meta' => ['gradient' => 'linear-gradient(135deg,#1a0505,#2d0a0a)', 'bg_class' => 'bg-theme-crimson']],
-            ['key' => 'theme_void',     'name' => 'The Void',       'type' => 'theme', 'rarity' => 'epic',      'price' => 700,  'meta' => ['gradient' => 'linear-gradient(135deg,#050510,#0d0520)', 'bg_class' => 'bg-theme-void']],
+            ['key' => 'theme_midnight', 'name' => 'Midnight',       'type' => 'theme', 'rarity' => 'common',    'price' => 250,  'meta' => ['gradient' => 'linear-gradient(135deg,#0f0c29,#302b63)', 'bg_class' => 'bg-midnight']],
+            ['key' => 'theme_crimson',  'name' => 'Crimson',        'type' => 'theme', 'rarity' => 'uncommon',  'price' => 450,  'meta' => ['gradient' => 'linear-gradient(135deg,#1a0505,#2d0a0a)', 'bg_class' => 'bg-crimson']],
+            ['key' => 'theme_void',     'name' => 'The Void',       'type' => 'theme', 'rarity' => 'epic',      'price' => 700,  'meta' => ['gradient' => 'linear-gradient(135deg,#050510,#0d0520)', 'bg_class' => 'bg-void']],
 
             // Charms
             ['key' => 'charm_fire',     'name' => 'Fire',           'type' => 'charm', 'rarity' => 'common',    'price' => 100,  'meta' => ['emoji' => '🔥']],
