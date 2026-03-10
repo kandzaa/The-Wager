@@ -96,8 +96,7 @@
                             </td>
                             <td class="px-5 py-4 text-right text-sm font-semibold text-slate-700 dark:text-slate-300">{{ number_format($result['total_bet'], 0) }}</td>
                             <td class="px-5 py-4 text-right text-sm font-semibold {{ $result['payout'] > 0 ? 'text-emerald-600 dark:text-emerald-400' :'text-slate-500' }}">{{ number_format($result['payout'], 0) }}</td>
-<td class="px-5 py-4 text-right text-sm font-black {{ $result['profit'] > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">{{ $result['profit'] > 0 ? '+' : '' }}{{ number_format(
-result['profit'], 0) }}
+<td class="px-5 py-4 text-right text-sm font-black {{ $result['profit'] > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">{{ $result['profit'] > 0 ? '+' : '' }}{{ number_format($result['profit'], 0) }}
 </td>
 <td class="px-5 py-4 text-center">
 @if($result['status'] === 'won')
@@ -123,8 +122,7 @@ result['profit'], 0) }}
 <span class="text-slate-500">Bet: <strong class="text-slate-900 dark:text-white">{{ number_format($bet['amount'], 0) }}</strong></span>
 @if($bet['is_winner'])
 <span class="text-emerald-600 dark:text-emerald-400">Payout: <strong>{{ number_format($bet['payout'], 0) }}</strong></span>
-<span class="font-black {{ $bet['profit'] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">                                                        {{ bet['profit'] >= 0 ? '+' : '' }}{{ number_format(
-bet['profit'], 0) }}
+<span class="font-black {{ $bet['profit'] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">{{ $bet['profit'] >= 0 ? '+' : '' }}{{ number_format($bet['profit'], 0) }}
 </span>
 @else
 <span class="font-black text-red-600 dark:text-red-400">-{{ number_format($bet['amount'], 0) }}</span>
@@ -147,8 +145,7 @@ bet['profit'], 0) }}
 <td class="px-5 py-4 text-xs uppercase tracking-[0.15em] font-black text-slate-500 dark:text-slate-400">Totals</td>
 <td class="px-5 py-4 text-right text-sm font-black text-slate-900 dark:text-white">{{ number_format($results->sum('total_bet'), 0) }}</td>
 <td class="px-5 py-4 text-right text-sm font-black text-emerald-600 dark:text-emerald-400">{{ number_format($results->sum('payout'), 0) }}</td>
-<td class="px-5 py-4 text-right text-sm font-black {{ $results->sum('profit') >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">{{ $results->sum('profit') >= 0 ? '+' : '' }}{{ number_format(
-results->sum('profit'), 0) }}
+<td class="px-5 py-4 text-right text-sm font-black {{ $results->sum('profit') >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">{{ $results->sum('profit') >= 0 ? '+' : '' }}{{ number_format($results->sum('profit'), 0) }}
 </td>
 <td class="px-5 py-4 text-center text-xs text-slate-500">{{ $results->where('status','won')->count() }}/{{ $results->count() }} won</td>
 </tr>
