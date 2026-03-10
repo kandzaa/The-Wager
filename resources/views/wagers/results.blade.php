@@ -62,7 +62,7 @@
                 </div>
                 <div class="shrink-0 text-right">
                     <p class="mono text-xs text-slate-500 tracking-widest uppercase mb-1">Ended</p>
-                    <p class="mono text-xs text-slate-400">{{ $wager->updated_at->format('M j, Y') }}</p>
+                    <p class="mono text-xs text-slate-400">{{ \Carbon\Carbon::parse($wager->updated_at)->format('F j, Y \a\t g:i A') }}</p>
                 </div>
             </div>
         </div>
