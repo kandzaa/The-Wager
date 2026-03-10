@@ -461,7 +461,7 @@ public function bet(Request $request, Wager $wager)
             return response()->json([
                 'success'  => true,
                 'message'  => 'Wager ended (no bets).',
-                'redirect' => route('history.wager.show', $wager->id),
+                'redirect' => route('wagers.results', $wager->id),
             ]);
         }
 
@@ -525,7 +525,7 @@ public function bet(Request $request, Wager $wager)
         return response()->json([
             'success'  => true,
             'message'  => 'Wager ended successfully!',
-            'redirect' => route('history.wager.show', $wager->id),
+            'redirect' => route('wagers.results', $wager->id),
         ]);
 
     } catch (\Exception $e) {
