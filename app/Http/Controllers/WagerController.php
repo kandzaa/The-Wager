@@ -382,21 +382,6 @@ public function bet(Request $request, Wager $wager)
 
 public function end(Request $request, Wager $wager)
 {
-
-    try {
-        DB::select('SELECT 1');
-    } catch (\Exception $e) {
-        DB::reconnect();
-    }
-    
-    // Rollback any stale transaction
-    if (DB::transactionLevel() > 0) {
-        DB::rollBack();
-    }
-    
-    // Force a clean connection
-    DB::statement('ROLLBACK');
-
     if ($wager->creator_id !== auth()->id()) {
         return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
     }
@@ -423,6 +408,8 @@ public function end(Request $request, Wager $wager)
         ->where('b.wager_id', $wager->id)
         ->select('b.id', 'b.bet_amount', 'b.wager_choice_id', 'p.user_id')
         ->get();
+
+    DB::reconnect();
 
     try {
         DB::transaction(function () use ($wager, $validated, $bets) {
