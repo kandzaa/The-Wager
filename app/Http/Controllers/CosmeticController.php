@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Cosmetic;
 use Illuminate\Http\Request;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -17,32 +16,28 @@ class CosmeticController extends Controller
         $user     = Auth::user();
         $cosmetic = Cosmetic::findOrFail($request->cosmetic_id);
 
-        DB::transaction(function () use ($user, $cosmetic) {
-            $freshUser = DB::table('users')
+        // Check BEFORE transaction — no lock needed for these reads
+        if (DB::table('user_cosmetics')->where('user_id', $user->id)->where('cosmetic_id', $cosmetic->id)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Already owned.'], 400);
+        }
+
+        if ($user->balance < $cosmetic->price) {
+            return response()->json(['success' => false, 'message' => 'Not enough coins.'], 400);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Atomic decrement — only succeeds if balance is sufficient
+            $updated = DB::table('users')
                 ->where('id', $user->id)
-                ->lockForUpdate()
-                ->first();
-
-            $alreadyOwned = DB::table('user_cosmetics')
-                ->where('user_id', $user->id)
-                ->where('cosmetic_id', $cosmetic->id)
-                ->exists();
-
-            if ($alreadyOwned) {
-                throw new HttpResponseException(
-                    response()->json(['success' => false, 'message' => 'Already owned.'], 400)
-                );
-            }
-
-            if ($freshUser->balance < $cosmetic->price) {
-                throw new HttpResponseException(
-                    response()->json(['success' => false, 'message' => 'Not enough coins.'], 400)
-                );
-            }
-
-            DB::table('users')
-                ->where('id', $user->id)
+                ->where('balance', '>=', $cosmetic->price)
                 ->decrement('balance', $cosmetic->price);
+
+            if (!$updated) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Not enough coins.'], 400);
+            }
 
             DB::table('user_cosmetics')->insert([
                 'user_id'     => $user->id,
@@ -50,7 +45,12 @@ class CosmeticController extends Controller
                 'created_at'  => now(),
                 'updated_at'  => now(),
             ]);
-        });
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         return response()->json([
             'success' => true,
@@ -79,12 +79,7 @@ class CosmeticController extends Controller
 
         $cosmetic = Cosmetic::findOrFail($request->cosmetic_id);
 
-        $owned = DB::table('user_cosmetics')
-            ->where('user_id', $user->id)
-            ->where('cosmetic_id', $cosmetic->id)
-            ->exists();
-
-        if (!$owned) {
+        if (!DB::table('user_cosmetics')->where('user_id', $user->id)->where('cosmetic_id', $cosmetic->id)->exists()) {
             return response()->json(['success' => false, 'message' => 'You do not own this.'], 403);
         }
 
@@ -101,7 +96,9 @@ class CosmeticController extends Controller
             return response()->json(['success' => false, 'message' => 'Wrong slot type.'], 400);
         }
 
-        DB::transaction(function () use ($user, $cosmetic, $request) {
+        try {
+            DB::beginTransaction();
+
             DB::table('user_equipped')
                 ->where('user_id', $user->id)
                 ->where('slot', $request->slot)
@@ -114,7 +111,12 @@ class CosmeticController extends Controller
                 'created_at'  => now(),
                 'updated_at'  => now(),
             ]);
-        });
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         return response()->json(['success' => true, 'message' => "'{$cosmetic->name}' equipped!"]);
     }
