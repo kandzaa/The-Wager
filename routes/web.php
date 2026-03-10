@@ -95,6 +95,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/wagers/{wager}/results', [HistoryController::class, 'show'])->name('wagers.results');
 });
 
+//Cosmetic rout
+Route::post('/cosmetics/buy',   [App\Http\Controllers\CosmeticController::class, 'buy'])->name('cosmetics.buy');
+Route::post('/cosmetics/equip', [App\Http\Controllers\CosmeticController::class, 'equip'])->name('cosmetics.equip');
+
 // Admin wager routes
 Route::prefix('admin/Manage/wagers')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
     Route::get('/edit/{id}', [AdminController::class, 'editWager'])->name('admin.Manage.wagers.edit');
