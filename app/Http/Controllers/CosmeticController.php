@@ -16,7 +16,6 @@ class CosmeticController extends Controller
         $user     = Auth::user();
         $cosmetic = Cosmetic::findOrFail($request->cosmetic_id);
 
-        // Already owned?
         $alreadyOwned = DB::table('user_cosmetics')
             ->where('user_id', $user->id)
             ->where('cosmetic_id', $cosmetic->id)
@@ -26,18 +25,19 @@ class CosmeticController extends Controller
             return response()->json(['success' => false, 'message' => 'Already owned.'], 400);
         }
 
-        // Enough balance?
         if ($user->balance < $cosmetic->price) {
             return response()->json(['success' => false, 'message' => 'Not enough coins.'], 400);
         }
 
-        DB::transaction(function () use ($user, $cosmetic) {
+        $now = date('Y-m-d H:i:s');
+
+        DB::transaction(function () use ($user, $cosmetic, $now) {
             DB::table('users')->where('id', $user->id)->decrement('balance', $cosmetic->price);
             DB::table('user_cosmetics')->insert([
                 'user_id'     => $user->id,
                 'cosmetic_id' => $cosmetic->id,
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'created_at'  => $now,
+                'updated_at'  => $now,
             ]);
         });
 
@@ -51,13 +51,13 @@ class CosmeticController extends Controller
     public function equip(Request $request)
     {
         $request->validate([
-            'slot'         => 'required|string|in:frame,title,theme,charm_1,charm_2,charm_3',
-            'cosmetic_id'  => 'nullable|integer|exists:cosmetics,id',
+            'slot'        => 'required|string|in:frame,title,theme,charm_1,charm_2,charm_3',
+            'cosmetic_id' => 'nullable|integer|exists:cosmetics,id',
         ]);
 
         $user = Auth::user();
+        $now  = date('Y-m-d H:i:s');
 
-        // If unequipping
         if (!$request->cosmetic_id) {
             DB::table('user_equipped')
                 ->where('user_id', $user->id)
@@ -69,7 +69,6 @@ class CosmeticController extends Controller
 
         $cosmetic = Cosmetic::findOrFail($request->cosmetic_id);
 
-        // Must own it
         $owned = DB::table('user_cosmetics')
             ->where('user_id', $user->id)
             ->where('cosmetic_id', $cosmetic->id)
@@ -79,7 +78,6 @@ class CosmeticController extends Controller
             return response()->json(['success' => false, 'message' => 'You do not own this.'], 403);
         }
 
-        // Validate slot matches type
         $slotTypeMap = [
             'frame'   => 'frame',
             'title'   => 'title',
@@ -93,30 +91,20 @@ class CosmeticController extends Controller
             return response()->json(['success' => false, 'message' => 'Wrong slot type.'], 400);
         }
 
-        DB::table('user_equipped')->upsert(
-            [
-                'user_id'      => $user->id,
-                'slot'         => $request->slot,
-                'cosmetic_id'  => $cosmetic->id,
-                'created_at'   => now(),
-                'updated_at'   => now(),
-            ],
-            ['user_id', 'slot'],
-            ['cosmetic_id', 'updated_at']
-        );
-
-        return response()->json(['success' => true, 'message' => "'{$cosmetic->name}' equipped!"]);
-    }
-
-    public function unequip(Request $request)
-    {
-        $request->validate(['slot' => 'required|string']);
-
+        // Delete then insert — no unique index needed
         DB::table('user_equipped')
-            ->where('user_id', Auth::id())
+            ->where('user_id', $user->id)
             ->where('slot', $request->slot)
             ->delete();
 
-        return response()->json(['success' => true]);
+        DB::table('user_equipped')->insert([
+            'user_id'     => $user->id,
+            'slot'        => $request->slot,
+            'cosmetic_id' => $cosmetic->id,
+            'created_at'  => $now,
+            'updated_at'  => $now,
+        ]);
+
+        return response()->json(['success' => true, 'message' => "'{$cosmetic->name}' equipped!"]);
     }
 }
