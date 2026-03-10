@@ -145,7 +145,7 @@
 
                 <div class="shrink-0 text-right">
                     <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 bpulse">
-                        <span class="text-lg">🪙</span>
+                        <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-6 h-6">
                         <span class="dsp text-2xl text-amber-400" id="bal">{{ number_format($user->balance,0) }}</span>
                     </div>
                     <p class="mn text-xs text-slate-600 mt-1">coins</p>
@@ -275,7 +275,7 @@
                         @else
                         <button class="w-full py-2 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 transition-all active:scale-95"
                                 onclick="buyItem({{ $item->id }},'{{ addslashes($item->name) }}',{{ $item->price }},this)">
-                            🪙 {{ number_format($item->price) }}
+                            <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline"> {{ number_format($item->price) }}
                         </button>
                         @endif
                     </div>
@@ -477,7 +477,7 @@ async function post(url, body) {
 }
 
 async function buyItem(id, name, price, btn) {
-    if (!confirm(`Buy "${name}" for 🪙 ${price.toLocaleString()} coins?`)) return;
+    if (!confirm(`Buy "${name}" for ${price.toLocaleString()} coins?`)) return;
     btn.disabled = true; btn.textContent = '...';
     const data = await post('/cosmetics/buy', {cosmetic_id:id});
     if (data.success) {
@@ -486,7 +486,7 @@ async function buyItem(id, name, price, btn) {
         location.reload();
     } else {
         toast(data.message, 'err');
-        btn.disabled = false; btn.textContent = `🪙 ${price.toLocaleString()}`;
+        btn.disabled = false; btn.innerHTML = `<img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline"> ${price.toLocaleString()}`;
     }
 }
 
