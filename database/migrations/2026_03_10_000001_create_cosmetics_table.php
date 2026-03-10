@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    public bool $withinTransaction = false;
+
     public function up(): void
     {
         Schema::create('cosmetics', function (Blueprint $table) {
@@ -19,7 +21,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Add unique index separately to avoid PostgreSQL transaction issues
         DB::statement('CREATE UNIQUE INDEX cosmetics_key_unique ON cosmetics (key)');
     }
 
