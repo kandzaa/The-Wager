@@ -384,6 +384,21 @@ public function bet(Request $request, Wager $wager)
 
 public function end(Request $request, Wager $wager)
 {
+
+    try {
+        DB::select('SELECT 1');
+    } catch (\Exception $e) {
+        DB::reconnect();
+    }
+    
+    // Rollback any stale transaction
+    if (DB::transactionLevel() > 0) {
+        DB::rollBack();
+    }
+    
+    // Force a clean connection
+    DB::statement('ROLLBACK');
+    
     if ($wager->creator_id !== auth()->id()) {
         return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
     }
