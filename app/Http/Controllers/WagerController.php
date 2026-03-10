@@ -131,9 +131,9 @@ class WagerController extends Controller
                 ->pluck('id')
                 ->toArray();
 
+            Log::info('Starting transaction', ['transaction_level' => DB::transactionLevel()]);
             DB::beginTransaction();
 
-            // Update wager
             DB::table('wagers')->where('id', $wager->id)->update([
                 'name'          => $validated['name'],
                 'description'   => $validated['description'],
@@ -426,6 +426,7 @@ public function bet(Request $request, Wager $wager)
             'bets' => $bets->toArray()
         ]);
 
+        Log::info('Starting transaction', ['transaction_level' => DB::transactionLevel()]);
         DB::beginTransaction();
 
         DB::table('wagers')->where('id', $wager->id)->update([
@@ -458,9 +459,9 @@ public function bet(Request $request, Wager $wager)
                     'payout' => $payout
                 ]);
 
-                WagerBet::where('id', $bet->id)->update([
-                    'is_win'     => true,
-                    'payout'     => $payout,
+                DB::table('wager_bets')->where('id', $bet->id)->update([
+                    'is_win'     => true,   // explicit bool, not 1
+                    'payout'     => (int) $payout,
                     'status'     => 'won',
                     'updated_at' => now(),
                 ]);
@@ -490,7 +491,7 @@ public function bet(Request $request, Wager $wager)
                     'user_id' => $bet->user_id
                 ]);
 
-                WagerBet::where('id', $bet->id)->update([
+                DB::table('wager_bets')->where('id', $bet->id)->update([
                     'is_win'     => false,
                     'payout'     => 0,
                     'status'     => 'lost',
