@@ -131,8 +131,18 @@ class WagerController extends Controller
                 ->pluck('id')
                 ->toArray();
 
-            Log::info('Starting transaction', ['transaction_level' => DB::transactionLevel()]);
-            DB::beginTransaction();
+           try {
+    DB::table('wagers')->where('id', $wager->id)->update([
+        'status'            => 'ended',
+        'winning_choice_id' => $validated['winning_choice_id'],
+        'ended_at'          => now(),
+        'updated_at'        => now(),
+    ]);
+    Log::info('Wager row updated successfully');
+} catch (\Exception $e) {
+    Log::error('WAGER UPDATE FAILED', ['error' => $e->getMessage()]);
+    return response()->json(['success' => false, 'message' => 'Wager update failed: ' . $e->getMessage()], 500);
+}
 
             DB::table('wagers')->where('id', $wager->id)->update([
                 'name'          => $validated['name'],
@@ -426,8 +436,18 @@ public function bet(Request $request, Wager $wager)
             'bets' => $bets->toArray()
         ]);
 
-        Log::info('Starting transaction', ['transaction_level' => DB::transactionLevel()]);
-        DB::beginTransaction();
+        try {
+    DB::table('wagers')->where('id', $wager->id)->update([
+        'status'            => 'ended',
+        'winning_choice_id' => $validated['winning_choice_id'],
+        'ended_at'          => now(),
+        'updated_at'        => now(),
+    ]);
+    Log::info('Wager row updated successfully');
+} catch (\Exception $e) {
+    Log::error('WAGER UPDATE FAILED', ['error' => $e->getMessage()]);
+    return response()->json(['success' => false, 'message' => 'Wager update failed: ' . $e->getMessage()], 500);
+}
 
         DB::table('wagers')->where('id', $wager->id)->update([
             'status'            => 'ended',
