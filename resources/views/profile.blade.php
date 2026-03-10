@@ -119,7 +119,7 @@
                         </div>
                     </div>
                     @if($eCharms->isNotEmpty())
-                    <div class="absolute -bottom-2 -right-2 flex gap-1">
+                    <div class="absolute -bottom-2 -right-2 flex gap-1" id="hero-charms">
                         @foreach($eCharms as $ch)
                         @php $cm=json_decode($ch->meta,true); @endphp
                         <div class="w-8 h-8 rounded-lg bg-[#0d1117] border border-white/10 flex items-center justify-center text-sm">{{ $cm['emoji']??'?' }}</div>
@@ -131,9 +131,11 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-3 flex-wrap mb-1">
                         <h1 class="dsp text-5xl">{{ $user->name }}</h1>
-                        @if($eTitle && $titleMeta)
-                        <span class="ttag {{ $titleMeta['bg'] }} {{ $titleMeta['color'] }}">{{ $eTitle->name }}</span>
-                        @endif
+                        <div id="hero-title">
+                            @if($eTitle && $titleMeta)
+                            <span class="ttag {{ $titleMeta['bg'] }} {{ $titleMeta['color'] }}">{{ $eTitle->name }}</span>
+                            @endif
+                        </div>
                     </div>
                     <p class="mn text-xs text-slate-600 mb-5">Member since {{ \Carbon\Carbon::parse($user->created_at)->format('M Y') }}</p>
                     <div class="flex flex-wrap gap-7">
@@ -207,7 +209,7 @@
                             @php $eq=$equippedRows->get($slot); @endphp
                             <div class="flex items-center justify-between py-2 px-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
                                 <span class="mn text-xs text-slate-600">{{ $label }}</span>
-                                <span class="text-xs font-bold {{ $eq?'text-emerald-400':'text-slate-700' }}">{{ $eq?$eq->name:'—' }}</span>
+                                <span class="text-xs font-bold {{ $eq?'text-emerald-400':'text-slate-700' }}" data-equipped-slot="{{ $slot }}">{{ $eq?$eq->name:'—' }}</span>
                             </div>
                             @endforeach
                         </div>
@@ -242,7 +244,7 @@
                         $equipped = collect($equippedRows)->contains('id',$item->id);
                     @endphp
                     <div class="ccard rounded-2xl border {{ $equipped?'border-emerald-500/60 bg-emerald-500/5':($owned?'border-white/20 bg-white/[0.04]':'border-white/[0.07] bg-white/[0.02]') }} p-4 relative {{ $equipped?'is-equipped':'' }}"
-                         id="card-{{ $item->id }}">
+                         id="card-{{ $item->id }}" data-ctype="{{ $type }}">
 
                         @if($equipped)
                         <div class="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
@@ -389,11 +391,13 @@
                         <div class="grid grid-cols-3 gap-2 mb-3">
                             @foreach(['charm_1','charm_2','charm_3'] as $slot)
                             @php $eq=$equippedRows->get($slot); $cm=$eq?json_decode($eq->meta,true):null; @endphp
-                            <div class="rounded-xl border {{ $eq?'border-emerald-500/40 bg-emerald-500/5':'border-white/[0.07]' }} p-3 text-center">
+                            <div id="charm-slot-{{ $slot }}" class="rounded-xl border {{ $eq?'border-emerald-500/40 bg-emerald-500/5':'border-white/[0.07]' }} p-3 text-center">
                                 <p class="mn text-[10px] text-slate-600 mb-1">{{ strtoupper(str_replace('_',' ',$slot)) }}</p>
-                                <div class="text-2xl mb-1.5">{{ $cm?$cm['emoji']:'—' }}</div>
+                                <div class="text-2xl mb-1.5 charm-emoji">{{ $cm?$cm['emoji']:'—' }}</div>
                                 @if($eq)
-                                <button onclick="equipCharm('{{ $slot }}',null)" class="mn text-[10px] text-red-400 hover:text-red-300 transition-colors">remove</button>
+                                <button onclick="equipCharm('{{ $slot }}',null)" class="charm-remove mn text-[10px] text-red-400 hover:text-red-300 transition-colors">remove</button>
+                                @else
+                                <button onclick="equipCharm('{{ $slot }}',null)" class="charm-remove mn text-[10px] text-red-400 hover:text-red-300 transition-colors" style="display:none">remove</button>
                                 @endif
                             </div>
                             @endforeach
@@ -449,6 +453,16 @@
 <script>
 const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
+// Live state
+let state = {
+    frame:   { id: {{ $eFrame ? $eFrame->id : 'null' }}, gradient: '{{ $frameMeta ? ($frameMeta["gradient"] ?? "") : "" }}' },
+    title:   { id: {{ $eTitle ? $eTitle->id : 'null' }}, bg: '{{ $titleMeta ? ($titleMeta["bg"] ?? "") : "" }}', color: '{{ $titleMeta ? ($titleMeta["color"] ?? "") : "" }}', name: '{{ $eTitle ? addslashes($eTitle->name) : "" }}' },
+    theme:   { id: {{ $eTheme ? $eTheme->id : 'null' }}, bgClass: '{{ $themeClass }}' },
+    charm_1: { id: {{ $equippedRows->get('charm_1') ? $equippedRows->get('charm_1')->id : 'null' }}, emoji: '{{ optional($equippedRows->get('charm_1') ? json_decode($equippedRows->get('charm_1')->meta,true) : null)["emoji"] ?? "" }}' },
+    charm_2: { id: {{ $equippedRows->get('charm_2') ? $equippedRows->get('charm_2')->id : 'null' }}, emoji: '{{ optional($equippedRows->get('charm_2') ? json_decode($equippedRows->get('charm_2')->meta,true) : null)["emoji"] ?? "" }}' },
+    charm_3: { id: {{ $equippedRows->get('charm_3') ? $equippedRows->get('charm_3')->id : 'null' }}, emoji: '{{ optional($equippedRows->get('charm_3') ? json_decode($equippedRows->get('charm_3')->meta,true) : null)["emoji"] ?? "" }}' },
+};
+
 function switchTab(t) {
     document.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
     document.querySelectorAll('.tc').forEach(c => c.classList.remove('on'));
@@ -476,71 +490,192 @@ async function post(url, body) {
     return r.json();
 }
 
+// ── UI updaters ──────────────────────────────────────────────
+
+function applyFrame(gradient) {
+    const bg = gradient || 'rgba(255,255,255,.08)';
+    // Hero ring
+    document.querySelector('.av-ring').style.background = bg;
+    // Preview ring
+    document.getElementById('prv-ring').style.background = bg;
+}
+
+function applyTitle(id, bg, color, name) {
+    const heroTitle  = document.getElementById('hero-title');
+    const prvTitle   = document.getElementById('prv-title');
+    const html = id && name ? `<span class="ttag ${bg} ${color}">${name}</span>` : '';
+    if (heroTitle) heroTitle.innerHTML = html;
+    prvTitle.innerHTML = html;
+}
+
+function applyCharms() {
+    const slots = ['charm_1','charm_2','charm_3'];
+    const charms = slots.map(s => state[s].emoji).filter(Boolean);
+
+    // Hero charm badges
+    const heroBadges = document.getElementById('hero-charms');
+    if (heroBadges) {
+        heroBadges.innerHTML = charms.map(e =>
+            `<div class="w-8 h-8 rounded-lg bg-[#0d1117] border border-white/10 flex items-center justify-center text-sm">${e}</div>`
+        ).join('');
+        heroBadges.parentElement.style.display = charms.length ? '' : 'none';
+    }
+
+    // Preview charms
+    document.getElementById('prv-charms').innerHTML = charms.map(e =>
+        `<div class="w-9 h-9 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-lg">${e}</div>`
+    ).join('');
+}
+
+function applyEquippedSidebar() {
+    const map = {
+        frame:   state.frame.id   ? (document.querySelector(`#card-${state.frame.id} .font-bold.text-sm`)?.textContent ?? '—') : '—',
+        title:   state.title.id   ? state.title.name  : '—',
+        theme:   state.theme.id   ? (document.querySelector(`#card-${state.theme.id} .font-bold.text-sm`)?.textContent ?? '—') : '—',
+        charm_1: state.charm_1.id ? state.charm_1.emoji : '—',
+        charm_2: state.charm_2.id ? state.charm_2.emoji : '—',
+        charm_3: state.charm_3.id ? state.charm_3.emoji : '—',
+    };
+    document.querySelectorAll('[data-equipped-slot]').forEach(el => {
+        el.textContent = map[el.dataset.equippedSlot] ?? '—';
+        el.className = `text-xs font-bold ${map[el.dataset.equippedSlot] !== '—' ? 'text-emerald-400' : 'text-slate-700'}`;
+    });
+}
+
+function markEquippedCard(id, type) {
+    // Remove equipped state from all cards of this type
+    document.querySelectorAll(`[data-ctype="${type}"]`).forEach(card => {
+        card.classList.remove('is-equipped','border-emerald-500/60','bg-emerald-500/5');
+        card.classList.add('border-white/[0.07]','bg-white/[0.02]');
+        const badge = card.querySelector('.eq-badge'); if (badge) badge.remove();
+        const btn = card.querySelector('.eq-btn');
+        if (btn) { btn.classList.remove('eq-on'); btn.classList.add('eq-off'); btn.textContent = 'Equip'; }
+    });
+    if (!id) return;
+    const card = document.getElementById('card-'+id);
+    if (!card) return;
+    card.classList.add('is-equipped','border-emerald-500/60','bg-emerald-500/5');
+    card.classList.remove('border-white/[0.07]','bg-white/[0.02]');
+    const btn = card.querySelector('.eq-btn');
+    if (btn) { btn.classList.add('eq-on'); btn.classList.remove('eq-off'); btn.textContent = '✓ Equipped'; }
+}
+
+// ── Buy ──────────────────────────────────────────────────────
+
 async function buyItem(id, name, price, btn) {
-    if (!confirm(`Buy "${name}" for ${price.toLocaleString()} coins?`)) return;
+    if (!confirm(`Buy "${name}" for 🪙 ${price.toLocaleString()} coins?`)) return;
     btn.disabled = true; btn.textContent = '...';
     const data = await post('/cosmetics/buy', {cosmetic_id:id});
     if (data.success) {
         toast('✓ ' + data.message);
         document.getElementById('bal').textContent = Number(data.balance).toLocaleString();
-        location.reload();
+        // Swap buy button → equip button without reload
+        btn.outerHTML = `<button class="eq-btn eq-off" onclick="toggleEquip(${id},'${btn.dataset.type}',false,this)">Equip</button>`;
+        location.reload(); // reload to refresh owned state fully
     } else {
         toast(data.message, 'err');
-        btn.disabled = false; btn.innerHTML = `<img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline"> ${price.toLocaleString()}`;
+        btn.disabled = false; btn.textContent = `🪙 ${price.toLocaleString()}`;
     }
 }
 
+// ── Equip helpers ─────────────────────────────────────────────
+
 async function toggleEquip(id, type, isEquipped, btn) {
     const slotMap = {frame:'frame',title:'title',theme:'theme',charm:'charm_1'};
-    const data = await post('/cosmetics/equip', {slot:slotMap[type], cosmetic_id: isEquipped ? null : id});
-    if (data.success) { toast('✓ '+data.message); location.reload(); }
-    else toast(data.message, 'err');
+    const slot = slotMap[type];
+    const data = await post('/cosmetics/equip', {slot, cosmetic_id: isEquipped ? null : id});
+    if (!data.success) { toast(data.message,'err'); return; }
+    toast('✓ '+data.message);
+    if (isEquipped) {
+        state[slot] = {id:null, gradient:'', emoji:'', name:'', bg:'', color:''};
+    }
+    markEquippedCard(isEquipped ? null : id, type);
+    if (type==='frame') applyFrame(isEquipped ? null : state.frame.gradient);
+    if (type==='title') applyTitle(isEquipped ? null : id, state.title.bg, state.title.color, state.title.name);
+    if (type==='charm') applyCharms();
+    applyEquippedSidebar();
 }
 
 async function equipItem(slot, id, gradient, btn) {
     const data = await post('/cosmetics/equip', {slot, cosmetic_id:id});
-    if (data.success) {
-        toast('✓ '+data.message);
-        if (slot==='frame') document.getElementById('prv-ring').style.background = gradient || 'rgba(255,255,255,.08)';
-    } else toast(data.message,'err');
+    if (!data.success) { toast(data.message,'err'); return; }
+    toast('✓ '+data.message);
+    state.frame = {id, gradient};
+    applyFrame(gradient);
+    markEquippedCard(id, 'frame');
+    // Update customize panel button highlights
+    document.querySelectorAll('[data-frame-btn]').forEach(b => {
+        b.classList.toggle('border-emerald-500', b.dataset.frameBtn == id);
+        b.classList.toggle('shadow-[0_0_0_1px_#10b981]', b.dataset.frameBtn == id);
+        b.classList.toggle('border-transparent', b.dataset.frameBtn != id);
+    });
+    applyEquippedSidebar();
 }
 
 async function equipTitle(id, bg, color, name) {
     const data = await post('/cosmetics/equip', {slot:'title', cosmetic_id:id});
-    if (data.success) {
-        toast('✓ '+data.message);
-        document.getElementById('prv-title').innerHTML = id ? `<span class="ttag ${bg} ${color}">${name}</span>` : '';
-    } else toast(data.message,'err');
+    if (!data.success) { toast(data.message,'err'); return; }
+    toast('✓ '+data.message);
+    state.title = {id, bg, color, name};
+    applyTitle(id, bg, color, name);
+    markEquippedCard(id, 'title');
+    applyEquippedSidebar();
 }
 
-async function equipTheme(id, gradient) {
+async function equipTheme(id, bgClass) {
     const data = await post('/cosmetics/equip', {slot:'theme', cosmetic_id:id});
-    if (data.success) { toast('✓ '+data.message); setTimeout(()=>location.reload(),800); }
-    else toast(data.message,'err');
+    if (!data.success) { toast(data.message,'err'); return; }
+    toast('✓ '+data.message);
+    state.theme = {id, bgClass};
+    // Swap background class on root div
+    const root = document.querySelector('.pf.min-h-screen');
+    ['bg-default','bg-midnight','bg-crimson','bg-void'].forEach(c => root.classList.remove(c));
+    if (bgClass) root.className = root.className + ' ' + bgClass;
+    else root.classList.add('bg-default');
+    markEquippedCard(id, 'theme');
+    applyEquippedSidebar();
 }
 
 async function equipCharm(slot, id) {
     const data = await post('/cosmetics/equip', {slot, cosmetic_id:id});
-    if (data.success) { toast('✓ '+data.message); location.reload(); }
-    else toast(data.message,'err');
+    if (!data.success) { toast(data.message,'err'); return; }
+    toast('✓ '+data.message);
+    state[slot] = {id: null, emoji: ''};
+    applyCharms();
+    applyEquippedSidebar();
+    // Refresh charm slot display
+    refreshCharmSlots();
 }
 
-// Track charm slots client-side
-const charmSlots = {
-    charm_1: {{ $equippedRows->get('charm_1') ? $equippedRows->get('charm_1')->id : 'null' }},
-    charm_2: {{ $equippedRows->get('charm_2') ? $equippedRows->get('charm_2')->id : 'null' }},
-    charm_3: {{ $equippedRows->get('charm_3') ? $equippedRows->get('charm_3')->id : 'null' }},
-};
 async function pickCharm(id, emoji) {
-    const slot = ['charm_1','charm_2','charm_3'].find(s => !charmSlots[s]);
+    const slot = ['charm_1','charm_2','charm_3'].find(s => !state[s].id);
     if (!slot) { toast('All charm slots full — remove one first','err'); return; }
-    charmSlots[slot] = id;
     const data = await post('/cosmetics/equip', {slot, cosmetic_id:id});
-    if (data.success) {
-        toast('✓ '+data.message);
-        const prv = document.getElementById('prv-charms');
-        prv.innerHTML += `<div class="w-9 h-9 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-lg">${emoji}</div>`;
-    } else toast(data.message,'err');
+    if (!data.success) { toast(data.message,'err'); return; }
+    toast('✓ '+data.message);
+    state[slot] = {id, emoji};
+    applyCharms();
+    applyEquippedSidebar();
+    refreshCharmSlots();
+}
+
+function refreshCharmSlots() {
+    ['charm_1','charm_2','charm_3'].forEach(slot => {
+        const el = document.getElementById('charm-slot-'+slot);
+        if (!el) return;
+        const s = state[slot];
+        el.querySelector('.charm-emoji').textContent = s.emoji || '—';
+        const removeBtn = el.querySelector('.charm-remove');
+        if (s.id) {
+            el.classList.add('border-emerald-500/40','bg-emerald-500/5');
+            el.classList.remove('border-white/[0.07]');
+            if (removeBtn) removeBtn.style.display='';
+        } else {
+            el.classList.remove('border-emerald-500/40','bg-emerald-500/5');
+            el.classList.add('border-white/[0.07]');
+            if (removeBtn) removeBtn.style.display='none';
+        }
+    });
 }
 
 window.addEventListener('load', () => {
