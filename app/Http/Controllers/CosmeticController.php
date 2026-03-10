@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cosmetic;
 use Illuminate\Http\Request;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -17,25 +18,26 @@ class CosmeticController extends Controller
         $cosmetic = Cosmetic::findOrFail($request->cosmetic_id);
 
         DB::transaction(function () use ($user, $cosmetic) {
-
-            // Lock the user row to prevent race conditions
             $freshUser = DB::table('users')
                 ->where('id', $user->id)
                 ->lockForUpdate()
                 ->first();
 
-            // Re-check ownership inside the transaction
             $alreadyOwned = DB::table('user_cosmetics')
                 ->where('user_id', $user->id)
                 ->where('cosmetic_id', $cosmetic->id)
                 ->exists();
 
             if ($alreadyOwned) {
-                abort(400, 'Already owned.');
+                throw new HttpResponseException(
+                    response()->json(['success' => false, 'message' => 'Already owned.'], 400)
+                );
             }
 
             if ($freshUser->balance < $cosmetic->price) {
-                abort(400, 'Not enough coins.');
+                throw new HttpResponseException(
+                    response()->json(['success' => false, 'message' => 'Not enough coins.'], 400)
+                );
             }
 
             DB::table('users')
@@ -45,7 +47,7 @@ class CosmeticController extends Controller
             DB::table('user_cosmetics')->insert([
                 'user_id'     => $user->id,
                 'cosmetic_id' => $cosmetic->id,
-                'created_at'  => now(), // ✅ use now(), not date()
+                'created_at'  => now(),
                 'updated_at'  => now(),
             ]);
         });
@@ -99,7 +101,6 @@ class CosmeticController extends Controller
             return response()->json(['success' => false, 'message' => 'Wrong slot type.'], 400);
         }
 
-        // Wrap delete+insert atomically to prevent partial writes
         DB::transaction(function () use ($user, $cosmetic, $request) {
             DB::table('user_equipped')
                 ->where('user_id', $user->id)
@@ -110,7 +111,7 @@ class CosmeticController extends Controller
                 'user_id'     => $user->id,
                 'slot'        => $request->slot,
                 'cosmetic_id' => $cosmetic->id,
-                'created_at'  => now(), // ✅ use now()
+                'created_at'  => now(),
                 'updated_at'  => now(),
             ]);
         });
