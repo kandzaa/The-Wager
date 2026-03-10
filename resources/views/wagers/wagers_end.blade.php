@@ -132,34 +132,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('endWagerForm');
     if (form) {
         form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('winning_choice_id_input').value;
-            if (!id) { alert('Please select a winning choice'); return; }
-            const btn = document.getElementById('confirm-end-btn');
-            const txt = document.getElementById('confirm-btn-text');
-            btn.disabled = true; txt.textContent = 'Processing...';
-            try {
-                const res = await fetch(form.action, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                    body: JSON.stringify({ winning_choice_id: parseInt(id) }),
-                    credentials: 'same-origin'
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message || 'Failed');
-                if (data.success) {
-                    txt.textContent = 'Success! Redirecting...';
-                    setTimeout(() => { if (data.redirect) window.location.href = data.redirect; else window.location.reload(); }, 500);
-                } else throw new Error(data.message || 'Failed');
-            } catch (err) {
-                const errDiv = document.createElement('div');
-                errDiv.className = 'rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-500/20 p-4 mb-4 text-sm text-red-700 dark:text-red-400';
-                errDiv.textContent = err.message;
-                form.querySelectorAll('.rounded-xl.bg-red-50').forEach(el => el.remove());
-                form.insertBefore(errDiv, form.firstChild);
-                btn.disabled = false; txt.textContent = 'Confirm & End Wager';
-            }
+    e.preventDefault();
+    const id = document.getElementById('winning_choice_id_input').value;
+    if (!id) { alert('Please select a winning choice'); return; }
+    const btn = document.getElementById('confirm-end-btn');
+    const txt = document.getElementById('confirm-btn-text');
+    btn.disabled = true;
+    txt.textContent = 'Processing...';
+
+    try {
+        const res = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ winning_choice_id: parseInt(id) }),
+            credentials: 'same-origin'
         });
+
+        const data = await res.json();
+
+        if (data.success && data.redirect) {
+            txt.textContent = 'Success! Redirecting...';
+            window.location.href = data.redirect;
+            return;
+        }
+
+        // Even on error, if wager was ended redirect to results
+        if (!data.success && data.redirect) {
+            window.location.href = data.redirect;
+            return;
+        }
+
+        throw new Error(data.message || 'Failed');
+
+    } catch (err) {
+        // If we got a network/parse error, check if wager ended by reloading
+        txt.textContent = 'Checking status...';
+        setTimeout(() => { window.location.reload(); }, 1500);
+    }
+});
     }
     document.getElementById('endWagerButton')?.addEventListener('click', e => { e.preventDefault(); openEndWagerModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEndWagerModal(); });
