@@ -16,28 +16,37 @@ class CosmeticController extends Controller
         $user     = Auth::user();
         $cosmetic = Cosmetic::findOrFail($request->cosmetic_id);
 
-        $alreadyOwned = DB::table('user_cosmetics')
-            ->where('user_id', $user->id)
-            ->where('cosmetic_id', $cosmetic->id)
-            ->exists();
+        DB::transaction(function () use ($user, $cosmetic) {
 
-        if ($alreadyOwned) {
-            return response()->json(['success' => false, 'message' => 'Already owned.'], 400);
-        }
+            // Lock the user row to prevent race conditions
+            $freshUser = DB::table('users')
+                ->where('id', $user->id)
+                ->lockForUpdate()
+                ->first();
 
-        if ($user->balance < $cosmetic->price) {
-            return response()->json(['success' => false, 'message' => 'Not enough coins.'], 400);
-        }
+            // Re-check ownership inside the transaction
+            $alreadyOwned = DB::table('user_cosmetics')
+                ->where('user_id', $user->id)
+                ->where('cosmetic_id', $cosmetic->id)
+                ->exists();
 
-        $now = date('Y-m-d H:i:s');
+            if ($alreadyOwned) {
+                abort(400, 'Already owned.');
+            }
 
-        DB::transaction(function () use ($user, $cosmetic, $now) {
-            DB::table('users')->where('id', $user->id)->decrement('balance', $cosmetic->price);
+            if ($freshUser->balance < $cosmetic->price) {
+                abort(400, 'Not enough coins.');
+            }
+
+            DB::table('users')
+                ->where('id', $user->id)
+                ->decrement('balance', $cosmetic->price);
+
             DB::table('user_cosmetics')->insert([
                 'user_id'     => $user->id,
                 'cosmetic_id' => $cosmetic->id,
-                'created_at'  => $now,
-                'updated_at'  => $now,
+                'created_at'  => now(), // ✅ use now(), not date()
+                'updated_at'  => now(),
             ]);
         });
 
@@ -56,7 +65,6 @@ class CosmeticController extends Controller
         ]);
 
         $user = Auth::user();
-        $now  = date('Y-m-d H:i:s');
 
         if (!$request->cosmetic_id) {
             DB::table('user_equipped')
@@ -91,19 +99,21 @@ class CosmeticController extends Controller
             return response()->json(['success' => false, 'message' => 'Wrong slot type.'], 400);
         }
 
-        // Delete then insert — no unique index needed
-        DB::table('user_equipped')
-            ->where('user_id', $user->id)
-            ->where('slot', $request->slot)
-            ->delete();
+        // Wrap delete+insert atomically to prevent partial writes
+        DB::transaction(function () use ($user, $cosmetic, $request) {
+            DB::table('user_equipped')
+                ->where('user_id', $user->id)
+                ->where('slot', $request->slot)
+                ->delete();
 
-        DB::table('user_equipped')->insert([
-            'user_id'     => $user->id,
-            'slot'        => $request->slot,
-            'cosmetic_id' => $cosmetic->id,
-            'created_at'  => $now,
-            'updated_at'  => $now,
-        ]);
+            DB::table('user_equipped')->insert([
+                'user_id'     => $user->id,
+                'slot'        => $request->slot,
+                'cosmetic_id' => $cosmetic->id,
+                'created_at'  => now(), // ✅ use now()
+                'updated_at'  => now(),
+            ]);
+        });
 
         return response()->json(['success' => true, 'message' => "'{$cosmetic->name}' equipped!"]);
     }
