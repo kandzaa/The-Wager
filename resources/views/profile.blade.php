@@ -374,7 +374,9 @@
                             <button onclick="equipTheme(null,null)" class="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-400 font-bold hover:border-white/20 transition-all">Default</button>
                             @foreach($ownedThemes as $item)
                             @php $m=$item->meta??[]; $eq=collect($equippedRows)->contains('id',$item->id); @endphp
-                            <button onclick="equipTheme({{ $item->id }},'{{ $m['bg_class']??'' }}')">{{ $item->name }}</button>
+                            <button onclick="equipTheme({{ $item->id }},'{{ $m['bg_class']??'' }}')"
+                                    class="px-3 py-1.5 rounded-lg border-2 text-xs font-bold transition-all {{ $eq?'border-emerald-500 text-emerald-400':'border-white/10 text-slate-400 hover:border-white/20' }}"
+                                    style="background:{{ $m['gradient']??'#1e293b' }}">{{ $item->name }}</button>
                             @endforeach
                         </div>
                         @endif
