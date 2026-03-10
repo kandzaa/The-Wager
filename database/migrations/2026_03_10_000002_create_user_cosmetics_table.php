@@ -6,22 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public bool $withinTransaction = false;
+    public $withinTransaction = false;
 
     public function up(): void
     {
-        Schema::create('user_cosmetics', function (Blueprint $table) {
+        Schema::create('user_equipped', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('cosmetic_id')->constrained()->cascadeOnDelete();
+            $table->string('slot');
+            $table->foreignId('cosmetic_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
         });
 
-        DB::statement('CREATE UNIQUE INDEX user_cosmetics_user_cosmetic_unique ON user_cosmetics (user_id, cosmetic_id)');
+        DB::statement('CREATE UNIQUE INDEX user_equipped_user_slot_unique ON user_equipped (user_id, slot)');
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('user_cosmetics');
+        Schema::dropIfExists('user_equipped');
     }
 };
