@@ -10,11 +10,12 @@ return new class extends Migration
     {
         Schema::create('user_equipped', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('user_id');
             $table->string('slot');
-            $table->foreignId('cosmetic_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('cosmetic_id')->nullable();
             $table->timestamps();
-            $table->unique(['user_id', 'slot']);
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('cosmetic_id')->references('id')->on('cosmetics')->nullOnDelete();
         });
     }
 

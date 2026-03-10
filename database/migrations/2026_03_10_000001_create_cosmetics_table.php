@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('cosmetics', function (Blueprint $table) {
             $table->id();
-            $table->string('key')->unique();
+            $table->string('key');
             $table->string('name');
             $table->string('type');
             $table->string('rarity');

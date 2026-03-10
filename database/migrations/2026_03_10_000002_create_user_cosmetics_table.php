@@ -10,10 +10,11 @@ return new class extends Migration
     {
         Schema::create('user_cosmetics', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('cosmetic_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('cosmetic_id');
             $table->timestamps();
-            $table->unique(['user_id', 'cosmetic_id']);
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('cosmetic_id')->references('id')->on('cosmetics')->cascadeOnDelete();
         });
     }
 
