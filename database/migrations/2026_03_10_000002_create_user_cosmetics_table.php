@@ -6,8 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public $withinTransaction = false;
-
     public function up(): void
     {
         Schema::create('user_equipped', function (Blueprint $table) {
@@ -16,9 +14,8 @@ return new class extends Migration
             $table->string('slot');
             $table->foreignId('cosmetic_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
+            $table->unique(['user_id', 'slot']);
         });
-
-        DB::statement('CREATE UNIQUE INDEX user_equipped_user_slot_unique ON user_equipped (user_id, slot)');
     }
 
     public function down(): void

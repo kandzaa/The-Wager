@@ -6,22 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public $withinTransaction = false;
-
     public function up(): void
     {
         Schema::create('cosmetics', function (Blueprint $table) {
             $table->id();
-            $table->string('key');
+            $table->string('key')->unique();
             $table->string('name');
             $table->string('type');
             $table->string('rarity');
             $table->integer('price');
-            $table->jsonb('meta')->nullable();
+            $table->text('meta')->nullable();
             $table->timestamps();
         });
-
-        DB::statement('CREATE UNIQUE INDEX cosmetics_key_unique ON cosmetics (key)');
     }
 
     public function down(): void
