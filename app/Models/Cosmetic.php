@@ -8,12 +8,10 @@ class Cosmetic extends Model
 {
     protected $fillable = ['key', 'name', 'type', 'rarity', 'price', 'meta'];
 
-    protected $casts = [
-        'meta' => 'array',
-    ];
-
-    public function owners()
+    public function getMetaAttribute($value): array
     {
-        return $this->belongsToMany(User::class, 'user_cosmetics');
+        if (is_null($value) || $value === '') return [];
+        $decoded = json_decode($value, true);
+        return is_array($decoded) ? $decoded : [];
     }
 }
