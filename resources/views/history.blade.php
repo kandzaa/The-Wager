@@ -27,7 +27,7 @@
             @if ($userWagers->isNotEmpty())
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     @foreach ($userWagers as $wager)
-                        <a href="{{ route('history.show', $wager) }}" class="group block">
+                        <a href="{{ route('history.wager.show', $wager) }}" class="group block">
                             <div class="h-full rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] group-hover:border-emerald-400 dark:group-hover:border-emerald-500/40 transition-all duration-300 p-5 shadow-sm dark:shadow-none">
                                 <div class="flex items-start justify-between mb-3">
                                     <h3 class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors leading-tight pr-3">{{ $wager->name }}</h3>
@@ -76,7 +76,7 @@
             @if ($publicWagers->isNotEmpty())
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     @foreach ($publicWagers as $wager)
-                        <a href="{{ route('history.show', $wager) }}" class="group block">
+                        <a href="{{ route('history.wager.show', $wager) }}" class="group block">
                             <div class="h-full rounded-2xl bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] group-hover:border-slate-400 dark:group-hover:border-slate-500/40 transition-all duration-300 p-5 shadow-sm dark:shadow-none">
                                 <div class="flex items-start justify-between mb-3">
                                     <h3 class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-tight pr-3">{{ $wager->name }}</h3>

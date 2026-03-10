@@ -131,18 +131,7 @@ class WagerController extends Controller
                 ->pluck('id')
                 ->toArray();
 
-           try {
-    DB::table('wagers')->where('id', $wager->id)->update([
-        'status'            => 'ended',
-        'winning_choice_id' => $validated['winning_choice_id'],
-        'ended_at'          => now(),
-        'updated_at'        => now(),
-    ]);
-    Log::info('Wager row updated successfully');
-} catch (\Exception $e) {
-    Log::error('WAGER UPDATE FAILED', ['error' => $e->getMessage()]);
-    return response()->json(['success' => false, 'message' => 'Wager update failed: ' . $e->getMessage()], 500);
-}
+           
 
             DB::table('wagers')->where('id', $wager->id)->update([
                 'name'          => $validated['name'],
@@ -400,7 +389,7 @@ public function bet(Request $request, Wager $wager)
         return view('wagers.wagers_end', compact('wager'));
     }
 
-   public function end(Request $request, Wager $wager)
+public function end(Request $request, Wager $wager)
 {
     if ($wager->creator_id !== auth()->id()) {
         return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
@@ -430,24 +419,7 @@ public function bet(Request $request, Wager $wager)
             ->select('b.id', 'b.bet_amount', 'b.wager_choice_id', 'p.user_id')
             ->get();
 
-        Log::info('Found bets for wager', [
-            'wager_id' => $wager->id,
-            'bet_count' => $bets->count(),
-            'bets' => $bets->toArray()
-        ]);
-
-        try {
-    DB::table('wagers')->where('id', $wager->id)->update([
-        'status'            => 'ended',
-        'winning_choice_id' => $validated['winning_choice_id'],
-        'ended_at'          => now(),
-        'updated_at'        => now(),
-    ]);
-    Log::info('Wager row updated successfully');
-} catch (\Exception $e) {
-    Log::error('WAGER UPDATE FAILED', ['error' => $e->getMessage()]);
-    return response()->json(['success' => false, 'message' => 'Wager update failed: ' . $e->getMessage()], 500);
-}
+        DB::beginTransaction();
 
         DB::table('wagers')->where('id', $wager->id)->update([
             'status'            => 'ended',
@@ -468,49 +440,22 @@ public function bet(Request $request, Wager $wager)
         $payoutMultiplier = 1.5;
 
         foreach ($bets as $bet) {
-            $isWinner = (int)$bet->wager_choice_id === (int)$validated['winning_choice_id'];
+            $isWinner = (int) $bet->wager_choice_id === (int) $validated['winning_choice_id'];
 
             if ($isWinner) {
                 $payout = (int) round($bet->bet_amount * $payoutMultiplier);
 
-                Log::info('Processing winning bet', [
-                    'bet_id' => $bet->id,
-                    'user_id' => $bet->user_id,
-                    'payout' => $payout
-                ]);
-
                 DB::table('wager_bets')->where('id', $bet->id)->update([
-                    'is_win'     => true,   // explicit bool, not 1
-                    'payout'     => (int) $payout,
+                    'is_win'     => true,
+                    'payout'     => $payout,
                     'status'     => 'won',
                     'updated_at' => now(),
                 ]);
 
-                Log::info('About to increment user balance', [
-                    'user_id' => $bet->user_id,
-                    'amount' => $payout
-                ]);
-
-                try {
-                    DB::table('users')
-                        ->where('id', $bet->user_id)
-                        ->increment('balance', $payout);
-                } catch (\Exception $e) {
-                    Log::error('Failed to increment balance', [
-                        'user_id' => $bet->user_id,
-                        'payout' => $payout,
-                        'error' => $e->getMessage()
-                    ]);
-                    throw $e;
-                }
-
-                Log::info('Balance incremented successfully');
+                DB::table('users')
+                    ->where('id', $bet->user_id)
+                    ->increment('balance', $payout);
             } else {
-                Log::info('Processing losing bet', [
-                    'bet_id' => $bet->id,
-                    'user_id' => $bet->user_id
-                ]);
-
                 DB::table('wager_bets')->where('id', $bet->id)->update([
                     'is_win'     => false,
                     'payout'     => 0,
@@ -536,15 +481,12 @@ public function bet(Request $request, Wager $wager)
         Log::error('Wager end failed', [
             'wager_id' => $wager->id,
             'error'    => $e->getMessage(),
-            'trace'    => $e->getTraceAsString(),
         ]);
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to end wager.',
-        ], 500);
+        return response()->json(['success' => false, 'message' => 'Failed to end wager.'], 500);
     }
 }
+
     public function acceptInvitation($token)
     {
         $invitation = WagerInvitation::where('token', $token)
