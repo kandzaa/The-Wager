@@ -136,7 +136,7 @@ class HistoryController extends Controller
                 'choice_distribution' => $choiceDistribution,
             ];
 
-            return view('history.show', compact('wager', 'stats', 'userResults'));
+            return view('History.show', compact('wager', 'stats', 'userResults'));
         } catch (\Exception $e) {
             Log::error('History show error', ['wager_id' => $wager->id, 'error' => $e->getMessage()]);
             return redirect()->route('history')->with('error', 'Failed to load wager details.');

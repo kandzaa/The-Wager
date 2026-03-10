@@ -17,10 +17,6 @@ class WagerBet extends Model
         'payout',
     ];
 
-    protected $attributes = [
-        'status' => 'pending',
-    ];
-
     protected $casts = [
         'bet_amount'    => 'integer',
         'amount'        => 'integer',
@@ -29,17 +25,6 @@ class WagerBet extends Model
         'is_win'        => 'boolean',
         'payout'        => 'integer',
     ];
-
-    public static function boot()
-    {
-        parent::boot();
-
-        static::saving(function ($model) {
-            if (! in_array($model->status, ['pending', 'won', 'lost'])) {
-                throw new \InvalidArgumentException("Invalid status value");
-            }
-        });
-    }
 
     public function wager()
     {
@@ -56,18 +41,15 @@ class WagerBet extends Model
         return $this->belongsTo(WagerChoice::class);
     }
 
-    public function scopeWon($query)
-    {
-        return $query->where('status', 'won');
+    public function scopeWon($query)    { 
+        return $query->where('status', 'won'); 
+    
     }
-
-    public function scopeLost($query)
-    {
-        return $query->where('status', 'lost');
+    public function scopeLost($query)   { 
+        return $query->where('status', 'lost'); 
     }
-
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
+    
+    public function scopePending($query){ 
+        return $query->where('status', 'pending'); 
     }
 }
