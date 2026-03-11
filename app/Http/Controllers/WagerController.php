@@ -432,14 +432,7 @@ class WagerController extends Controller
         }
     }
 
-    // ── Invitations ───────────────────────────────────────────────────────────
-
-    /**
-     * Send a wager invitation to a friend.
-     * POST /wagers/{wager}/invite
-     * Body: { friend_id: int }
-     */
-    public function sendInvitation(Request $request, Wager $wager)
+ public function sendInvitation(Request $request, Wager $wager)
     {
         $request->validate([
             'friend_id' => 'required|exists:users,id',
@@ -448,7 +441,6 @@ class WagerController extends Controller
         $inviterId = Auth::id();
         $inviteeId = (int) $request->input('friend_id');
 
-        // Must be the creator or a participant to invite
         if ($wager->creator_id !== $inviterId && !$wager->hasPlayer($inviterId)) {
             return response()->json(['success' => false, 'message' => 'You must be in this wager to invite others.'], 403);
         }
@@ -465,7 +457,6 @@ class WagerController extends Controller
             return response()->json(['success' => false, 'message' => 'This person is already in the wager.'], 400);
         }
 
-        // Check for existing pending invite
         $existing = WagerInvitation::where('wager_id', $wager->id)
             ->where('invitee_id', $inviteeId)
             ->where('status', WagerInvitation::STATUS_PENDING)
@@ -476,12 +467,15 @@ class WagerController extends Controller
             return response()->json(['success' => false, 'message' => 'This person already has a pending invitation.'], 400);
         }
 
+        // Fetch the invitee so we can store their email (column is NOT NULL in some DB setups)
+        $invitee = \App\Models\User::findOrFail($inviteeId);
+
         WagerInvitation::create([
             'wager_id'   => $wager->id,
             'inviter_id' => $inviterId,
             'invitee_id' => $inviteeId,
+            'email'      => $invitee->email,   // <-- was missing, caused the NOT NULL violation
             'status'     => WagerInvitation::STATUS_PENDING,
-            // token and expires_at are set automatically in the model's boot()
         ]);
 
         return response()->json(['success' => true, 'message' => 'Invitation sent!']);
