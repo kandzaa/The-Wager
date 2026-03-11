@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('wager_id')->constrained('wagers')->onDelete('cascade');
             $table->foreignId('inviter_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('invitee_id')->nullable()->constrained('users')->onDelete('cascade');
-            $table->string('email');
+            $table->string('email')->nullable();
             $table->string('token', 64)->unique();
             $table->string('status')->default('pending');
             $table->timestamp('expires_at');
