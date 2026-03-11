@@ -128,6 +128,18 @@ class WagerController extends Controller
             ->toArray();
 
         try {
+Log::emergency('ABOUT TO UPDATE WAGER', [
+    'wager_id'     => $wager->id,
+    'columns'      => DB::select("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'wagers'"),
+    'update_data'  => [
+        'name'          => $validated['name'],
+        'description'   => $validated['description'] ?? null,
+        'max_players'   => (int) $validated['max_players'],
+        'privacy'       => $validated['privacy'],
+        'starting_time' => $startingTime,
+        'ending_time'   => $endingTime,
+    ],
+]);
             DB::beginTransaction();
 
             // NO updated_at — wagers table has $timestamps = false
