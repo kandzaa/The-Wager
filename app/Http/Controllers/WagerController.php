@@ -96,7 +96,7 @@ class WagerController extends Controller
         return view('wagers.edit', compact('wager'));
     }
 
-public function update(Request $request, Wager $wager)
+    public function update(Request $request, Wager $wager)
     {
         if ($wager->creator_id !== Auth::id()) {
             return back()->with('error', 'Not authorized to update this wager.');
@@ -118,12 +118,12 @@ public function update(Request $request, Wager $wager)
             'choices.*.label' => 'required|string|max:255',
         ]);
 
-        // Normalize datetime — strip milliseconds/Z suffix PostgreSQL may reject
+        // Normalize datetimes to Y-m-d H:i:s (strips Z / milliseconds)
         $startingTime = \Carbon\Carbon::parse($validated['starting_time'])->format('Y-m-d H:i:s');
         $endingTime   = \Carbon\Carbon::parse($validated['ending_time'])->format('Y-m-d H:i:s');
 
-        // Fetch existing choice IDs BEFORE opening a transaction so that
-        // if the wager UPDATE fails, it doesn't poison subsequent queries
+        // Fetch existing IDs outside the transaction so a failed UPDATE
+        // doesn't poison the PostgreSQL connection state (error 25P02)
         $existingIds = DB::table('wager_choices')
             ->where('wager_id', $wager->id)
             ->pluck('id')
@@ -132,6 +132,7 @@ public function update(Request $request, Wager $wager)
         try {
             DB::beginTransaction();
 
+            // NOTE: no 'updated_at' here — wagers table has $timestamps = false
             DB::table('wagers')->where('id', $wager->id)->update([
                 'name'          => $validated['name'],
                 'description'   => $validated['description'] ?? null,
@@ -139,7 +140,6 @@ public function update(Request $request, Wager $wager)
                 'privacy'       => $validated['privacy'],
                 'starting_time' => $startingTime,
                 'ending_time'   => $endingTime,
-                'updated_at'    => now(),
             ]);
 
             $processedIds = [];
@@ -154,21 +154,19 @@ public function update(Request $request, Wager $wager)
                     DB::table('wager_choices')
                         ->where('id', $choiceId)
                         ->where('wager_id', $wager->id)
-                        ->update(['label' => $label, 'updated_at' => now()]);
+                        ->update(['label' => $label]);
                     $processedIds[] = $choiceId;
                 } else {
                     $newId = DB::table('wager_choices')->insertGetId([
-                        'wager_id'   => $wager->id,
-                        'label'      => $label,
-                        'total_bet'  => 0,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'wager_id'  => $wager->id,
+                        'label'     => $label,
+                        'total_bet' => 0,
                     ]);
                     $processedIds[] = $newId;
                 }
             }
 
-            // Only delete choices that have no bets on them
+            // Only delete choices that have no bets placed on them
             $toDelete = array_diff($existingIds, $processedIds);
             if (!empty($toDelete)) {
                 DB::table('wager_choices')
@@ -179,6 +177,7 @@ public function update(Request $request, Wager $wager)
                     })
                     ->delete();
             }
+
             DB::commit();
 
             return redirect()->route('wagers.show', $wager->id)
@@ -389,7 +388,6 @@ public function update(Request $request, Wager $wager)
                 'status'            => 'ended',
                 'winning_choice_id' => (int) $validated['winning_choice_id'],
                 'ended_at'          => now()->toDateTimeString(),
-                'updated_at'        => now()->toDateTimeString(),
             ]);
 
             Log::info('Wager update result', ['rows_affected' => $updated]);
@@ -410,18 +408,16 @@ public function update(Request $request, Wager $wager)
                 if ($isWinner) {
                     $payout = (int) round($bet->bet_amount * 1.5);
                     DB::table('wager_bets')->where('id', $bet->id)->update([
-                        'is_win'     => true,
-                        'payout'     => $payout,
-                        'status'     => 'won',
-                        'updated_at' => now()->toDateTimeString(),
+                        'is_win' => true,
+                        'payout' => $payout,
+                        'status' => 'won',
                     ]);
                     DB::table('users')->where('id', $bet->user_id)->increment('balance', $payout);
                 } else {
                     DB::table('wager_bets')->where('id', $bet->id)->update([
-                        'is_win'     => false,
-                        'payout'     => 0,
-                        'status'     => 'lost',
-                        'updated_at' => now()->toDateTimeString(),
+                        'is_win' => false,
+                        'payout' => 0,
+                        'status' => 'lost',
                     ]);
                 }
             }
@@ -478,14 +474,13 @@ public function update(Request $request, Wager $wager)
             return back()->with('error', 'This person already has a pending invitation.');
         }
 
-        // Fetch the invitee so we can store their email (column is NOT NULL in some DB setups)
         $invitee = \App\Models\User::findOrFail($inviteeId);
 
         WagerInvitation::create([
             'wager_id'   => $wager->id,
             'inviter_id' => $inviterId,
             'invitee_id' => $inviteeId,
-            'email'      => $invitee->email,   // <-- was missing, caused the NOT NULL violation
+            'email'      => $invitee->email,
             'status'     => WagerInvitation::STATUS_PENDING,
         ]);
 
@@ -539,7 +534,6 @@ public function update(Request $request, Wager $wager)
             'declined_at' => now(),
         ]);
 
-        // FIX: was route('wagers') which doesn't exist
         return redirect()->route('wagers.index')
             ->with('status', 'You have declined the invitation.');
     }
