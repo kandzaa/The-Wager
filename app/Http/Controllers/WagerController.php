@@ -118,14 +118,20 @@ public function update(Request $request, Wager $wager)
             'choices.*.label' => 'required|string|max:255',
         ]);
 
-        // Normalize datetime strings — strip milliseconds and Z suffix, convert to Y-m-d H:i:s
+        // Normalize datetime — strip milliseconds/Z suffix PostgreSQL may reject
         $startingTime = \Carbon\Carbon::parse($validated['starting_time'])->format('Y-m-d H:i:s');
         $endingTime   = \Carbon\Carbon::parse($validated['ending_time'])->format('Y-m-d H:i:s');
+
+        // Fetch existing choice IDs BEFORE opening a transaction so that
+        // if the wager UPDATE fails, it doesn't poison subsequent queries
+        $existingIds = DB::table('wager_choices')
+            ->where('wager_id', $wager->id)
+            ->pluck('id')
+            ->toArray();
 
         try {
             DB::beginTransaction();
 
-            // Update wager
             DB::table('wagers')->where('id', $wager->id)->update([
                 'name'          => $validated['name'],
                 'description'   => $validated['description'] ?? null,
@@ -136,11 +142,6 @@ public function update(Request $request, Wager $wager)
                 'updated_at'    => now(),
             ]);
 
-            $existingIds = DB::table('wager_choices')
-                ->where('wager_id', $wager->id)
-                ->pluck('id')
-                ->toArray();
-
             $processedIds = [];
 
             foreach ($validated['choices'] as $choice) {
@@ -150,14 +151,12 @@ public function update(Request $request, Wager $wager)
                 if (empty($label)) continue;
 
                 if ($choiceId && in_array($choiceId, $existingIds)) {
-                    // Update existing choice
                     DB::table('wager_choices')
                         ->where('id', $choiceId)
-                        ->where('wager_id', $wager->id) // extra safety guard
+                        ->where('wager_id', $wager->id)
                         ->update(['label' => $label, 'updated_at' => now()]);
                     $processedIds[] = $choiceId;
                 } else {
-                    // Insert new choice
                     $newId = DB::table('wager_choices')->insertGetId([
                         'wager_id'   => $wager->id,
                         'label'      => $label,
@@ -169,7 +168,7 @@ public function update(Request $request, Wager $wager)
                 }
             }
 
-            // Delete removed choices only if they have no bets
+            // Only delete choices that have no bets on them
             $toDelete = array_diff($existingIds, $processedIds);
             if (!empty($toDelete)) {
                 DB::table('wager_choices')
@@ -180,7 +179,6 @@ public function update(Request $request, Wager $wager)
                     })
                     ->delete();
             }
-
             DB::commit();
 
             return redirect()->route('wagers.show', $wager->id)
@@ -191,11 +189,11 @@ public function update(Request $request, Wager $wager)
             Log::error('Wager update failed', [
                 'wager_id' => $wager->id,
                 'error'    => $e->getMessage(),
-                'trace'    => $e->getTraceAsString(),
             ]);
             return back()->withInput()->with('error', 'Failed to update wager: ' . $e->getMessage());
         }
     }
+
     public function join(Wager $wager)
     {
         if ($wager->hasPlayer(Auth::id())) {
