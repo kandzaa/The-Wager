@@ -96,7 +96,7 @@ class WagerController extends Controller
         return view('wagers.edit', compact('wager'));
     }
 
-    public function update(Request $request, Wager $wager)
+public function update(Request $request, Wager $wager)
     {
         if ($wager->creator_id !== Auth::id()) {
             return back()->with('error', 'Not authorized to update this wager.');
@@ -114,40 +114,50 @@ class WagerController extends Controller
             'starting_time'   => 'required|date',
             'ending_time'     => 'required|date|after:starting_time',
             'choices'         => 'required|array|min:2|max:10',
-            'choices.*.id'    => 'nullable|integer',
+            'choices.*.id'    => 'nullable',
             'choices.*.label' => 'required|string|max:255',
         ]);
 
+        // Normalize datetime strings — strip milliseconds and Z suffix, convert to Y-m-d H:i:s
+        $startingTime = \Carbon\Carbon::parse($validated['starting_time'])->format('Y-m-d H:i:s');
+        $endingTime   = \Carbon\Carbon::parse($validated['ending_time'])->format('Y-m-d H:i:s');
+
         try {
+            DB::beginTransaction();
+
+            // Update wager
+            DB::table('wagers')->where('id', $wager->id)->update([
+                'name'          => $validated['name'],
+                'description'   => $validated['description'] ?? null,
+                'max_players'   => (int) $validated['max_players'],
+                'privacy'       => $validated['privacy'],
+                'starting_time' => $startingTime,
+                'ending_time'   => $endingTime,
+                'updated_at'    => now(),
+            ]);
+
             $existingIds = DB::table('wager_choices')
                 ->where('wager_id', $wager->id)
                 ->pluck('id')
                 ->toArray();
 
-            DB::beginTransaction();
-
-            DB::table('wagers')->where('id', $wager->id)->update([
-                'name'          => $validated['name'],
-                'description'   => $validated['description'],
-                'max_players'   => $validated['max_players'],
-                'privacy'       => $validated['privacy'],
-                'starting_time' => $validated['starting_time'],
-                'ending_time'   => $validated['ending_time'],
-                'updated_at'    => now(),
-            ]);
-
             $processedIds = [];
 
             foreach ($validated['choices'] as $choice) {
-                $label = trim($choice['label']);
+                $label    = trim((string) $choice['label']);
+                $choiceId = !empty($choice['id']) ? (int) $choice['id'] : null;
+
                 if (empty($label)) continue;
 
-                if (!empty($choice['id']) && in_array($choice['id'], $existingIds)) {
+                if ($choiceId && in_array($choiceId, $existingIds)) {
+                    // Update existing choice
                     DB::table('wager_choices')
-                        ->where('id', $choice['id'])
+                        ->where('id', $choiceId)
+                        ->where('wager_id', $wager->id) // extra safety guard
                         ->update(['label' => $label, 'updated_at' => now()]);
-                    $processedIds[] = (int) $choice['id'];
+                    $processedIds[] = $choiceId;
                 } else {
+                    // Insert new choice
                     $newId = DB::table('wager_choices')->insertGetId([
                         'wager_id'   => $wager->id,
                         'label'      => $label,
@@ -159,10 +169,12 @@ class WagerController extends Controller
                 }
             }
 
+            // Delete removed choices only if they have no bets
             $toDelete = array_diff($existingIds, $processedIds);
             if (!empty($toDelete)) {
                 DB::table('wager_choices')
                     ->whereIn('id', $toDelete)
+                    ->where('wager_id', $wager->id)
                     ->where(function ($q) {
                         $q->where('total_bet', 0)->orWhereNull('total_bet');
                     })
@@ -175,14 +187,15 @@ class WagerController extends Controller
                 ->with('success', 'Wager updated successfully!');
 
         } catch (\Exception $e) {
-            if (DB::transactionLevel() > 0) {
-                DB::rollBack();
-            }
-            Log::error('Wager update failed', ['error' => $e->getMessage()]);
-            return back()->withInput()->with('error', 'Failed to update wager.');
+            DB::rollBack();
+            Log::error('Wager update failed', [
+                'wager_id' => $wager->id,
+                'error'    => $e->getMessage(),
+                'trace'    => $e->getTraceAsString(),
+            ]);
+            return back()->withInput()->with('error', 'Failed to update wager: ' . $e->getMessage());
         }
     }
-
     public function join(Wager $wager)
     {
         if ($wager->hasPlayer(Auth::id())) {
