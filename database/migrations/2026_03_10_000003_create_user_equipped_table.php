@@ -14,8 +14,7 @@ return new class extends Migration
                 slot VARCHAR(255) NOT NULL,
                 cosmetic_id BIGINT REFERENCES cosmetics(id) ON DELETE SET NULL,
                 created_at TIMESTAMP,
-                updated_at TIMESTAMP,
-                UNIQUE(user_id, slot)
+                updated_at TIMESTAMP
             )
         ');
     }

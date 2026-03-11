@@ -20,7 +20,7 @@ class FriendsController extends Controller
 
     public function searchUsers(Request $request)
     {
-        $query = $request->get('query', '');
+        $query = trim($request->get('query', ''));
 
         if (empty($query)) {
             return response()->json([]);
@@ -28,12 +28,15 @@ class FriendsController extends Controller
 
         $user = Auth::user();
 
-        $friendIds = $user->friends()->pluck('friend_id')->toArray();
-
+        $friendIds  = $user->friends()->pluck('friend_id')->toArray();
         $excludeIds = array_merge($friendIds, [$user->id]);
+        $lower      = strtolower($query);
 
-        $users = User::where('name', 'like', '%' . $query . '%')
-            ->whereNotIn('id', $excludeIds)
+        $users = User::whereNotIn('id', $excludeIds)
+            ->where(function ($q) use ($lower) {
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$lower}%"])
+                  ->orWhereRaw('LOWER(email) LIKE ?', ["%{$lower}%"]);
+            })
             ->limit(10)
             ->get(['id', 'name', 'email', 'created_at']);
 
@@ -43,7 +46,7 @@ class FriendsController extends Controller
                 'name'    => $user->name,
                 'email'   => $user->email,
                 'joined'  => $user->created_at->diffForHumans(),
-                'initial' => substr($user->name, 0, 1),
+                'initial' => strtoupper(substr($user->name, 0, 1)),
             ];
         }));
     }
@@ -59,7 +62,7 @@ class FriendsController extends Controller
                     'id'      => $friend->id,
                     'name'    => $friend->name,
                     'email'   => $friend->email,
-                    'initial' => substr($friend->name, 0, 1),
+                    'initial' => strtoupper(substr($friend->name, 0, 1)),
                 ];
             }),
         ]);
@@ -138,7 +141,6 @@ class FriendsController extends Controller
             return response()->json(['message' => 'You cannot send a request to yourself.'], 400);
         }
 
-        //vai jau ir draugi?
         if (Auth::user()->friends()->where('friend_id', $recipientId)->exists()) {
             return response()->json(['message' => 'You are already friends.'], 400);
         }
@@ -153,7 +155,6 @@ class FriendsController extends Controller
             if ($existing->status === 'pending') {
                 return response()->json(['message' => 'A request is already pending.'], 400);
             }
-            // ja iepriekš declined, tad aizsuta velreiz kā pending
             $existing->status = 'pending';
             $existing->save();
             return response()->json(['message' => 'Friend request re-sent.']);
@@ -189,12 +190,10 @@ class FriendsController extends Controller
         $recipient   = Auth::user();
         $requester   = User::find($requesterId);
 
-        // pievieno draugu abiem lietotajiem
         if (! $recipient->friends()->where('friend_id', $requesterId)->exists()) {
             $recipient->friends()->attach($requesterId);
         }
 
-        // pievieno atpakaļ otram leitotajam draugu
         if (! $requester->friends()->where('friend_id', $recipientId)->exists()) {
             $requester->friends()->attach($recipientId);
         }

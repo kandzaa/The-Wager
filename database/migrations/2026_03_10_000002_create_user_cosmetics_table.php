@@ -13,8 +13,7 @@ return new class extends Migration
                 user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 cosmetic_id BIGINT NOT NULL REFERENCES cosmetics(id) ON DELETE CASCADE,
                 created_at TIMESTAMP,
-                updated_at TIMESTAMP,
-                UNIQUE(user_id, cosmetic_id)
+                updated_at TIMESTAMP
             )
         ');
     }
