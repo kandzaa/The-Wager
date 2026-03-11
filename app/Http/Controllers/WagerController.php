@@ -96,7 +96,7 @@ class WagerController extends Controller
         return view('wagers.edit', compact('wager'));
     }
 
-    public function update(Request $request, Wager $wager)
+   public function update(Request $request, Wager $wager)
     {
         if ($wager->creator_id !== Auth::id()) {
             return back()->with('error', 'Not authorized to update this wager.');
@@ -118,12 +118,10 @@ class WagerController extends Controller
             'choices.*.label' => 'required|string|max:255',
         ]);
 
-        // Normalize datetimes to Y-m-d H:i:s (strips Z / milliseconds)
         $startingTime = \Carbon\Carbon::parse($validated['starting_time'])->format('Y-m-d H:i:s');
         $endingTime   = \Carbon\Carbon::parse($validated['ending_time'])->format('Y-m-d H:i:s');
 
-        // Fetch existing IDs outside the transaction so a failed UPDATE
-        // doesn't poison the PostgreSQL connection state (error 25P02)
+        // Outside transaction so a failing wager UPDATE doesn't poison subsequent queries
         $existingIds = DB::table('wager_choices')
             ->where('wager_id', $wager->id)
             ->pluck('id')
@@ -132,7 +130,7 @@ class WagerController extends Controller
         try {
             DB::beginTransaction();
 
-            // NOTE: no 'updated_at' here — wagers table has $timestamps = false
+            // NO updated_at — wagers table has $timestamps = false
             DB::table('wagers')->where('id', $wager->id)->update([
                 'name'          => $validated['name'],
                 'description'   => $validated['description'] ?? null,
@@ -151,12 +149,14 @@ class WagerController extends Controller
                 if (empty($label)) continue;
 
                 if ($choiceId && in_array($choiceId, $existingIds)) {
+                    // NO updated_at — wager_choices also has no timestamps
                     DB::table('wager_choices')
                         ->where('id', $choiceId)
                         ->where('wager_id', $wager->id)
                         ->update(['label' => $label]);
                     $processedIds[] = $choiceId;
                 } else {
+                    // NO created_at/updated_at on insert either
                     $newId = DB::table('wager_choices')->insertGetId([
                         'wager_id'  => $wager->id,
                         'label'     => $label,
@@ -166,7 +166,6 @@ class WagerController extends Controller
                 }
             }
 
-            // Only delete choices that have no bets placed on them
             $toDelete = array_diff($existingIds, $processedIds);
             if (!empty($toDelete)) {
                 DB::table('wager_choices')
