@@ -177,10 +177,13 @@ function removeChoice(btn) {
 
 function reindexChoices() {
     document.querySelectorAll('.choice-item').forEach((item, i) => {
-        const inputs = item.querySelectorAll('input');
-        inputs[0].name = `choices[${i}][id]`;
-        inputs[1].name = `choices[${i}][total_bet]`;
-        inputs[2].name = `choices[${i}][label]`;
+        // Use name-pattern selectors instead of positional index — safe after any add/remove
+        const idInput    = item.querySelector('input[name*="[id]"]');
+        const betInput   = item.querySelector('input[name*="[total_bet]"]');
+        const labelInput = item.querySelector('input[name*="[label]"]');
+        if (idInput)    idInput.name    = `choices[${i}][id]`;
+        if (betInput)   betInput.name   = `choices[${i}][total_bet]`;
+        if (labelInput) labelInput.name = `choices[${i}][label]`;
     });
 }
 
