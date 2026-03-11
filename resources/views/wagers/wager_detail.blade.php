@@ -8,6 +8,25 @@
 
     <div class="relative z-10 max-w-4xl mx-auto px-6 py-14">
 
+        {{-- Flash messages --}}
+        @if(session('success'))
+            <div class="mb-6 fade-up rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-500/20 p-4 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <p class="text-sm font-medium text-emerald-800 dark:text-emerald-200">{{ session('success') }}</p>
+                </div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-6 fade-up rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/20 p-4 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ session('error') }}</p>
+                </div>
+            </div>
+        @endif
+
         {{-- Back --}}
         <div class="mb-8 fade-up">
             <a href="{{ route('wagers.index') }}" class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
@@ -54,7 +73,7 @@
         </div>
 
         {{-- Invite section (creator only) --}}
-        @if($wager->creator_id == Auth::id() && $wager->status !== 'ended')
+        @if($wager->creator_id == Auth::id() && $wager->status !== 'ended' && !$wager->isFull())
         <div class="fade-up rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] p-5 mb-4 shadow-sm dark:shadow-none" style="animation-delay:100ms">
             <h3 class="text-xs uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400 mb-4">Invite Friends</h3>
             @if($friends->isNotEmpty())
@@ -109,71 +128,89 @@
         @if($wager->status !== 'ended')
             @if(!$isJoined)
             <div class="fade-up rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] p-8 text-center shadow-sm dark:shadow-none" style="animation-delay:180ms">
-                <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                </div>
-                <p class="font-bold text-slate-900 dark:text-white mb-1">Join to participate</p>
-                <p class="text-sm text-slate-500 mb-5">You must join before placing a bet.</p>
-                <form method="POST" action="{{ route('wagers.join', $wager) }}" class="inline-block">
-                    @csrf
-                    <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all duration-200 active:scale-95">
-                        Join Wager
-                    </button>
-                </form>
+                @if($wager->isFull())
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <p class="font-bold text-slate-900 dark:text-white mb-1">Max Players Reached</p>
+                    <p class="text-sm text-slate-500">This wager has reached its maximum capacity of {{ $wager->max_players }} players.</p>
+                @else
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    </div>
+                    <p class="font-bold text-slate-900 dark:text-white mb-1">Join to participate</p>
+                    <p class="text-sm text-slate-500 mb-5">You must join before placing a bet.</p>
+                    <form method="POST" action="{{ route('wagers.join', $wager) }}" class="inline-block">
+                        @csrf
+                        <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all duration-200 active:scale-95">
+                            Join Wager
+                        </button>
+                    </form>
+                @endif
             </div>
             @else
             <div class="fade-up rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] p-6 shadow-sm dark:shadow-none" style="animation-delay:180ms">
-                <div class="flex items-center gap-3 mb-5">
-                    <div class="w-1.5 h-5 bg-slate-400 dark:bg-slate-600 rounded-full"></div>
-                    <h2 class="text-sm uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400">Place Your Bets</h2>
-                </div>
-                <form method="POST" action="{{ route('wagers.bet', $wager) }}" id="bet-form" onsubmit="return handleBetSubmit(event)" class="space-y-3">
-                    @csrf
-                    <div id="bets-container"></div>
-                    @foreach($wager->choices as $choice)
-                    <div class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05]">
-                        <span class="flex-1 text-sm font-semibold text-slate-900 dark:text-white">{{ $choice->label }}</span>
-                        <span class="text-xs text-slate-400 dark:text-slate-600 shrink-0">{{ number_format($choice->total_bet, 0) }} bet</span>
-                        <input type="number" data-choice-id="{{ $choice->id }}"
-                            placeholder="Amount"
-                            class="bet-input w-28 px-3 py-2 rounded-xl text-sm bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"
-                            min="1" step="1"/>
+                @if($wager->isFull())
+                    <div class="text-center py-8">
+                        <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/20 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                        <p class="font-bold text-slate-900 dark:text-white mb-1">Max Players Reached</p>
+                        <p class="text-sm text-slate-500">This wager has reached its maximum capacity of {{ $wager->max_players }} players. No more bets can be placed.</p>
                     </div>
-                    @endforeach
-                    <button type="submit" id="submit-btn"
-                        class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-2">
-                        <span id="submit-text">Place Bet</span>
-                        <span id="submit-spinner" class="hidden ml-2">
-                            <svg class="animate-spin h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                            </svg>
-                        </span>
-                    </button>
-                </form>
-
-                @if($wager->creator_id == Auth::id())
-                <div class="mt-5 pt-5 border-t border-slate-100 dark:border-white/[0.05]">
-                    <p class="text-xs uppercase tracking-[0.12em] font-bold text-slate-400 dark:text-slate-600 mb-3 text-center">Creator Controls</p>
-                    <div class="flex gap-3">
-                        <a href="{{ route('wagers.edit', $wager) }}" class="flex-1">
-                            <button type="button" class="w-full py-2.5 px-4 text-sm font-semibold rounded-xl
-                                bg-slate-50 dark:bg-white/[0.04] hover:bg-emerald-50 dark:hover:bg-emerald-900/20
-                                border border-slate-200 dark:border-white/[0.07] hover:border-emerald-400 dark:hover:border-emerald-500/30
-                                text-slate-600 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-400
-                                transition-all duration-200">
-                                Edit Wager
-                            </button>
-                        </a>
-                        <button type="button" id="endWagerButton" class="flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl
-                            bg-slate-50 dark:bg-white/[0.04] hover:bg-red-50 dark:hover:bg-red-900/20
-                            border border-slate-200 dark:border-white/[0.07] hover:border-red-400 dark:hover:border-red-500/30
-                            text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400
-                            transition-all duration-200">
-                            End Wager
+                @else
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-1.5 h-5 bg-slate-400 dark:bg-slate-600 rounded-full"></div>
+                        <h2 class="text-sm uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400">Place Your Bets</h2>
+                    </div>
+                    <form method="POST" action="{{ route('wagers.bet', $wager) }}" id="bet-form" onsubmit="return handleBetSubmit(event)" class="space-y-3">
+                        @csrf
+                        <div id="bets-container"></div>
+                        @foreach($wager->choices as $choice)
+                        <div class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05]">
+                            <span class="flex-1 text-sm font-semibold text-slate-900 dark:text-white">{{ $choice->label }}</span>
+                            <span class="text-xs text-slate-400 dark:text-slate-600 shrink-0">{{ number_format($choice->total_bet, 0) }} bet</span>
+                            <input type="number" data-choice-id="{{ $choice->id }}"
+                                placeholder="Amount"
+                                class="bet-input w-28 px-3 py-2 rounded-xl text-sm bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"
+                                min="1" step="1"/>
+                        </div>
+                        @endforeach
+                        <button type="submit" id="submit-btn"
+                            class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-2">
+                            <span id="submit-text">Place Bet</span>
+                            <span id="submit-spinner" class="hidden ml-2">
+                                <svg class="animate-spin h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                </svg>
+                            </span>
                         </button>
+                    </form>
+
+                    @if($wager->creator_id == Auth::id())
+                    <div class="mt-5 pt-5 border-t border-slate-100 dark:border-white/[0.05]">
+                        <p class="text-xs uppercase tracking-[0.12em] font-bold text-slate-400 dark:text-slate-600 mb-3 text-center">Creator Controls</p>
+                        <div class="flex gap-3">
+                            <a href="{{ route('wagers.edit', $wager) }}" class="flex-1">
+                                <button type="button" class="w-full py-2.5 px-4 text-sm font-semibold rounded-xl
+                                    bg-slate-50 dark:bg-white/[0.04] hover:bg-emerald-50 dark:hover:bg-emerald-900/20
+                                    border border-slate-200 dark:border-white/[0.07] hover:border-emerald-400 dark:hover:border-emerald-500/30
+                                    text-slate-600 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-400
+                                    transition-all duration-200">
+                                    Edit Wager
+                                </button>
+                            </a>
+                            <button type="button" id="endWagerButton" class="flex-1 py-2.5 px-4 text-sm font-semibold rounded-xl
+                                bg-slate-50 dark:bg-white/[0.04] hover:bg-red-50 dark:hover:bg-red-900/20
+                                border border-slate-200 dark:border-white/[0.07] hover:border-red-400 dark:hover:border-red-500/30
+                                text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400
+                                transition-all duration-200">
+                                End Wager
+                            </button>
+                        </div>
                     </div>
-                </div>
+                    @endif
                 @endif
             </div>
             @endif

@@ -432,7 +432,7 @@ class WagerController extends Controller
         }
     }
 
- public function sendInvitation(Request $request, Wager $wager)
+    public function sendInvitation(Request $request, Wager $wager)
     {
         $request->validate([
             'friend_id' => 'required|exists:users,id',
@@ -442,19 +442,19 @@ class WagerController extends Controller
         $inviteeId = (int) $request->input('friend_id');
 
         if ($wager->creator_id !== $inviterId && !$wager->hasPlayer($inviterId)) {
-            return response()->json(['success' => false, 'message' => 'You must be in this wager to invite others.'], 403);
+            return back()->with('error', 'You must be in this wager to invite others.');
         }
 
         if ($wager->status === 'ended') {
-            return response()->json(['success' => false, 'message' => 'Cannot invite to an ended wager.'], 400);
+            return back()->with('error', 'Cannot invite to an ended wager.');
         }
 
         if ($wager->isFull()) {
-            return response()->json(['success' => false, 'message' => 'This wager is already full.'], 400);
+            return back()->with('error', 'This wager is already full.');
         }
 
         if ($wager->hasPlayer($inviteeId)) {
-            return response()->json(['success' => false, 'message' => 'This person is already in the wager.'], 400);
+            return back()->with('error', 'This person is already in the wager.');
         }
 
         $existing = WagerInvitation::where('wager_id', $wager->id)
@@ -464,7 +464,7 @@ class WagerController extends Controller
             ->first();
 
         if ($existing) {
-            return response()->json(['success' => false, 'message' => 'This person already has a pending invitation.'], 400);
+            return back()->with('error', 'This person already has a pending invitation.');
         }
 
         // Fetch the invitee so we can store their email (column is NOT NULL in some DB setups)
@@ -478,7 +478,7 @@ class WagerController extends Controller
             'status'     => WagerInvitation::STATUS_PENDING,
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Invitation sent!']);
+        return back()->with('success', 'Invitation sent successfully!');
     }
 
     public function acceptInvitation($token)
