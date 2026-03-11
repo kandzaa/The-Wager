@@ -7,6 +7,7 @@ use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WagerController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Models\FriendRequest;
 use App\Models\User;
 use App\Models\Wager;
 use Illuminate\Support\Facades\Auth;
@@ -20,12 +21,20 @@ Route::get('/dashboard', function () {
     $wagersCount = Wager::count();
     $usersCount  = User::count();
 
+    // Pending wager invitations for this user
     $pendingInvitations = auth()->user()->wagerInvitations()
-        ->with('wager')
+        ->with(['wager.creator'])
         ->where('status', \App\Models\WagerInvitation::STATUS_PENDING)
         ->where('expires_at', '>', now())
         ->get();
 
+    // Pending friend requests sent TO this user
+    $pendingFriendRequests = FriendRequest::with('requester')
+        ->where('recipient_id', auth()->id())
+        ->where('status', 'pending')
+        ->get();
+
+    // Active wagers this user has joined
     $joinedWagers = auth()->user()->wagerPlayers()
         ->with(['wager' => function ($query) {
             $query->withCount('players');
@@ -36,7 +45,13 @@ Route::get('/dashboard', function () {
         ->get()
         ->sortByDesc('wager.ending_time');
 
-    return view('dashboard', compact('wagersCount', 'usersCount', 'pendingInvitations', 'joinedWagers'));
+    return view('dashboard', compact(
+        'wagersCount',
+        'usersCount',
+        'pendingInvitations',
+        'pendingFriendRequests',
+        'joinedWagers'
+    ));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/balance', function () {
@@ -85,17 +100,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/friends/remove', [FriendsController::class, 'removeFriend'])->name('friends.remove');
     Route::post('/friends/request', [FriendsController::class, 'requestFriend'])->name('friends.request');
     Route::post('/friends/accept', [FriendsController::class, 'acceptRequest'])->name('friends.accept');
+    Route::post('/friends/decline', [FriendsController::class, 'declineRequest'])->name('friends.decline'); // NEW
     Route::get('/user/{id}', [FriendsController::class, 'showUser'])->name('user.show');
 });
 
-// History routes 
+// History routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/history', [HistoryController::class, 'index'])->name('history');
     Route::get('/history/wager/{wager}', [WagerController::class, 'results'])->name('history.wager.show');
     Route::get('/wagers/{wager}/results', [HistoryController::class, 'show'])->name('wagers.results');
 });
 
-//Cosmetic rout
+// Cosmetic routes
 Route::post('/cosmetics/buy',   [App\Http\Controllers\CosmeticController::class, 'buy'])->name('cosmetics.buy');
 Route::post('/cosmetics/equip', [App\Http\Controllers\CosmeticController::class, 'equip'])->name('cosmetics.equip');
 

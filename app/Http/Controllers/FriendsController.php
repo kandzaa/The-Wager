@@ -70,16 +70,10 @@ class FriendsController extends Controller
 
     public function addFriend(Request $request)
     {
-        \Log::info('Add friend request received', ['request' => $request->all()]);
-
-        $request->validate([
-            'friend_id' => 'required|exists:users,id',
-        ]);
+        $request->validate(['friend_id' => 'required|exists:users,id']);
 
         $friendId = $request->input('friend_id');
         $user     = Auth::user();
-
-        \Log::info('Adding friend', ['user_id' => $user->id, 'friend_id' => $friendId]);
 
         if ($user->id == $friendId) {
             return response()->json(['message' => 'You cannot add yourself as a friend.'], 400);
@@ -91,10 +85,8 @@ class FriendsController extends Controller
 
         try {
             $user->friends()->attach($friendId);
-            \Log::info('Friend added successfully');
             return response()->json(['message' => 'Friend added successfully.']);
         } catch (\Exception $e) {
-            \Log::error('Error adding friend: ' . $e->getMessage());
             return response()->json(['message' => 'Error adding friend.'], 500);
         }
     }
@@ -112,16 +104,17 @@ class FriendsController extends Controller
 
     public function removeFriend(Request $request)
     {
-        $request->validate([
-            'friend_id' => 'required|exists:users,id',
-        ]);
+        $request->validate(['friend_id' => 'required|exists:users,id']);
 
         $friendId = $request->input('friend_id');
         $user     = Auth::user();
 
         if ($user->friends()->where('friend_id', $friendId)->exists()) {
             $user->friends()->detach($friendId);
-            $friendId->friends()->detach($user->id);
+            $friend = User::find($friendId);
+            if ($friend) {
+                $friend->friends()->detach($user->id);
+            }
             return response()->json(['message' => 'Friend removed successfully.']);
         }
 
@@ -130,9 +123,7 @@ class FriendsController extends Controller
 
     public function requestFriend(Request $request)
     {
-        $request->validate([
-            'recipient_id' => 'required|exists:users,id',
-        ]);
+        $request->validate(['recipient_id' => 'required|exists:users,id']);
 
         $recipientId = (int) $request->input('recipient_id');
         $userId      = (int) Auth::id();
@@ -171,9 +162,7 @@ class FriendsController extends Controller
 
     public function acceptRequest(Request $request)
     {
-        $request->validate([
-            'request_id' => 'required|exists:friend_requests,id',
-        ]);
+        $request->validate(['request_id' => 'required|exists:friend_requests,id']);
 
         $friendRequest = FriendRequest::with(['requester', 'recipient'])->findOrFail($request->input('request_id'));
 
@@ -193,7 +182,6 @@ class FriendsController extends Controller
         if (! $recipient->friends()->where('friend_id', $requesterId)->exists()) {
             $recipient->friends()->attach($requesterId);
         }
-
         if (! $requester->friends()->where('friend_id', $recipientId)->exists()) {
             $requester->friends()->attach($recipientId);
         }
@@ -202,5 +190,25 @@ class FriendsController extends Controller
         $friendRequest->save();
 
         return response()->json(['message' => 'Friend request accepted.']);
+    }
+
+    /**
+     * Decline a pending friend request.
+     * Called from the dashboard decline button via POST /friends/decline
+     */
+    public function declineRequest(Request $request)
+    {
+        $request->validate(['request_id' => 'required|exists:friend_requests,id']);
+
+        $friendRequest = FriendRequest::findOrFail($request->input('request_id'));
+
+        if ($friendRequest->recipient_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $friendRequest->status = 'declined';
+        $friendRequest->save();
+
+        return response()->json(['message' => 'Friend request declined.']);
     }
 }
