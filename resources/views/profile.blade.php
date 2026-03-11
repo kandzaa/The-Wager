@@ -10,30 +10,47 @@
 .fu { opacity:0; transform:translateY(14px); animation:fu .4s ease forwards; }
 @keyframes fu { to { opacity:1; transform:translateY(0); } }
 
-.tb { padding:12px 20px; font-size:13px; font-weight:800; color:#475569; transition:color .2s; position:relative; }
-.tb:hover { color:#fff; }
-.tb.on { color:#fff; }
+.tb { padding:12px 20px; font-size:13px; font-weight:800; transition:color .2s; position:relative; }
+.tb:hover { color:#10b981; }
+.tb.on { color:#10b981; }
 .tb.on::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:#10b981; border-radius:99px; }
 .tc { display:none; }
 .tc.on { display:block; animation:fu .25s ease; }
 
-.av-ring { display:block; padding:3px; }
-.f-none    .av-ring { background:rgba(255,255,255,.08); }
-.f-gold    .av-ring { background:linear-gradient(135deg,#f59e0b,#d97706,#fbbf24); }
-.f-crimson .av-ring { background:linear-gradient(135deg,#ef4444,#b91c1c); }
-.f-void    .av-ring { background:linear-gradient(135deg,#7c3aed,#4c1d95); }
-.f-aurora  .av-ring { background:linear-gradient(135deg,#10b981,#3b82f6,#8b5cf6,#ef4444); }
+/* Light mode tab text */
+html:not(.dark) .tb       { color:#64748b; }
+html:not(.dark) .tb:hover { color:#10b981; }
+html:not(.dark) .tb.on    { color:#10b981; }
 
-.bg-default  { background:#080b0f; }
-.bg-midnight { background:linear-gradient(160deg,#0f0c29 0%,#1a1640 100%); }
-.bg-crimson  { background:linear-gradient(160deg,#1a0505 0%,#2d0a0a 100%); }
-.bg-void     { background:linear-gradient(160deg,#050510 0%,#0d0520 100%); }
+/* Dark mode tab text */
+html.dark .tb       { color:#475569; }
+html.dark .tb:hover { color:#fff; }
+html.dark .tb.on    { color:#fff; }
+
+.av-ring { display:block; padding:3px; }
+
+/* Theme backgrounds — dark */
+html.dark .bg-profile-default  { background:#080b0f; }
+html.dark .bg-profile-midnight { background:linear-gradient(160deg,#0f0c29 0%,#1a1640 100%); }
+html.dark .bg-profile-crimson  { background:linear-gradient(160deg,#1a0505 0%,#2d0a0a 100%); }
+html.dark .bg-profile-void     { background:linear-gradient(160deg,#050510 0%,#0d0520 100%); }
+
+/* Theme backgrounds — light */
+html:not(.dark) .bg-profile-default  { background:#f8fafc; }
+html:not(.dark) .bg-profile-midnight { background:linear-gradient(160deg,#ede9fe 0%,#e0e7ff 100%); }
+html:not(.dark) .bg-profile-crimson  { background:linear-gradient(160deg,#fff1f2 0%,#ffe4e6 100%); }
+html:not(.dark) .bg-profile-void     { background:linear-gradient(160deg,#f5f3ff 0%,#ede9fe 100%); }
 
 .r-common    { color:#94a3b8; }
-.r-uncommon  { color:#4ade80; }
-.r-rare      { color:#60a5fa; }
-.r-epic      { color:#a78bfa; }
-.r-legendary { color:#fbbf24; }
+.r-uncommon  { color:#16a34a; }
+.r-rare      { color:#2563eb; }
+.r-epic      { color:#7c3aed; }
+.r-legendary { color:#d97706; }
+
+html.dark .r-uncommon  { color:#4ade80; }
+html.dark .r-rare      { color:#60a5fa; }
+html.dark .r-epic      { color:#a78bfa; }
+html.dark .r-legendary { color:#fbbf24; }
 
 .ttag { display:inline-block; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; border:1px solid; }
 
@@ -41,7 +58,9 @@
 .ccard:hover { transform:translateY(-2px); }
 .ccard.is-equipped { box-shadow:0 0 0 2px #10b981,0 0 18px rgba(16,185,129,.2); }
 
-.sbar { height:4px; background:rgba(255,255,255,.05); border-radius:99px; overflow:hidden; }
+.sbar { height:4px; border-radius:99px; overflow:hidden; }
+html.dark  .sbar { background:rgba(255,255,255,.05); }
+html:not(.dark) .sbar { background:rgba(0,0,0,.07); }
 .sfil { height:100%; background:linear-gradient(90deg,#10b981,#34d399); border-radius:99px; transition:width 1.4s cubic-bezier(.4,0,.2,1); }
 
 .bpulse { animation:bp 2.5s ease-in-out infinite; }
@@ -51,11 +70,75 @@
 .toast.show { transform:translateY(0); opacity:1; }
 .toast.ok  { background:#0d2818; border:1px solid rgba(16,185,129,.4); color:#34d399; }
 .toast.err { background:#2d0a0a; border:1px solid rgba(239,68,68,.4);  color:#f87171; }
+html:not(.dark) .toast.ok  { background:#ecfdf5; border-color:#6ee7b7; color:#065f46; }
+html:not(.dark) .toast.err { background:#fff1f2; border-color:#fca5a5; color:#991b1b; }
 
 .eq-btn { width:100%; padding:8px; border-radius:10px; font-size:12px; font-weight:700; transition:all .2s; border:1px solid; }
 .eq-off { background:rgba(16,185,129,.07); border-color:rgba(16,185,129,.2); color:#10b981; }
 .eq-off:hover { background:rgba(16,185,129,.15); }
-.eq-on  { background:rgba(16,185,129,.18); border-color:rgba(16,185,129,.5); color:#34d399; }
+.eq-on  { background:rgba(16,185,129,.18); border-color:rgba(16,185,129,.5); color:#059669; }
+html.dark .eq-on { color:#34d399; }
+
+/* Card backgrounds */
+.prof-card {
+    border-radius:1rem;
+    border-width:1px;
+    border-style:solid;
+}
+html.dark  .prof-card { background:rgba(255,255,255,.02); border-color:rgba(255,255,255,.07); }
+html:not(.dark) .prof-card { background:#ffffff; border-color:#e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+
+html.dark  .prof-hero  { background:rgba(255,255,255,.02); border-color:rgba(255,255,255,.08); }
+html:not(.dark) .prof-hero { background:#ffffff; border-color:#e2e8f0; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+
+html.dark  .prof-inner { background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.05); }
+html:not(.dark) .prof-inner { background:#f8fafc; border-color:#e2e8f0; }
+
+html.dark  .prof-tab-border { border-color:rgba(255,255,255,.07); }
+html:not(.dark) .prof-tab-border { border-color:#e2e8f0; }
+
+html.dark  .prof-text-main { color:#ffffff; }
+html:not(.dark) .prof-text-main { color:#0f172a; }
+
+html.dark  .prof-text-muted { color:#475569; }
+html:not(.dark) .prof-text-muted { color:#94a3b8; }
+
+html.dark  .prof-text-sub { color:#334155; }
+html:not(.dark) .prof-text-sub { color:#cbd5e1; }
+
+html.dark  .prof-sep { border-color:rgba(255,255,255,.04); }
+html:not(.dark) .prof-sep { border-color:#f1f5f9; }
+
+html.dark  .prof-inline-bg { background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.04); }
+html:not(.dark) .prof-inline-bg { background:#f8fafc; border-color:#e2e8f0; }
+
+html.dark  .prof-shop-cat-off  { background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.07); color:#64748b; }
+html:not(.dark) .prof-shop-cat-off { background:#f8fafc; border-color:#e2e8f0; color:#94a3b8; }
+html.dark  .prof-shop-cat-off:hover { color:#fff; }
+html:not(.dark) .prof-shop-cat-off:hover { color:#0f172a; }
+
+html.dark  .prof-avatar-bg { background:#0d1117; }
+html:not(.dark) .prof-avatar-bg { background:#f1f5f9; }
+
+html.dark  .prof-charm-bg { background:#0d1117; border-color:rgba(255,255,255,.1); }
+html:not(.dark) .prof-charm-bg { background:#f1f5f9; border-color:#e2e8f0; }
+
+html.dark  .prof-activity-dot-border { border-color:#080b0f; }
+html:not(.dark) .prof-activity-dot-border { border-color:#ffffff; }
+
+/* Settings inputs */
+html.dark  .prof-input  { background:rgba(0,0,0,.4); border-color:rgba(255,255,255,.1); color:#fff; }
+html:not(.dark) .prof-input { background:#ffffff; border-color:#e2e8f0; color:#0f172a; }
+
+/* Danger zone */
+html.dark  .prof-danger { background:rgba(127,29,29,.2); border-color:rgba(239,68,68,.2); }
+html:not(.dark) .prof-danger { background:#fff1f2; border-color:#fecaca; }
+
+/* Blob tints */
+html:not(.dark) .blob-1 { background:rgba(16,185,129,.06); }
+html.dark        .blob-1 { background:rgba(16,185,129,.10); }
+html:not(.dark) .blob-2 { background:rgba(203,213,225,.15); }
+html.dark        .blob-2 { background:rgba(15,23,42,.30); }
 </style>
 
 @php
@@ -68,7 +151,6 @@
 
     $ownedIds = DB::table('user_cosmetics')->where('user_id',$user->id)->pluck('cosmetic_id')->toArray();
 
-    // LEFT JOIN so orphaned cosmetic references never hard-fail and poison the connection
     $equippedRows = DB::table('user_equipped as e')
         ->leftJoin('cosmetics as c', 'e.cosmetic_id', '=', 'c.id')
         ->where('e.user_id', $user->id)
@@ -85,8 +167,16 @@
     $frameMeta  = $eFrame ? json_decode($eFrame->meta, true) : null;
     $titleMeta  = $eTitle ? json_decode($eTitle->meta, true) : null;
     $themeMeta  = $eTheme ? json_decode($eTheme->meta, true) : null;
-    $frameStyle = ($frameMeta && isset($frameMeta['gradient'])) ? "background:{$frameMeta['gradient']}" : 'background:rgba(255,255,255,.08)';
-    $themeClass = $themeMeta['bg_class'] ?? 'bg-default';
+    $frameStyle = ($frameMeta && isset($frameMeta['gradient'])) ? "background:{$frameMeta['gradient']}" : '';
+    $themeKey   = $themeMeta['bg_class'] ?? null;
+    // Map old bg_class values to new prefixed ones
+    $themeClassMap = [
+        'bg-default'  => 'bg-profile-default',
+        'bg-midnight' => 'bg-profile-midnight',
+        'bg-crimson'  => 'bg-profile-crimson',
+        'bg-void'     => 'bg-profile-void',
+    ];
+    $themeClass = isset($themeKey) ? ($themeClassMap[$themeKey] ?? 'bg-profile-default') : 'bg-profile-default';
 
     $shop = \App\Models\Cosmetic::all()->groupBy('type');
 
@@ -98,31 +188,31 @@
         ->orderByDesc('b.updated_at')->limit(5)->get();
 @endphp
 
-<div class="pf min-h-screen {{ $themeClass }} text-white">
+<div class="pf min-h-screen {{ $themeClass }} prof-text-main" id="profile-root">
 
     <div class="fixed inset-0 pointer-events-none overflow-hidden">
-        <div class="absolute top-0 left-1/3 w-[600px] h-[500px] bg-emerald-900/10 rounded-full blur-[140px]"></div>
-        <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-slate-900/30 rounded-full blur-[100px]"></div>
+        <div class="blob-1 absolute top-0 left-1/3 w-[600px] h-[500px] rounded-full blur-[140px]"></div>
+        <div class="blob-2 absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px]"></div>
     </div>
 
     <div class="relative z-10 max-w-6xl mx-auto px-6 py-12">
 
         {{-- ═══ HERO ═══ --}}
-        <div class="fu mb-8 rounded-3xl border border-white/[0.08] bg-white/[0.02] p-8 relative overflow-hidden">
-            <div class="absolute inset-0 opacity-[0.025]" style="background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.5) 0,rgba(255,255,255,.5) 1px,transparent 0,transparent 50%);background-size:20px 20px;"></div>
+        <div class="fu prof-hero mb-8 rounded-3xl p-8 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-[0.025]" style="background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.3) 0,rgba(0,0,0,.3) 1px,transparent 0,transparent 50%);background-size:20px 20px;"></div>
             <div class="relative flex flex-col md:flex-row items-start md:items-center gap-8">
 
                 <div class="relative shrink-0">
-                    <div class="av-ring rounded-[22px]" style="{{ $frameStyle }}; width:112px; height:112px;">
-                        <div class="rounded-[19px] bg-[#0d1117] flex items-center justify-center" style="width:100%;height:100%;">
-                            <span class="dsp text-5xl text-white">{{ strtoupper(substr($user->name,0,1)) }}</span>
+                    <div class="av-ring rounded-[22px]" id="hero-ring" style="{{ $frameStyle ?: '' }}; width:112px; height:112px;">
+                        <div class="prof-avatar-bg rounded-[19px] flex items-center justify-center" style="width:100%;height:100%;">
+                            <span class="dsp text-5xl prof-text-main">{{ strtoupper(substr($user->name,0,1)) }}</span>
                         </div>
                     </div>
                     @if($eCharms->isNotEmpty())
                     <div class="absolute -bottom-2 -right-2 flex gap-1" id="hero-charms">
                         @foreach($eCharms as $ch)
                         @php $cm=json_decode($ch->meta,true); @endphp
-                        <div class="w-8 h-8 rounded-lg bg-[#0d1117] border border-white/10 flex items-center justify-center text-sm">{{ $cm['emoji']??'?' }}</div>
+                        <div class="prof-charm-bg w-8 h-8 rounded-lg flex items-center justify-center text-sm border">{{ $cm['emoji']??'?' }}</div>
                         @endforeach
                     </div>
                     @endif
@@ -130,17 +220,25 @@
 
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-3 flex-wrap mb-1">
-                        <h1 class="dsp text-5xl">{{ $user->name }}</h1>
+                        <h1 class="dsp text-5xl prof-text-main">{{ $user->name }}</h1>
                         <div id="hero-title">
                             @if($eTitle && $titleMeta)
                             <span class="ttag {{ $titleMeta['bg'] }} {{ $titleMeta['color'] }}">{{ $eTitle->name }}</span>
                             @endif
                         </div>
                     </div>
-                    <p class="mn text-xs text-slate-600 mb-5">Member since {{ \Carbon\Carbon::parse($user->created_at)->format('M Y') }}</p>
+                    <p class="mn text-xs prof-text-muted mb-5">Member since {{ \Carbon\Carbon::parse($user->created_at)->format('M Y') }}</p>
                     <div class="flex flex-wrap gap-7">
-                        @foreach([['Win Rate',$winRate.'%','text-white'],['Bets',$totalBets,'text-white'],['Won',$wonBets,'text-emerald-400'],['Earned',number_format($totalPayout,0),'text-amber-400']] as [$l,$v,$c])
-                        <div><p class="mn text-xs text-slate-600 mb-0.5">{{ $l }}</p><p class="dsp text-2xl {{ $c }}">{{ $v }}</p></div>
+                        @foreach([
+                            ['Win Rate', $winRate.'%',             'text-emerald-600 dark:text-white'],
+                            ['Bets',     $totalBets,               'prof-text-main'],
+                            ['Won',      $wonBets,                 'text-emerald-600 dark:text-emerald-400'],
+                            ['Earned',   number_format($totalPayout,0), 'text-amber-600 dark:text-amber-400'],
+                        ] as [$l,$v,$c])
+                        <div>
+                            <p class="mn text-xs prof-text-muted mb-0.5">{{ $l }}</p>
+                            <p class="dsp text-2xl {{ $c }}">{{ $v }}</p>
+                        </div>
                         @endforeach
                     </div>
                 </div>
@@ -148,15 +246,15 @@
                 <div class="shrink-0 text-right">
                     <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 bpulse">
                         <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-6 h-6">
-                        <span class="dsp text-2xl text-amber-400" id="bal">{{ number_format($user->balance,0) }}</span>
+                        <span class="dsp text-2xl text-amber-600 dark:text-amber-400" id="bal">{{ number_format($user->balance,0) }}</span>
                     </div>
-                    <p class="mn text-xs text-slate-600 mt-1">coins</p>
+                    <p class="mn text-xs prof-text-muted mt-1">coins</p>
                 </div>
             </div>
         </div>
 
         {{-- ═══ TABS ═══ --}}
-        <div class="fu border-b border-white/[0.07] mb-6 flex" style="animation-delay:50ms">
+        <div class="fu prof-tab-border border-b mb-6 flex" style="animation-delay:50ms">
             @foreach(['stats'=>'Stats','shop'=>'🛍 Shop','customize'=>'🎨 Customize','settings'=>'Settings'] as $t=>$l)
             <button onclick="switchTab('{{ $t }}')" class="tb {{ $t==='stats'?'on':'' }}" id="tb-{{ $t }}">{{ $l }}</button>
             @endforeach
@@ -166,58 +264,64 @@
         <div class="tc on" id="tc-stats">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 <div class="lg:col-span-2 space-y-5">
-                    <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6">
-                        <p class="mn text-xs uppercase tracking-[.2em] text-slate-500 mb-5">Performance</p>
+
+                    <div class="prof-card p-6">
+                        <p class="mn text-xs uppercase tracking-[.2em] prof-text-muted mb-5">Performance</p>
                         <div class="grid grid-cols-3 gap-3 mb-5">
-                            @foreach([['Won',$wonBets,'text-emerald-400'],['Lost',$totalBets-$wonBets,'text-red-400'],['Total',$totalBets,'text-white']] as [$l,$v,$c])
-                            <div class="rounded-xl bg-white/[0.03] border border-white/[0.05] p-4 text-center">
+                            @foreach([
+                                ['Won',   $wonBets,              'text-emerald-600 dark:text-emerald-400'],
+                                ['Lost',  $totalBets-$wonBets,   'text-red-500 dark:text-red-400'],
+                                ['Total', $totalBets,            'prof-text-main'],
+                            ] as [$l,$v,$c])
+                            <div class="prof-inner rounded-xl border p-4 text-center">
                                 <p class="dsp text-4xl {{ $c }}">{{ $v }}</p>
-                                <p class="mn text-xs text-slate-500 mt-1">{{ $l }}</p>
+                                <p class="mn text-xs prof-text-muted mt-1">{{ $l }}</p>
                             </div>
                             @endforeach
                         </div>
                         <div class="flex justify-between mb-1.5">
-                            <span class="mn text-xs text-slate-500">Win Rate</span>
-                            <span class="mn text-xs text-emerald-400">{{ $winRate }}%</span>
+                            <span class="mn text-xs prof-text-muted">Win Rate</span>
+                            <span class="mn text-xs text-emerald-600 dark:text-emerald-400">{{ $winRate }}%</span>
                         </div>
                         <div class="sbar"><div class="sfil" style="width:{{ $winRate }}%"></div></div>
                     </div>
 
-                    <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6">
-                        <p class="mn text-xs uppercase tracking-[.2em] text-slate-500 mb-4">Recent Activity</p>
+                    <div class="prof-card p-6">
+                        <p class="mn text-xs uppercase tracking-[.2em] prof-text-muted mb-4">Recent Activity</p>
                         @forelse($recentBets as $b)
-                        <div class="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0">
+                        <div class="flex items-center justify-between py-3 border-b prof-sep last:border-0">
                             <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-2 h-2 rounded-full shrink-0 {{ $b->status==='won'?'bg-emerald-500':($b->status==='lost'?'bg-red-500':'bg-slate-600') }}"></div>
-                                <span class="text-sm font-bold text-slate-300 truncate">{{ $b->name }}</span>
+                                <div class="w-2 h-2 rounded-full shrink-0 {{ $b->status==='won'?'bg-emerald-500':($b->status==='lost'?'bg-red-500':'bg-slate-400') }}"></div>
+                                <span class="text-sm font-bold prof-text-main truncate">{{ $b->name }}</span>
                             </div>
-                            <span class="mn text-xs font-bold ml-4 shrink-0 {{ $b->status==='won'?'text-emerald-400':'text-red-400' }}">
+                            <span class="mn text-xs font-bold ml-4 shrink-0 {{ $b->status==='won'?'text-emerald-600 dark:text-emerald-400':'text-red-500 dark:text-red-400' }}">
                                 {{ $b->status==='won' ? '+'.number_format($b->payout-$b->bet_amount,0) : '-'.number_format($b->bet_amount,0) }}
                             </span>
                         </div>
                         @empty
-                        <p class="text-slate-600 text-sm text-center py-6">No bets yet</p>
+                        <p class="prof-text-muted text-sm text-center py-6">No bets yet</p>
                         @endforelse
-                        <a href="{{ route('history') }}" class="block text-center mn text-xs text-emerald-500 hover:text-emerald-400 mt-4 transition-colors">View full history →</a>
+                        <a href="{{ route('history') }}" class="block text-center mn text-xs text-emerald-600 dark:text-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-400 mt-4 transition-colors">View full history →</a>
                     </div>
                 </div>
+
                 <div class="space-y-4">
-                    <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-                        <p class="mn text-xs uppercase tracking-[.2em] text-slate-500 mb-4">Equipped</p>
+                    <div class="prof-card p-5">
+                        <p class="mn text-xs uppercase tracking-[.2em] prof-text-muted mb-4">Equipped</p>
                         <div class="space-y-2">
                             @foreach(['frame'=>'Frame','title'=>'Title','theme'=>'Theme','charm_1'=>'Charm 1','charm_2'=>'Charm 2','charm_3'=>'Charm 3'] as $slot=>$label)
                             @php $eq=$equippedRows->get($slot); @endphp
-                            <div class="flex items-center justify-between py-2 px-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
-                                <span class="mn text-xs text-slate-600">{{ $label }}</span>
-                                <span class="text-xs font-bold {{ $eq?'text-emerald-400':'text-slate-700' }}" data-equipped-slot="{{ $slot }}">{{ $eq?$eq->name:'—' }}</span>
+                            <div class="prof-inline-bg flex items-center justify-between py-2 px-3 rounded-xl border">
+                                <span class="mn text-xs prof-text-muted">{{ $label }}</span>
+                                <span class="text-xs font-bold {{ $eq?'text-emerald-600 dark:text-emerald-400':'prof-text-sub' }}" data-equipped-slot="{{ $slot }}">{{ $eq?$eq->name:'—' }}</span>
                             </div>
                             @endforeach
                         </div>
                     </div>
                     <div class="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
                         <p class="mn text-xs uppercase tracking-[.2em] text-amber-600/60 mb-2">All-time Earned</p>
-                        <p class="dsp text-5xl text-amber-400">{{ number_format($totalPayout,0) }}</p>
-                        <p class="mn text-xs text-slate-600 mt-1">coins won</p>
+                        <p class="dsp text-5xl text-amber-600 dark:text-amber-400">{{ number_format($totalPayout,0) }}</p>
+                        <p class="mn text-xs prof-text-muted mt-1">coins won</p>
                     </div>
                 </div>
             </div>
@@ -228,7 +332,7 @@
             <div class="flex gap-2 mb-6 flex-wrap">
                 @foreach(['frame'=>'🖼 Frames','title'=>'👑 Titles','theme'=>'🎨 Themes','charm'=>'✨ Charms'] as $cat=>$lbl)
                 <button onclick="shopCat('{{ $cat }}')" id="sc-{{ $cat }}"
-                    class="px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-200 {{ $cat==='frame'?'bg-emerald-500/10 border-emerald-500/30 text-emerald-400':'bg-white/[0.03] border-white/[0.07] text-slate-500 hover:text-white' }}">
+                    class="px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-200 {{ $cat==='frame'?'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400':'prof-shop-cat-off' }}">
                     {{ $lbl }}
                 </button>
                 @endforeach
@@ -243,7 +347,8 @@
                         $owned    = in_array($item->id,$ownedIds);
                         $equipped = collect($equippedRows)->contains('id',$item->id);
                     @endphp
-                    <div class="ccard rounded-2xl border {{ $equipped?'border-emerald-500/60 bg-emerald-500/5':($owned?'border-white/20 bg-white/[0.04]':'border-white/[0.07] bg-white/[0.02]') }} p-4 relative {{ $equipped?'is-equipped':'' }}"
+                    <div class="ccard prof-card rounded-2xl p-4 relative {{ $equipped?'is-equipped':'' }}"
+                         style="{{ $equipped ? 'border-color:rgba(16,185,129,.6);box-shadow:0 0 0 2px #10b981,0 0 18px rgba(16,185,129,.2);' : ($owned ? '' : '') }}"
                          id="card-{{ $item->id }}" data-ctype="{{ $type }}">
 
                         @if($equipped)
@@ -254,8 +359,8 @@
 
                         @if($type==='frame')
                         <div class="w-14 h-14 mx-auto mb-3 p-[3px]" style="background:{{ $m['gradient']??'#333' }}; border-radius:16px;">
-                            <div class="w-full h-full bg-[#0d1117] flex items-center justify-center" style="border-radius:13px;">
-                                <span class="dsp text-2xl text-white">{{ strtoupper(substr($user->name,0,1)) }}</span>
+                            <div class="prof-avatar-bg w-full h-full flex items-center justify-center" style="border-radius:13px;">
+                                <span class="dsp text-2xl prof-text-main">{{ strtoupper(substr($user->name,0,1)) }}</span>
                             </div>
                         </div>
                         @elseif($type==='theme')
@@ -263,10 +368,10 @@
                         @elseif($type==='charm')
                         <div class="text-4xl text-center mb-2">{{ $m['emoji']??'?' }}</div>
                         @elseif($type==='title')
-                        <div class="mb-3"><span class="ttag {{ $m['bg']??'bg-slate-500/10 border-slate-500/30' }} {{ $m['color']??'text-slate-300' }}">{{ $item->name }}</span></div>
+                        <div class="mb-3"><span class="ttag {{ $m['bg']??'bg-slate-500/10 border-slate-500/30' }} {{ $m['color']??'text-slate-500' }}">{{ $item->name }}</span></div>
                         @endif
 
-                        <p class="font-bold text-sm text-white text-center mb-0.5">{{ $item->name }}</p>
+                        <p class="font-bold text-sm prof-text-main text-center mb-0.5">{{ $item->name }}</p>
                         <p class="mn text-xs text-center r-{{ $item->rarity }} mb-3">{{ ucfirst($item->rarity) }}</p>
 
                         @if($owned)
@@ -275,7 +380,7 @@
                             {{ $equipped ? '✓ Equipped' : 'Equip' }}
                         </button>
                         @else
-                        <button class="w-full py-2 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 transition-all active:scale-95"
+                        <button class="w-full py-2 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all active:scale-95"
                                 onclick="buyItem({{ $item->id }},'{{ addslashes($item->name) }}',{{ $item->price }},this)">
                             <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline"> {{ number_format($item->price) }}
                         </button>
@@ -287,7 +392,7 @@
             @endforeach
         </div>
 
-        {{-- ═══ CUSTOMIZE (owned only) ═══ --}}
+        {{-- ═══ CUSTOMIZE ═══ --}}
         <div class="tc" id="tc-customize">
             @php
                 $ownedFrames = $shop->get('frame',collect())->filter(fn($i)=>in_array($i->id,$ownedIds));
@@ -298,18 +403,18 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {{-- Live preview --}}
-                <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-6">
-                    <p class="mn text-xs uppercase tracking-[.2em] text-slate-500 mb-4">Preview</p>
-                    <div class="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-10 flex flex-col items-center gap-4">
+                <div class="prof-card p-6 rounded-2xl">
+                    <p class="mn text-xs uppercase tracking-[.2em] prof-text-muted mb-4">Preview</p>
+                    <div class="prof-inner rounded-2xl border p-10 flex flex-col items-center gap-4">
                         <div class="relative">
-                            <div class="av-ring rounded-[20px]" id="prv-ring" style="{{ $frameStyle }}; width:80px; height:80px;">
-                                <div class="rounded-[17px] bg-[#0d1117] flex items-center justify-center" style="width:100%;height:100%;">
-                                    <span class="dsp text-3xl text-white">{{ strtoupper(substr($user->name,0,1)) }}</span>
+                            <div class="av-ring rounded-[20px]" id="prv-ring" style="{{ $frameStyle ?: '' }}; width:80px; height:80px;">
+                                <div class="prof-avatar-bg rounded-[17px] flex items-center justify-center" style="width:100%;height:100%;">
+                                    <span class="dsp text-3xl prof-text-main">{{ strtoupper(substr($user->name,0,1)) }}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="text-center">
-                            <p class="dsp text-2xl text-white">{{ $user->name }}</p>
+                            <p class="dsp text-2xl prof-text-main">{{ $user->name }}</p>
                             <div id="prv-title" class="mt-1 min-h-[24px]">
                                 @if($eTitle && $titleMeta)
                                 <span class="ttag {{ $titleMeta['bg'] }} {{ $titleMeta['color'] }}">{{ $eTitle->name }}</span>
@@ -319,26 +424,25 @@
                         <div class="flex gap-2 min-h-[40px]" id="prv-charms">
                             @foreach($eCharms as $ch)
                             @php $cm=json_decode($ch->meta,true); @endphp
-                            <div class="w-9 h-9 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-lg">{{ $cm['emoji']??'?' }}</div>
+                            <div class="prof-charm-bg w-9 h-9 rounded-xl border flex items-center justify-center text-lg">{{ $cm['emoji']??'?' }}</div>
                             @endforeach
                         </div>
                     </div>
                 </div>
 
                 <div class="space-y-4">
-
                     {{-- Frame --}}
-                    <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-                        <p class="mn text-xs uppercase tracking-[.15em] text-slate-500 mb-3">Frame</p>
+                    <div class="prof-card p-5 rounded-2xl">
+                        <p class="mn text-xs uppercase tracking-[.15em] prof-text-muted mb-3">Frame</p>
                         @if($ownedFrames->isEmpty())
-                        <p class="text-xs text-slate-600">None owned — <button onclick="switchTab('shop');shopCat('frame')" class="text-emerald-500 hover:underline">browse shop</button></p>
+                        <p class="text-xs prof-text-muted">None owned — <button onclick="switchTab('shop');shopCat('frame')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
                         @else
                         <div class="flex gap-2 flex-wrap">
-                            <button onclick="equipItem('frame',null,null,this)" class="w-10 h-10 rounded-xl border-2 border-white/10 bg-white/[0.03] hover:border-white/20 transition-all text-slate-600 text-xs font-bold">✕</button>
+                            <button onclick="equipItem('frame',null,null,this)" class="w-10 h-10 rounded-xl border-2 border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/20 transition-all prof-text-muted text-xs font-bold">✕</button>
                             @foreach($ownedFrames as $item)
                             @php $m=$item->meta??[]; $eq=collect($equippedRows)->contains('id',$item->id); @endphp
                             <button onclick="equipItem('frame',{{ $item->id }},'{{ $m['gradient']??'' }}',this)"
-                                    class="w-10 h-10 rounded-xl border-2 transition-all {{ $eq?'border-emerald-500 shadow-[0_0_0_1px_#10b981]':'border-transparent hover:border-white/20' }}"
+                                    class="w-10 h-10 rounded-xl border-2 transition-all {{ $eq?'border-emerald-500 shadow-[0_0_0_1px_#10b981]':'border-transparent hover:border-slate-300 dark:hover:border-white/20' }}"
                                     style="background:{{ $m['gradient']??'#333' }}" title="{{ $item->name }}"></button>
                             @endforeach
                         </div>
@@ -346,13 +450,13 @@
                     </div>
 
                     {{-- Title --}}
-                    <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-                        <p class="mn text-xs uppercase tracking-[.15em] text-slate-500 mb-3">Title</p>
+                    <div class="prof-card p-5 rounded-2xl">
+                        <p class="mn text-xs uppercase tracking-[.15em] prof-text-muted mb-3">Title</p>
                         @if($ownedTitles->isEmpty())
-                        <p class="text-xs text-slate-600">None owned — <button onclick="switchTab('shop');shopCat('title')" class="text-emerald-500 hover:underline">browse shop</button></p>
+                        <p class="text-xs prof-text-muted">None owned — <button onclick="switchTab('shop');shopCat('title')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
                         @else
                         <div class="flex gap-2 flex-wrap">
-                            <button onclick="equipTitle(null,null,null)" class="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-500 font-bold hover:border-white/20 transition-all">None</button>
+                            <button onclick="equipTitle(null,null,null)" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-xs prof-text-muted font-bold hover:border-slate-400 dark:hover:border-white/20 transition-all">None</button>
                             @foreach($ownedTitles as $item)
                             @php $m=$item->meta??[]; $eq=collect($equippedRows)->contains('id',$item->id); @endphp
                             <button onclick="equipTitle({{ $item->id }},'{{ $m['bg']??'' }}','{{ $m['color']??'' }}','{{ addslashes($item->name) }}')"
@@ -365,17 +469,17 @@
                     </div>
 
                     {{-- Theme --}}
-                    <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-                        <p class="mn text-xs uppercase tracking-[.15em] text-slate-500 mb-3">Theme</p>
+                    <div class="prof-card p-5 rounded-2xl">
+                        <p class="mn text-xs uppercase tracking-[.15em] prof-text-muted mb-3">Theme</p>
                         @if($ownedThemes->isEmpty())
-                        <p class="text-xs text-slate-600">None owned — <button onclick="switchTab('shop');shopCat('theme')" class="text-emerald-500 hover:underline">browse shop</button></p>
+                        <p class="text-xs prof-text-muted">None owned — <button onclick="switchTab('shop');shopCat('theme')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
                         @else
                         <div class="flex gap-2 flex-wrap">
-                            <button onclick="equipTheme(null,null)" class="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-slate-400 font-bold hover:border-white/20 transition-all">Default</button>
+                            <button onclick="equipTheme(null,null)" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-xs prof-text-muted font-bold hover:border-slate-400 dark:hover:border-white/20 transition-all">Default</button>
                             @foreach($ownedThemes as $item)
                             @php $m=$item->meta??[]; $eq=collect($equippedRows)->contains('id',$item->id); @endphp
                             <button onclick="equipTheme({{ $item->id }},'{{ $m['bg_class']??'' }}')"
-                                    class="px-3 py-1.5 rounded-lg border-2 text-xs font-bold transition-all {{ $eq?'border-emerald-500 text-emerald-400':'border-white/10 text-slate-400 hover:border-white/20' }}"
+                                    class="px-3 py-1.5 rounded-lg border-2 text-xs font-bold transition-all {{ $eq?'border-emerald-500 text-emerald-600 dark:text-emerald-400':'border-slate-200 dark:border-white/10 prof-text-muted hover:border-slate-400 dark:hover:border-white/20' }}"
                                     style="background:{{ $m['gradient']??'#1e293b' }}">{{ $item->name }}</button>
                             @endforeach
                         </div>
@@ -383,22 +487,18 @@
                     </div>
 
                     {{-- Charms --}}
-                    <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-                        <p class="mn text-xs uppercase tracking-[.15em] text-slate-500 mb-3">Charms <span class="text-slate-700 tracking-normal text-[11px] font-normal">(3 slots)</span></p>
+                    <div class="prof-card p-5 rounded-2xl">
+                        <p class="mn text-xs uppercase tracking-[.15em] prof-text-muted mb-3">Charms <span class="tracking-normal text-[11px] font-normal prof-text-muted">(3 slots)</span></p>
                         @if($ownedCharms->isEmpty())
-                        <p class="text-xs text-slate-600">None owned — <button onclick="switchTab('shop');shopCat('charm')" class="text-emerald-500 hover:underline">browse shop</button></p>
+                        <p class="text-xs prof-text-muted">None owned — <button onclick="switchTab('shop');shopCat('charm')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
                         @else
                         <div class="grid grid-cols-3 gap-2 mb-3">
                             @foreach(['charm_1','charm_2','charm_3'] as $slot)
                             @php $eq=$equippedRows->get($slot); $cm=$eq?json_decode($eq->meta,true):null; @endphp
-                            <div id="charm-slot-{{ $slot }}" class="rounded-xl border {{ $eq?'border-emerald-500/40 bg-emerald-500/5':'border-white/[0.07]' }} p-3 text-center">
-                                <p class="mn text-[10px] text-slate-600 mb-1">{{ strtoupper(str_replace('_',' ',$slot)) }}</p>
+                            <div id="charm-slot-{{ $slot }}" class="prof-card rounded-xl border p-3 text-center {{ $eq?'border-emerald-500/40 bg-emerald-500/5':'' }}">
+                                <p class="mn text-[10px] prof-text-muted mb-1">{{ strtoupper(str_replace('_',' ',$slot)) }}</p>
                                 <div class="text-2xl mb-1.5 charm-emoji">{{ $cm?$cm['emoji']:'—' }}</div>
-                                @if($eq)
-                                <button onclick="equipCharm('{{ $slot }}',null)" class="charm-remove mn text-[10px] text-red-400 hover:text-red-300 transition-colors">remove</button>
-                                @else
-                                <button onclick="equipCharm('{{ $slot }}',null)" class="charm-remove mn text-[10px] text-red-400 hover:text-red-300 transition-colors" style="display:none">remove</button>
-                                @endif
+                                <button onclick="equipCharm('{{ $slot }}',null)" class="charm-remove mn text-[10px] text-red-500 hover:text-red-400 transition-colors" {{ $eq?'':'style=display:none' }}>remove</button>
                             </div>
                             @endforeach
                         </div>
@@ -406,11 +506,11 @@
                             @foreach($ownedCharms as $item)
                             @php $m=$item->meta??[]; @endphp
                             <button onclick="pickCharm({{ $item->id }},'{{ $m['emoji']??'?' }}')"
-                                    class="w-10 h-10 rounded-xl border border-white/[0.07] bg-white/[0.02] hover:border-emerald-500/40 transition-all text-xl flex items-center justify-center"
+                                    class="prof-card w-10 h-10 rounded-xl border hover:border-emerald-500/40 transition-all text-xl flex items-center justify-center"
                                     title="{{ $item->name }}">{{ $m['emoji']??'?' }}</button>
                             @endforeach
                         </div>
-                        <p class="mn text-xs text-slate-700 mt-2">Tap to fill next empty slot</p>
+                        <p class="mn text-xs prof-text-muted mt-2">Tap to fill next empty slot</p>
                         @endif
                     </div>
                 </div>
@@ -421,25 +521,32 @@
         <div class="tc" id="tc-settings">
             <div class="max-w-lg space-y-4">
                 @if(session('success'))
-                <div class="px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm mn">✓ {{ session('success') }}</div>
+                <div class="px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-sm mn">✓ {{ session('success') }}</div>
                 @endif
-                @foreach([['Username','name','text',route('profile.change-username'),$user->name],['Email','email','email',route('profile.change-email'),$user->email]] as [$label,$fname,$ftype,$faction,$fval])
-                <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
-                    <div class="px-6 py-4 border-b border-white/[0.05]"><p class="mn text-xs uppercase tracking-[.15em] text-slate-500">{{ $label }}</p></div>
+                @foreach([
+                    ['Username','name','text',   route('profile.change-username'),$user->name],
+                    ['Email',   'email','email', route('profile.change-email'),   $user->email],
+                ] as [$label,$fname,$ftype,$faction,$fval])
+                <div class="prof-card rounded-2xl overflow-hidden">
+                    <div class="px-6 py-4 border-b prof-sep"><p class="mn text-xs uppercase tracking-[.15em] prof-text-muted">{{ $label }}</p></div>
                     <div class="px-6 py-5">
                         <form action="{{ $faction }}" method="POST" class="flex gap-3">@csrf
-                            <input type="{{ $ftype }}" name="{{ $fname }}" value="{{ old($fname,$fval) }}" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500 transition-all"/>
+                            <input type="{{ $ftype }}" name="{{ $fname }}" value="{{ old($fname,$fval) }}"
+                                   class="prof-input flex-1 border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 transition-all"/>
                             <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl transition-all active:scale-95">Save</button>
                         </form>
-                        @error($fname)<p class="mt-2 text-xs text-red-400">{{ $message }}</p>@enderror
+                        @error($fname)<p class="mt-2 text-xs text-red-500">{{ $message }}</p>@enderror
                     </div>
                 </div>
                 @endforeach
-                <div class="rounded-2xl border border-red-500/20 bg-red-950/20 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-red-500/10"><p class="mn text-xs uppercase tracking-[.15em] text-red-500/60">Danger Zone</p></div>
+                <div class="prof-danger rounded-2xl overflow-hidden border">
+                    <div class="px-6 py-4 border-b border-red-200 dark:border-red-500/10"><p class="mn text-xs uppercase tracking-[.15em] text-red-500/80">Danger Zone</p></div>
                     <div class="px-6 py-5 flex items-center justify-between">
-                        <div><p class="text-sm font-bold text-slate-300">Delete Account</p><p class="text-xs text-slate-600 mt-0.5">Permanently removes everything.</p></div>
-                        <button class="px-4 py-2 bg-red-950/60 hover:bg-red-900/60 border border-red-500/20 text-red-400 text-sm font-bold rounded-xl transition-all active:scale-95">Delete</button>
+                        <div>
+                            <p class="text-sm font-bold prof-text-main">Delete Account</p>
+                            <p class="text-xs prof-text-muted mt-0.5">Permanently removes everything.</p>
+                        </div>
+                        <button class="px-4 py-2 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900/60 border border-red-300 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-bold rounded-xl transition-all active:scale-95">Delete</button>
                     </div>
                 </div>
             </div>
@@ -453,7 +560,13 @@
 <script>
 const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
-// Live state
+const themeClassMap = {
+    'bg-default':  'bg-profile-default',
+    'bg-midnight': 'bg-profile-midnight',
+    'bg-crimson':  'bg-profile-crimson',
+    'bg-void':     'bg-profile-void',
+};
+
 let state = {
     frame:   { id: {{ $eFrame ? $eFrame->id : 'null' }}, gradient: '{{ $frameMeta ? ($frameMeta["gradient"] ?? "") : "" }}' },
     title:   { id: {{ $eTitle ? $eTitle->id : 'null' }}, bg: '{{ $titleMeta ? ($titleMeta["bg"] ?? "") : "" }}', color: '{{ $titleMeta ? ($titleMeta["color"] ?? "") : "" }}', name: '{{ $eTitle ? addslashes($eTitle->name) : "" }}' },
@@ -473,7 +586,10 @@ function switchTab(t) {
 function shopCat(cat) {
     ['frame','title','theme','charm'].forEach(c => {
         const on = c===cat;
-        document.getElementById('sc-'+c).className = `px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-200 ${on?'bg-emerald-500/10 border-emerald-500/30 text-emerald-400':'bg-white/[0.03] border-white/[0.07] text-slate-500 hover:text-white'}`;
+        const btn = document.getElementById('sc-'+c);
+        btn.className = `px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-200 ${on
+            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+            : 'prof-shop-cat-off'}`;
         document.getElementById('sc-c-'+c).classList.toggle('hidden',!on);
     });
 }
@@ -490,40 +606,29 @@ async function post(url, body) {
     return r.json();
 }
 
-// ── UI updaters ──────────────────────────────────────────────
-
 function applyFrame(gradient) {
-    const bg = gradient || 'rgba(255,255,255,.08)';
-    // Hero ring
-    document.querySelector('.av-ring').style.background = bg;
-    // Preview ring
-    document.getElementById('prv-ring').style.background = bg;
+    const bg = gradient || '';
+    document.getElementById('hero-ring').style.background = bg;
+    document.getElementById('prv-ring').style.background  = bg;
 }
 
 function applyTitle(id, bg, color, name) {
-    const heroTitle  = document.getElementById('hero-title');
-    const prvTitle   = document.getElementById('prv-title');
     const html = id && name ? `<span class="ttag ${bg} ${color}">${name}</span>` : '';
-    if (heroTitle) heroTitle.innerHTML = html;
-    prvTitle.innerHTML = html;
+    document.getElementById('hero-title').innerHTML = html;
+    document.getElementById('prv-title').innerHTML  = html;
 }
 
 function applyCharms() {
-    const slots = ['charm_1','charm_2','charm_3'];
+    const slots  = ['charm_1','charm_2','charm_3'];
     const charms = slots.map(s => state[s].emoji).filter(Boolean);
-
-    // Hero charm badges
     const heroBadges = document.getElementById('hero-charms');
     if (heroBadges) {
         heroBadges.innerHTML = charms.map(e =>
-            `<div class="w-8 h-8 rounded-lg bg-[#0d1117] border border-white/10 flex items-center justify-center text-sm">${e}</div>`
+            `<div class="prof-charm-bg w-8 h-8 rounded-lg border flex items-center justify-center text-sm">${e}</div>`
         ).join('');
-        heroBadges.parentElement.style.display = charms.length ? '' : 'none';
     }
-
-    // Preview charms
     document.getElementById('prv-charms').innerHTML = charms.map(e =>
-        `<div class="w-9 h-9 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-lg">${e}</div>`
+        `<div class="prof-charm-bg w-9 h-9 rounded-xl border flex items-center justify-center text-lg">${e}</div>`
     ).join('');
 }
 
@@ -537,30 +642,29 @@ function applyEquippedSidebar() {
         charm_3: state.charm_3.id ? state.charm_3.emoji : '—',
     };
     document.querySelectorAll('[data-equipped-slot]').forEach(el => {
-        el.textContent = map[el.dataset.equippedSlot] ?? '—';
-        el.className = `text-xs font-bold ${map[el.dataset.equippedSlot] !== '—' ? 'text-emerald-400' : 'text-slate-700'}`;
+        const val = map[el.dataset.equippedSlot] ?? '—';
+        el.textContent = val;
+        el.className = `text-xs font-bold ${val !== '—' ? 'text-emerald-600 dark:text-emerald-400' : 'prof-text-sub'}`;
     });
 }
 
 function markEquippedCard(id, type) {
-    // Remove equipped state from all cards of this type
     document.querySelectorAll(`[data-ctype="${type}"]`).forEach(card => {
-        card.classList.remove('is-equipped','border-emerald-500/60','bg-emerald-500/5');
-        card.classList.add('border-white/[0.07]','bg-white/[0.02]');
-        const badge = card.querySelector('.eq-badge'); if (badge) badge.remove();
+        card.classList.remove('is-equipped');
+        card.style.borderColor = '';
+        card.style.boxShadow = '';
         const btn = card.querySelector('.eq-btn');
         if (btn) { btn.classList.remove('eq-on'); btn.classList.add('eq-off'); btn.textContent = 'Equip'; }
     });
     if (!id) return;
     const card = document.getElementById('card-'+id);
     if (!card) return;
-    card.classList.add('is-equipped','border-emerald-500/60','bg-emerald-500/5');
-    card.classList.remove('border-white/[0.07]','bg-white/[0.02]');
+    card.classList.add('is-equipped');
+    card.style.borderColor = 'rgba(16,185,129,.6)';
+    card.style.boxShadow   = '0 0 0 2px #10b981,0 0 18px rgba(16,185,129,.2)';
     const btn = card.querySelector('.eq-btn');
     if (btn) { btn.classList.add('eq-on'); btn.classList.remove('eq-off'); btn.textContent = '✓ Equipped'; }
 }
-
-// ── Buy ──────────────────────────────────────────────────────
 
 async function buyItem(id, name, price, btn) {
     if (!confirm(`Buy "${name}" for 🪙 ${price.toLocaleString()} coins?`)) return;
@@ -569,16 +673,12 @@ async function buyItem(id, name, price, btn) {
     if (data.success) {
         toast('✓ ' + data.message);
         document.getElementById('bal').textContent = Number(data.balance).toLocaleString();
-        // Swap buy button → equip button without reload
-        btn.outerHTML = `<button class="eq-btn eq-off" onclick="toggleEquip(${id},'${btn.dataset.type}',false,this)">Equip</button>`;
-        location.reload(); // reload to refresh owned state fully
+        location.reload();
     } else {
         toast(data.message, 'err');
         btn.disabled = false; btn.textContent = `🪙 ${price.toLocaleString()}`;
     }
 }
-
-// ── Equip helpers ─────────────────────────────────────────────
 
 async function toggleEquip(id, type, isEquipped, btn) {
     const slotMap = {frame:'frame',title:'title',theme:'theme',charm:'charm_1'};
@@ -586,9 +686,7 @@ async function toggleEquip(id, type, isEquipped, btn) {
     const data = await post('/cosmetics/equip', {slot, cosmetic_id: isEquipped ? null : id});
     if (!data.success) { toast(data.message,'err'); return; }
     toast('✓ '+data.message);
-    if (isEquipped) {
-        state[slot] = {id:null, gradient:'', emoji:'', name:'', bg:'', color:''};
-    }
+    if (isEquipped) state[slot] = {id:null, gradient:'', emoji:'', name:'', bg:'', color:''};
     markEquippedCard(isEquipped ? null : id, type);
     if (type==='frame') applyFrame(isEquipped ? null : state.frame.gradient);
     if (type==='title') applyTitle(isEquipped ? null : id, state.title.bg, state.title.color, state.title.name);
@@ -603,12 +701,6 @@ async function equipItem(slot, id, gradient, btn) {
     state.frame = {id, gradient};
     applyFrame(gradient);
     markEquippedCard(id, 'frame');
-    // Update customize panel button highlights
-    document.querySelectorAll('[data-frame-btn]').forEach(b => {
-        b.classList.toggle('border-emerald-500', b.dataset.frameBtn == id);
-        b.classList.toggle('shadow-[0_0_0_1px_#10b981]', b.dataset.frameBtn == id);
-        b.classList.toggle('border-transparent', b.dataset.frameBtn != id);
-    });
     applyEquippedSidebar();
 }
 
@@ -627,11 +719,10 @@ async function equipTheme(id, bgClass) {
     if (!data.success) { toast(data.message,'err'); return; }
     toast('✓ '+data.message);
     state.theme = {id, bgClass};
-    // Swap background class on root div
-    const root = document.querySelector('.pf.min-h-screen');
-    ['bg-default','bg-midnight','bg-crimson','bg-void'].forEach(c => root.classList.remove(c));
-    if (bgClass) root.className = root.className + ' ' + bgClass;
-    else root.classList.add('bg-default');
+    const root = document.getElementById('profile-root');
+    Object.values(themeClassMap).forEach(c => root.classList.remove(c));
+    const mapped = themeClassMap[bgClass] || (bgClass ? bgClass : null);
+    root.classList.add(mapped || 'bg-profile-default');
     markEquippedCard(id, 'theme');
     applyEquippedSidebar();
 }
@@ -643,7 +734,6 @@ async function equipCharm(slot, id) {
     state[slot] = {id: null, emoji: ''};
     applyCharms();
     applyEquippedSidebar();
-    // Refresh charm slot display
     refreshCharmSlots();
 }
 
@@ -668,11 +758,9 @@ function refreshCharmSlots() {
         const removeBtn = el.querySelector('.charm-remove');
         if (s.id) {
             el.classList.add('border-emerald-500/40','bg-emerald-500/5');
-            el.classList.remove('border-white/[0.07]');
             if (removeBtn) removeBtn.style.display='';
         } else {
             el.classList.remove('border-emerald-500/40','bg-emerald-500/5');
-            el.classList.add('border-white/[0.07]');
             if (removeBtn) removeBtn.style.display='none';
         }
     });
