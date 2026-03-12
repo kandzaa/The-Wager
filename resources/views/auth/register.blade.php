@@ -1,295 +1,274 @@
 <x-guest-layout>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
+  .font-playfair { font-family: 'Playfair Display', serif; }
+  .font-outfit   { font-family: 'Outfit', sans-serif; }
 
-* { box-sizing: border-box; }
-
-.auth-wrap {
-    min-height: 100vh;
-    background: #080b0f;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'DM Sans', sans-serif;
-    position: relative;
-    overflow: hidden;
-    padding: 2rem 1rem;
-}
-
-.auth-wrap::before {
-    content: '';
-    position: absolute;
-    top: -20%;
-    right: -10%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(16,185,129,0.07) 0%, transparent 70%);
-    pointer-events: none;
-}
-.auth-wrap::after {
-    content: '';
-    position: absolute;
-    bottom: -20%;
-    left: -10%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.grain {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.025;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
-}
-
-.auth-card {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 420px;
-    animation: cardIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
-}
-
-@keyframes cardIn {
-    from { opacity: 0; transform: translateY(32px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.auth-header {
-    margin-bottom: 2.5rem;
-    animation: cardIn 0.7s 0.05s cubic-bezier(0.16,1,0.3,1) both;
-}
-
-.auth-eyebrow {
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.25em;
+  .float-input::placeholder { color: transparent; }
+  .float-input:focus ~ .float-label,
+  .float-input:not(:placeholder-shown) ~ .float-label {
+    top: 0.45rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #10b981;
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.auth-eyebrow::before {
-    content: '';
-    display: block;
-    width: 20px;
-    height: 1px;
-    background: #10b981;
-}
+    color: #00ff87;
+  }
 
-.auth-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 2.6rem;
-    font-weight: 800;
-    color: #fff;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-}
-.auth-title span { color: #10b981; }
-
-.auth-body {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 20px;
-    padding: 2rem;
-    backdrop-filter: blur(12px);
-    animation: cardIn 0.7s 0.1s cubic-bezier(0.16,1,0.3,1) both;
-}
-
-.field { margin-bottom: 1.25rem; }
-
-.field-label {
-    display: block;
-    font-size: 0.7rem;
-    font-weight: 500;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #64748b;
-    margin-bottom: 0.5rem;
-}
-
-.field-input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background: rgba(0,0,0,0.35);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    color: #fff;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    -webkit-appearance: none;
-}
-
-.field-input::placeholder { color: #334155; }
-
-.field-input:focus {
-    border-color: rgba(16,185,129,0.5);
-    box-shadow: 0 0 0 3px rgba(16,185,129,0.1), 0 0 20px rgba(16,185,129,0.05);
-    background: rgba(0,0,0,0.5);
-}
-
-.field-input.is-error {
-    border-color: rgba(239,68,68,0.5);
-    box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
-}
-
-.field-error {
-    margin-top: 0.4rem;
-    font-size: 0.75rem;
-    color: #f87171;
-}
-
-.btn-primary {
-    width: 100%;
-    padding: 0.85rem 1.5rem;
-    background: #10b981;
-    color: #fff;
-    font-family: 'Syne', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-    margin-top: 0.25rem;
-}
-
-.btn-primary::after {
+  .scanlines::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.18) 2px,rgba(0,0,0,0.18) 4px);
     pointer-events: none;
-}
+    opacity: 0.5;
+  }
 
-.btn-primary:hover {
-    background: #059669;
-    transform: translateY(-1px);
-    box-shadow: 0 8px 25px rgba(16,185,129,0.3);
-}
+  @keyframes glow-pulse {
+    0%,100% { box-shadow: 0 0 8px #00ff87, 0 0 16px rgba(0,255,135,0.3); }
+    50%      { box-shadow: 0 0 18px #00ff87, 0 0 36px rgba(0,255,135,0.4); }
+  }
+  .glow-dot { animation: glow-pulse 2.4s ease-in-out infinite; }
 
-.btn-primary:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
+  .btn-shine::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, rgba(255,255,255,0.18) 0%, transparent 55%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
 
-.auth-footer {
-    margin-top: 1.5rem;
-    text-align: center;
-    font-size: 0.8rem;
-    color: #475569;
-    animation: cardIn 0.7s 0.15s cubic-bezier(0.16,1,0.3,1) both;
-}
+  @keyframes up-in {
+    from { opacity:0; transform:translateY(18px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .up-in { animation: up-in 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+  .d-1 { animation-delay: 0.05s; }
+  .d-2 { animation-delay: 0.10s; }
+  .d-3 { animation-delay: 0.15s; }
+  .d-4 { animation-delay: 0.20s; }
+  .d-5 { animation-delay: 0.25s; }
+  .d-6 { animation-delay: 0.30s; }
+  .d-7 { animation-delay: 0.35s; }
 
-.auth-footer a {
-    color: #10b981;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-.auth-footer a:hover { color: #34d399; }
+  /* strength bar segments */
+  .seg { height: 2px; flex: 1; border-radius: 2px; background: rgba(255,255,255,0.06); transition: background 0.3s; }
 </style>
 
-<div class="auth-wrap">
-    <div class="grain"></div>
+<div class="font-outfit min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-[#050608] text-[#e8eaed]">
 
-    <div class="auth-card">
-        <div class="auth-header">
-            <div class="auth-eyebrow">Join us</div>
-            <h1 class="auth-title">Create<br><span>account.</span></h1>
-        </div>
+  {{-- ── LEFT PANEL ── --}}
+  <div class="scanlines relative hidden lg:flex flex-col justify-between p-12 bg-[#0c0e12] border-r border-white/[0.06] overflow-hidden">
 
-        <div class="auth-body">
-            <form method="POST" action="{{ route('register') }}">
-                @csrf
-
-                <div class="field">
-                    <label class="field-label" for="name">Name</label>
-                    <input
-                        id="name"
-                        type="text"
-                        name="name"
-                        value="{{ old('name') }}"
-                        required
-                        autofocus
-                        autocomplete="name"
-                        class="field-input {{ $errors->has('name') ? 'is-error' : '' }}"
-                        placeholder="Your name"
-                    />
-                    @if ($errors->has('name'))
-                        <div class="field-error">{{ $errors->first('name') }}</div>
-                    @endif
-                </div>
-
-                <div class="field">
-                    <label class="field-label" for="email">Email</label>
-                    <input
-                        id="email"
-                        type="email"
-                        name="email"
-                        value="{{ old('email') }}"
-                        required
-                        autocomplete="username"
-                        class="field-input {{ $errors->has('email') ? 'is-error' : '' }}"
-                        placeholder="you@example.com"
-                    />
-                    @if ($errors->has('email'))
-                        <div class="field-error">{{ $errors->first('email') }}</div>
-                    @endif
-                </div>
-
-                <div class="field">
-                    <label class="field-label" for="password">Password</label>
-                    <input
-                        id="password"
-                        type="password"
-                        name="password"
-                        required
-                        autocomplete="new-password"
-                        class="field-input {{ $errors->has('password') ? 'is-error' : '' }}"
-                        placeholder="••••••••"
-                    />
-                    @if ($errors->has('password'))
-                        <div class="field-error">{{ $errors->first('password') }}</div>
-                    @endif
-                </div>
-
-                <div class="field">
-                    <label class="field-label" for="password_confirmation">Confirm Password</label>
-                    <input
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        required
-                        autocomplete="new-password"
-                        class="field-input {{ $errors->has('password_confirmation') ? 'is-error' : '' }}"
-                        placeholder="••••••••"
-                    />
-                    @if ($errors->has('password_confirmation'))
-                        <div class="field-error">{{ $errors->first('password_confirmation') }}</div>
-                    @endif
-                </div>
-
-                <button type="submit" class="btn-primary">Create Account →</button>
-            </form>
-        </div>
-
-        <div class="auth-footer">
-            Already have an account? <a href="{{ route('login') }}">Sign in</a>
-        </div>
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-0 left-0 w-[500px] h-[500px] rounded-full"
+           style="background:radial-gradient(circle,rgba(0,255,135,0.07) 0%,transparent 65%)"></div>
+      <div class="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full"
+           style="background:radial-gradient(circle,rgba(0,200,100,0.04) 0%,transparent 65%)"></div>
     </div>
+
+    <div class="relative z-10 flex items-center gap-2.5">
+      <div class="glow-dot w-2.5 h-2.5 rounded-full bg-[#00ff87]"></div>
+      <span class="font-playfair text-[#00ff87] font-bold tracking-wide text-lg">WagerApp</span>
+    </div>
+
+    <div class="relative z-10">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1.5 mb-6
+                  text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-[#00ff87]
+                  border border-[#00ff87]/20 rounded-full bg-[#00ff87]/5">
+        New account
+      </div>
+      <h1 class="font-playfair font-black leading-[0.95] tracking-tight text-[4.5rem] text-white mb-6">
+        Join the<br>
+        <em class="text-[#00ff87] not-italic">action.</em>
+      </h1>
+      <p class="text-sm font-light text-[#4a5060] leading-relaxed max-w-[270px]">
+        Create your account and start wagering<br>with friends in seconds.
+      </p>
+    </div>
+
+    <div class="relative z-10 text-xs text-[#4a5060] tracking-wide">
+      © {{ date('Y') }} WagerApp. All rights reserved.
+    </div>
+  </div>
+
+  {{-- ── RIGHT PANEL ── --}}
+  <div class="relative flex items-center justify-center px-6 py-12 bg-[#050608] overflow-y-auto">
+    <div class="absolute inset-0 pointer-events-none"
+         style="background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(0,255,135,0.03) 0%,transparent 70%)"></div>
+
+    <div class="relative z-10 w-full max-w-[360px] py-4">
+
+      <div class="up-in d-1 mb-8">
+        <p class="text-[0.6rem] font-semibold tracking-[0.2em] uppercase text-[#4a5060] mb-1.5">Get started</p>
+        <h2 class="font-playfair text-[2.2rem] font-bold tracking-tight text-white">Create account</h2>
+      </div>
+
+      <form method="POST" action="{{ route('register') }}" class="space-y-3">
+        @csrf
+
+        {{-- name --}}
+        <div class="up-in d-2 relative">
+          <input
+            id="name" type="text" name="name"
+            value="{{ old('name') }}"
+            placeholder="name"
+            required autofocus autocomplete="name"
+            class="float-input peer w-full h-[52px] pt-5 pb-1.5 px-4
+                   bg-white/[0.03] border rounded-xl text-[0.9rem] text-white
+                   outline-none transition-all duration-200
+                   {{ $errors->has('name')
+                        ? 'border-[#ff4d6d]/50 shadow-[0_0_0_3px_rgba(255,77,109,0.08)]'
+                        : 'border-white/[0.07] focus:border-[#00ff87]/40 focus:bg-[#00ff87]/[0.02] focus:shadow-[0_0_0_3px_rgba(0,255,135,0.07)]' }}"
+          />
+          <label for="name"
+            class="float-label pointer-events-none absolute left-4 top-1/2 -translate-y-1/2
+                   text-[0.82rem] text-[#4a5060] transition-all duration-200">
+            Full name
+          </label>
+          @if ($errors->has('name'))
+            <p class="mt-1.5 pl-1 text-[0.72rem] text-[#ff4d6d] flex items-center gap-1.5">
+              <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#ff4d6d] text-white text-[0.55rem] font-bold flex-shrink-0">!</span>
+              {{ $errors->first('name') }}
+            </p>
+          @endif
+        </div>
+
+        {{-- email --}}
+        <div class="up-in d-3 relative">
+          <input
+            id="email" type="email" name="email"
+            value="{{ old('email') }}"
+            placeholder="email"
+            required autocomplete="username"
+            class="float-input peer w-full h-[52px] pt-5 pb-1.5 px-4
+                   bg-white/[0.03] border rounded-xl text-[0.9rem] text-white
+                   outline-none transition-all duration-200
+                   {{ $errors->has('email')
+                        ? 'border-[#ff4d6d]/50 shadow-[0_0_0_3px_rgba(255,77,109,0.08)]'
+                        : 'border-white/[0.07] focus:border-[#00ff87]/40 focus:bg-[#00ff87]/[0.02] focus:shadow-[0_0_0_3px_rgba(0,255,135,0.07)]' }}"
+          />
+          <label for="email"
+            class="float-label pointer-events-none absolute left-4 top-1/2 -translate-y-1/2
+                   text-[0.82rem] text-[#4a5060] transition-all duration-200">
+            Email address
+          </label>
+          @if ($errors->has('email'))
+            <p class="mt-1.5 pl-1 text-[0.72rem] text-[#ff4d6d] flex items-center gap-1.5">
+              <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#ff4d6d] text-white text-[0.55rem] font-bold flex-shrink-0">!</span>
+              {{ $errors->first('email') }}
+            </p>
+          @endif
+        </div>
+
+        {{-- divider --}}
+        <div class="up-in d-4 flex items-center gap-3 py-1">
+          <div class="flex-1 h-px bg-white/[0.05]"></div>
+          <span class="text-[0.6rem] font-semibold tracking-[0.12em] uppercase text-[#4a5060]">Security</span>
+          <div class="flex-1 h-px bg-white/[0.05]"></div>
+        </div>
+
+        {{-- password --}}
+        <div class="up-in d-5 relative">
+          <input
+            id="password" type="password" name="password"
+            placeholder="password"
+            required autocomplete="new-password"
+            oninput="updateStrength(this.value)"
+            class="float-input peer w-full h-[52px] pt-5 pb-1.5 px-4
+                   bg-white/[0.03] border rounded-xl text-[0.9rem] text-white
+                   outline-none transition-all duration-200
+                   {{ $errors->has('password')
+                        ? 'border-[#ff4d6d]/50 shadow-[0_0_0_3px_rgba(255,77,109,0.08)]'
+                        : 'border-white/[0.07] focus:border-[#00ff87]/40 focus:bg-[#00ff87]/[0.02] focus:shadow-[0_0_0_3px_rgba(0,255,135,0.07)]' }}"
+          />
+          <label for="password"
+            class="float-label pointer-events-none absolute left-4 top-1/2 -translate-y-1/2
+                   text-[0.82rem] text-[#4a5060] transition-all duration-200">
+            Password
+          </label>
+          @if ($errors->has('password'))
+            <p class="mt-1.5 pl-1 text-[0.72rem] text-[#ff4d6d] flex items-center gap-1.5">
+              <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#ff4d6d] text-white text-[0.55rem] font-bold flex-shrink-0">!</span>
+              {{ $errors->first('password') }}
+            </p>
+          @endif
+          {{-- strength bar --}}
+          <div class="flex gap-1 mt-1.5">
+            <div id="s1" class="seg"></div>
+            <div id="s2" class="seg"></div>
+            <div id="s3" class="seg"></div>
+            <div id="s4" class="seg"></div>
+          </div>
+        </div>
+
+        {{-- confirm password --}}
+        <div class="up-in d-6 relative">
+          <input
+            id="password_confirmation" type="password" name="password_confirmation"
+            placeholder="confirm"
+            required autocomplete="new-password"
+            class="float-input peer w-full h-[52px] pt-5 pb-1.5 px-4
+                   bg-white/[0.03] border rounded-xl text-[0.9rem] text-white
+                   outline-none transition-all duration-200
+                   {{ $errors->has('password_confirmation')
+                        ? 'border-[#ff4d6d]/50 shadow-[0_0_0_3px_rgba(255,77,109,0.08)]'
+                        : 'border-white/[0.07] focus:border-[#00ff87]/40 focus:bg-[#00ff87]/[0.02] focus:shadow-[0_0_0_3px_rgba(0,255,135,0.07)]' }}"
+          />
+          <label for="password_confirmation"
+            class="float-label pointer-events-none absolute left-4 top-1/2 -translate-y-1/2
+                   text-[0.82rem] text-[#4a5060] transition-all duration-200">
+            Confirm password
+          </label>
+          @if ($errors->has('password_confirmation'))
+            <p class="mt-1.5 pl-1 text-[0.72rem] text-[#ff4d6d] flex items-center gap-1.5">
+              <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#ff4d6d] text-white text-[0.55rem] font-bold flex-shrink-0">!</span>
+              {{ $errors->first('password_confirmation') }}
+            </p>
+          @endif
+        </div>
+
+        {{-- submit --}}
+        <div class="up-in d-7 pt-2">
+          <button type="submit"
+            class="btn-shine relative w-full h-[50px] flex items-center justify-center gap-2
+                   bg-[#00ff87] hover:bg-[#00e87a] text-[#020804] font-semibold
+                   text-[0.78rem] tracking-[0.15em] uppercase rounded-xl
+                   transition-all duration-200 hover:-translate-y-px
+                   hover:shadow-[0_0_30px_rgba(0,255,135,0.25),0_4px_20px_rgba(0,255,135,0.2)]
+                   active:translate-y-0 active:shadow-none overflow-hidden">
+            Create Account
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      <p class="up-in d-7 mt-6 text-center text-[0.78rem] text-[#4a5060]">
+        Already have an account?
+        <a href="{{ route('login') }}" class="ml-1 text-[#00ff87] font-medium hover:text-white transition-colors">
+          Sign in
+        </a>
+      </p>
+
+    </div>
+  </div>
 </div>
+
+<script>
+function updateStrength(val) {
+  const segs = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
+  const colors = ['#ff4d6d','#ff9f43','#00d2ff','#00ff87'];
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  segs.forEach((s, i) => {
+    s.style.background = i < score ? colors[Math.min(score-1,3)] : 'rgba(255,255,255,0.06)';
+  });
+}
+</script>
 </x-guest-layout>
