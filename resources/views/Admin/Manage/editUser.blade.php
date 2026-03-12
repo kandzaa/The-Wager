@@ -1,53 +1,83 @@
 <x-app-layout>
-    <div
-        class="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-        <div class="py-8">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div
-                    class="bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-300/60 dark:border-slate-800 overflow-hidden">
-                    <div class="p-6 sm:p-8">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Edit User</h2>
-                        </div>
-                        <form method="POST" action="{{ route('admin.Manage.users.update', $user->id) }}">
-                            @csrf
-                            @method('PUT')
-                            <div class="mb-4">
-                                <x-input-label for="name" :value="__('Name')" />
-                                <x-text-input id="name" class="block mt-1 w-full" type="text" name="name"
-                                    value="{{ $user->name }}" required />
-                                <x-input-error :messages="$errors->get('name')" class="mt-2" />
-                            </div>
-                            <div class="mb-4">
-                                <x-input-label for="email" :value="__('Email')" />
-                                <x-text-input id="email" class="block mt-1 w-full" type="email" name="email"
-                                    value="{{ $user->email }}" required />
-                                <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                            </div>
-                            <div class="mb-4">
-                                <x-input-label for="balance" :value="__('Balance')" />
-                                <x-text-input id="balance" class="block mt-1 w-full" type="number" name="balance"
-                                    value="{{ $user->balance }}" required />
-                                <x-input-error :messages="$errors->get('balance')" class="mt-2" />
-                            </div>
-                            <div class="mb-4">
-                                <x-input-label for="role" :value="__('Role')" />
-                                <select id="role" class="block mt-1 w-full" name="role">
-                                    <option value="user" {{ $user->role === 'user' ? 'selected' : '' }}>User</option>
-                                    <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="mt-6 flex items-center justify-end gap-3">
-                                <a href="{{ route('admin') }}"
-                                    class="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-500 transition">Cancel</a>
-                                <button type="submit"
-                                    class="px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-500 transition">Save</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+<div class="min-h-screen bg-[#080b0f] py-10">
+    <div class="max-w-xl mx-auto px-4 sm:px-6">
+
+        {{-- Breadcrumb --}}
+        <div class="flex items-center gap-3 mb-8">
+            <a href="{{ route('admin') }}" class="text-slate-500 hover:text-white transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </a>
+            <span class="text-slate-600 text-sm">/</span>
+            <span class="text-slate-400 text-sm">Edit User</span>
         </div>
+
+        {{-- Header --}}
+        <div class="mb-8">
+            <p class="text-[0.6rem] font-semibold tracking-[0.2em] uppercase text-emerald-500 mb-1">Admin</p>
+            <h1 class="text-2xl font-black tracking-tight text-white">{{ $user->name }}</h1>
+        </div>
+
+        <div class="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+            <form method="POST" action="{{ route('admin.Manage.users.update', $user->id) }}">
+                @csrf @method('PUT')
+
+                <div class="p-6 space-y-4">
+
+                    {{-- Name --}}
+                    <div>
+                        <label class="block text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-slate-500 mb-1.5">Name</label>
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" required
+                            class="w-full h-11 px-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm outline-none transition-all duration-200 focus:border-emerald-500/50 focus:bg-emerald-500/[0.02] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)]" />
+                        @error('name') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
+                    </div>
+
+                    {{-- Email --}}
+                    <div>
+                        <label class="block text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-slate-500 mb-1.5">Email</label>
+                        <input type="email" name="email" value="{{ old('email', $user->email) }}" required
+                            class="w-full h-11 px-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm outline-none transition-all duration-200 focus:border-emerald-500/50 focus:bg-emerald-500/[0.02] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)]" />
+                        @error('email') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
+                    </div>
+
+                    {{-- Balance --}}
+                    <div>
+                        <label class="block text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-slate-500 mb-1.5">Balance</label>
+                        <input type="number" name="balance" value="{{ old('balance', $user->balance) }}" required
+                            class="w-full h-11 px-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm outline-none transition-all duration-200 focus:border-emerald-500/50 focus:bg-emerald-500/[0.02] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)]" />
+                        @error('balance') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
+                    </div>
+
+                    {{-- Role --}}
+                    <div>
+                        <label class="block text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-slate-500 mb-1.5">Role</label>
+                        <div class="relative">
+                            <select name="role"
+                                class="w-full h-11 px-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm outline-none transition-all duration-200 focus:border-emerald-500/50 appearance-none cursor-pointer">
+                                <option value="user"   class="bg-[#0c0e12]" {{ old('role', $user->role) === 'user'  ? 'selected' : '' }}>User</option>
+                                <option value="admin"  class="bg-[#0c0e12]" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin</option>
+                            </select>
+                            <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-6 py-4 bg-white/[0.02] border-t border-white/[0.05] flex items-center justify-end gap-3">
+                    <a href="{{ route('admin') }}"
+                        class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.07] rounded-xl transition-all">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                        class="px-5 py-2 text-sm font-semibold text-black bg-emerald-500 hover:bg-emerald-400 rounded-xl transition-all hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(16,185,129,0.2)] active:translate-y-0">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
     </div>
+</div>
 </x-app-layout>
