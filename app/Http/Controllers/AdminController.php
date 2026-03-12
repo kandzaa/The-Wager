@@ -38,6 +38,19 @@ class AdminController extends Controller
             ->with('success', 'User updated successfully.');
     }
 
+    public function deleteUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+        return redirect()->route('admin')->with('success', 'User deleted successfully.');
+    }
+
+    public function showUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        return view('Admin.Manage.showUser', compact('user'));
+    }
+
     // derību funkcijas
     public function deleteWager(Request $request, $id)
     {
