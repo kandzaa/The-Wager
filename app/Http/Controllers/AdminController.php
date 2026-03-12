@@ -14,6 +14,18 @@ class AdminController extends Controller
         return view('Admin.admin', compact('users', 'wager'));
     }
 
+    public function users()
+    {
+        $users = User::orderBy('id')->get();
+        return view('Admin.users', compact('users'));
+    }
+
+    public function wagers()
+    {
+        $wager = Wager::with('creator')->orderBy('id')->get();
+        return view('Admin.wagers', compact('wager'));
+    }
+
     public function editUser(Request $request, $id)
     {
         $user = User::findOrFail($id);

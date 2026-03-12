@@ -8,7 +8,7 @@
                 <div
                     class="bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-300/60 dark:border-slate-800 overflow-hidden">
                     <div class="p-6 sm:p-8">
-                        @include('Admin.Manage.userTable')
+                        something
                     </div>
                 </div>
 
@@ -16,7 +16,7 @@
                 <div
                     class="bg-slate-50/80 dark:bg-slate-900/40 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-300/60 dark:border-slate-800 overflow-hidden">
                     <div class="p-6 sm:p-8">
-                        @include('Admin.Manage.wagerTable')
+                        something
                     </div>
                 </div>
             </div>

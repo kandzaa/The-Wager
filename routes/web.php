@@ -118,21 +118,26 @@ Route::post('/cosmetics/equip', [App\Http\Controllers\CosmeticController::class,
 // Admin routes
 Route::get('/admin', [AdminController::class, 'index'])->middleware(['auth', 'verified', AdminMiddleware::class])->name('admin');
 
-// Admin user routes
-Route::prefix('admin/Manage/users')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
-    Route::get('/', [AdminController::class, 'users'])->name('admin.Manage.users');
-    Route::get('/{id}', [AdminController::class, 'showUser'])->name('admin.Manage.users.show');
-    Route::get('/edit/{id}', [AdminController::class, 'editUser'])->name('admin.Manage.users.edit');
-    Route::put('/{id}', [AdminController::class, 'updateUser'])->name('admin.Manage.users.update');
-    Route::delete('/{id}', [AdminController::class, 'deleteUser'])->name('admin.Manage.users.destroy');
-});
-
-// Admin wager routes
-Route::prefix('admin/Manage/wagers')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
-    Route::get('/', [AdminController::class, 'wagers'])->name('admin.Manage.wagers');
-    Route::get('/edit/{id}', [AdminController::class, 'editWager'])->name('admin.Manage.wagers.edit');
-    Route::put('/{id}', [AdminController::class, 'updateWager'])->name('admin.Manage.wagers.update');
-    Route::delete('/{id}', [AdminController::class, 'deleteWager'])->name('admin.Manage.wagers.destroy');
+// Admin management routes
+Route::prefix('admin/Manage')->middleware(['auth', 'verified', AdminMiddleware::class])->group(function () {
+    Route::get('/users', [AdminController::class, 'users'])->name('admin.Manage.users');
+    
+    Route::get('/wagers', [AdminController::class, 'wagers'])->name('admin.Manage.wagers');
+    
+    // User management routes
+    Route::prefix('users')->group(function () {
+        Route::get('/edit/{id}', [AdminController::class, 'editUser'])->name('admin.Manage.users.edit');
+        Route::put('/{id}', [AdminController::class, 'updateUser'])->name('admin.Manage.users.update');
+        Route::delete('/{id}', [AdminController::class, 'deleteUser'])->name('admin.Manage.users.destroy');
+        Route::get('/{id}', [AdminController::class, 'showUser'])->name('admin.Manage.users.show');
+    });
+    
+    // Wager management routes
+    Route::prefix('wagers')->group(function () {
+        Route::get('/edit/{id}', [AdminController::class, 'editWager'])->name('admin.Manage.wagers.edit');
+        Route::put('/{id}', [AdminController::class, 'updateWager'])->name('admin.Manage.wagers.update');
+        Route::delete('/{id}', [AdminController::class, 'deleteWager'])->name('admin.Manage.wagers.destroy');
+    });
 });
 
 require __DIR__ . '/auth.php';
