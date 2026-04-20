@@ -138,6 +138,14 @@ Route::prefix('admin/Manage')->middleware(['auth', 'verified', AdminMiddleware::
         Route::put('/{id}', [AdminController::class, 'updateWager'])->name('admin.Manage.wagers.update');
         Route::delete('/{id}', [AdminController::class, 'deleteWager'])->name('admin.Manage.wagers.destroy');
     });
+
+    // Customizations routes
+    Route::prefix('customizations')->group(function () {
+        Route::get('/', [AdminController::class, 'customizations'])->name('admin.Manage.customizations');
+        Route::post('/', [AdminController::class, 'storeCosmetic'])->name('admin.Manage.customizations.store');
+        Route::put('/{id}', [AdminController::class, 'updateCosmetic'])->name('admin.Manage.customizations.update');
+        Route::delete('/{id}', [AdminController::class, 'destroyCosmetic'])->name('admin.Manage.customizations.destroy');
+    });
 });
 
 require __DIR__ . '/auth.php';

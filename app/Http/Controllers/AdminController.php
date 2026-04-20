@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Cosmetic;
 use App\Models\User;
 use App\Models\Wager;
 use Illuminate\Http\Request;
@@ -150,5 +151,83 @@ class AdminController extends Controller
 
         return redirect()->route('admin')
             ->with('success', 'Wager updated successfully.');
+    }
+
+    // ── Customizations ──────────────────────────────────────────────────────
+
+    public function customizations()
+    {
+        $cosmetics = Cosmetic::orderByRaw("CASE type WHEN 'frame' THEN 1 WHEN 'title' THEN 2 WHEN 'theme' THEN 3 WHEN 'charm' THEN 4 ELSE 5 END")
+            ->orderBy('rarity')
+            ->orderBy('name')
+            ->get();
+
+        return view('Admin.customizations', compact('cosmetics'));
+    }
+
+    public function storeCosmetic(Request $request)
+    {
+        $request->validate([
+            'key'    => 'required|string|max:255|unique:cosmetics,key',
+            'name'   => 'required|string|max:255',
+            'type'   => 'required|in:frame,title,theme,charm',
+            'rarity' => 'required|in:common,uncommon,rare,epic,legendary',
+            'price'  => 'required|integer|min:0',
+        ]);
+
+        Cosmetic::create([
+            'key'    => $request->key,
+            'name'   => $request->name,
+            'type'   => $request->type,
+            'rarity' => $request->rarity,
+            'price'  => $request->price,
+            'meta'   => json_encode($this->buildMeta($request)),
+        ]);
+
+        return redirect()->route('admin.Manage.customizations')->with('success', '"' . $request->name . '" created.');
+    }
+
+    public function updateCosmetic(Request $request, $id)
+    {
+        $cosmetic = Cosmetic::findOrFail($id);
+
+        $request->validate([
+            'key'    => 'required|string|max:255|unique:cosmetics,key,' . $id,
+            'name'   => 'required|string|max:255',
+            'type'   => 'required|in:frame,title,theme,charm',
+            'rarity' => 'required|in:common,uncommon,rare,epic,legendary',
+            'price'  => 'required|integer|min:0',
+        ]);
+
+        $cosmetic->update([
+            'key'    => $request->key,
+            'name'   => $request->name,
+            'type'   => $request->type,
+            'rarity' => $request->rarity,
+            'price'  => $request->price,
+            'meta'   => json_encode($this->buildMeta($request)),
+        ]);
+
+        return redirect()->route('admin.Manage.customizations')->with('success', '"' . $request->name . '" updated.');
+    }
+
+    public function destroyCosmetic($id)
+    {
+        $cosmetic = Cosmetic::findOrFail($id);
+        $name = $cosmetic->name;
+        $cosmetic->delete();
+
+        return redirect()->route('admin.Manage.customizations')->with('success', '"' . $name . '" deleted.');
+    }
+
+    private function buildMeta(Request $request): array
+    {
+        return match ($request->type) {
+            'frame' => ['gradient' => $request->input('meta_gradient', '')],
+            'title' => ['color' => $request->input('meta_color', ''), 'bg' => $request->input('meta_bg', '')],
+            'theme' => ['gradient' => $request->input('meta_gradient', ''), 'bg_class' => $request->input('meta_bg_class', '')],
+            'charm' => ['emoji' => $request->input('meta_emoji', '⭐')],
+            default => [],
+        };
     }
 }
