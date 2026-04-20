@@ -140,7 +140,7 @@
                         @if($u->role === 'admin')
                         <span class="text-[0.6rem] px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold">admin</span>
                         @endif
-                        <p class="text-[0.65rem] text-slate-600 mt-0.5">{{ $u->created_at->diffForHumans() }}</p>
+                        <p class="text-[0.65rem] text-slate-600 mt-0.5">{{ \Carbon\Carbon::parse($u->created_at)->diffForHumans() }}</p>
                     </div>
                 </div>
                 @empty
@@ -171,7 +171,7 @@
                         @else
                         <span class="text-[0.6rem] px-1.5 py-0.5 rounded-md bg-slate-500/10 border border-slate-500/20 text-slate-500 font-bold">ended</span>
                         @endif
-                        <p class="text-[0.65rem] text-slate-600 mt-0.5">{{ $w->created_at->diffForHumans() }}</p>
+                        <p class="text-[0.65rem] text-slate-600 mt-0.5">{{ \Carbon\Carbon::parse($w->created_at)->diffForHumans() }}</p>
                     </div>
                 </div>
                 @empty
