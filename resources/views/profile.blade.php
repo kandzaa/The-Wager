@@ -395,7 +395,8 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
                 <div class="grid {{ $type==='charm'?'grid-cols-3 md:grid-cols-6':($type==='title'?'grid-cols-1 md:grid-cols-2':'grid-cols-2 md:grid-cols-4') }} gap-4" id="shop-grid-{{ $type }}">
                     @foreach($availableItems->sortBy('price') as $item)
                     @php $m = $item->meta ?? []; @endphp
-                    <div class="ccard prof-card rounded-2xl p-4 relative" data-price="{{ $item->price }}" data-ctype="{{ $type }}">
+                    <div class="ccard prof-card rounded-2xl p-4 relative" data-price="{{ $item->price }}" data-ctype="{{ $type }}"
+                        data-item="{{ htmlspecialchars(json_encode(['id'=>$item->id,'name'=>$item->name,'type'=>$type,'gradient'=>$m['gradient']??'','emoji'=>$m['emoji']??'','bg'=>$m['bg']??'','color'=>$m['color']??'','bg_class'=>$m['bg_class']??'']), ENT_QUOTES) }}">
 
                         @if($type==='frame')
                         <div class="w-14 h-14 mx-auto mb-3 p-[3px]" style="background:{{ $m['gradient']??'#333' }}; border-radius:16px;">
@@ -468,10 +469,8 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
                     {{-- Frame --}}
                     <div class="prof-card p-5 rounded-2xl">
                         <p class="mn text-xs uppercase tracking-[.15em] prof-text-muted mb-3">Frame</p>
-                        @if($ownedFrames->isEmpty())
-                        <p class="text-xs prof-text-muted">None owned — <button onclick="switchTab('shop');shopCat('frame')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
-                        @else
-                        <div class="flex gap-2 flex-wrap">
+                        <p id="cust-frame-none" class="text-xs prof-text-muted {{ $ownedFrames->isNotEmpty() ? 'hidden' : '' }}">None owned — <button onclick="switchTab('shop');shopCat('frame')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
+                        <div id="cust-frame-list" class="flex gap-2 flex-wrap {{ $ownedFrames->isEmpty() ? 'hidden' : '' }}">
                             <button onclick="equipItem('frame',null,null,this)" class="w-10 h-10 rounded-xl border-2 border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/20 transition-all prof-text-muted text-xs font-bold">✕</button>
                             @foreach($ownedFrames as $item)
                             @php $m=$item->meta??[]; $eq=collect($equippedRows)->contains('id',$item->id); @endphp
@@ -480,16 +479,13 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
                                     style="background:{{ $m['gradient']??'#333' }}" title="{{ $item->name }}"></button>
                             @endforeach
                         </div>
-                        @endif
                     </div>
 
                     {{-- Title --}}
                     <div class="prof-card p-5 rounded-2xl">
                         <p class="mn text-xs uppercase tracking-[.15em] prof-text-muted mb-3">Title</p>
-                        @if($ownedTitles->isEmpty())
-                        <p class="text-xs prof-text-muted">None owned — <button onclick="switchTab('shop');shopCat('title')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
-                        @else
-                        <div class="flex gap-2 flex-wrap">
+                        <p id="cust-title-none" class="text-xs prof-text-muted {{ $ownedTitles->isNotEmpty() ? 'hidden' : '' }}">None owned — <button onclick="switchTab('shop');shopCat('title')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
+                        <div id="cust-title-list" class="flex gap-2 flex-wrap {{ $ownedTitles->isEmpty() ? 'hidden' : '' }}">
                             <button onclick="equipTitle(null,null,null)" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-xs prof-text-muted font-bold hover:border-slate-400 dark:hover:border-white/20 transition-all">None</button>
                             @foreach($ownedTitles as $item)
                             @php $m=$item->meta??[]; $eq=collect($equippedRows)->contains('id',$item->id); @endphp
@@ -499,16 +495,13 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
                             </button>
                             @endforeach
                         </div>
-                        @endif
                     </div>
 
                     {{-- Theme --}}
                     <div class="prof-card p-5 rounded-2xl">
                         <p class="mn text-xs uppercase tracking-[.15em] prof-text-muted mb-3">Theme</p>
-                        @if($ownedThemes->isEmpty())
-                        <p class="text-xs prof-text-muted">None owned — <button onclick="switchTab('shop');shopCat('theme')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
-                        @else
-                        <div class="flex gap-2 flex-wrap">
+                        <p id="cust-theme-none" class="text-xs prof-text-muted {{ $ownedThemes->isNotEmpty() ? 'hidden' : '' }}">None owned — <button onclick="switchTab('shop');shopCat('theme')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
+                        <div id="cust-theme-list" class="flex gap-2 flex-wrap {{ $ownedThemes->isEmpty() ? 'hidden' : '' }}">
                             <button onclick="equipTheme(null,null,null)" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-xs prof-text-muted font-bold hover:border-slate-400 dark:hover:border-white/20 transition-all">Default</button>
                             @foreach($ownedThemes as $item)
                             @php $m=$item->meta??[]; $eq=collect($equippedRows)->contains('id',$item->id); @endphp
@@ -517,35 +510,33 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
                                     style="background:{{ $m['gradient']??'#1e293b' }}">{{ $item->name }}</button>
                             @endforeach
                         </div>
-                        @endif
                     </div>
 
                     {{-- Charms --}}
                     <div class="prof-card p-5 rounded-2xl">
                         <p class="mn text-xs uppercase tracking-[.15em] prof-text-muted mb-3">Charms <span class="tracking-normal text-[11px] font-normal prof-text-muted">(3 slots)</span></p>
-                        @if($ownedCharms->isEmpty())
-                        <p class="text-xs prof-text-muted">None owned — <button onclick="switchTab('shop');shopCat('charm')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
-                        @else
-                        <div class="grid grid-cols-3 gap-2 mb-3">
-                            @foreach(['charm_1','charm_2','charm_3'] as $slot)
-                            @php $eq=$equippedRows->get($slot); $cm=$eq?json_decode($eq->meta,true):null; @endphp
-                            <div id="charm-slot-{{ $slot }}" class="prof-card rounded-xl border p-3 text-center {{ $eq?'border-emerald-500/40 bg-emerald-500/5':'' }}">
-                                <p class="mn text-[10px] prof-text-muted mb-1">{{ strtoupper(str_replace('_',' ',$slot)) }}</p>
-                                <div class="text-2xl mb-1.5 charm-emoji">{{ $cm?$cm['emoji']:'—' }}</div>
-                                <button onclick="equipCharm('{{ $slot }}',null)" class="charm-remove mn text-[10px] text-red-500 hover:text-red-400 transition-colors" {{ $eq?'':'style=display:none' }}>remove</button>
+                        <p id="cust-charm-none" class="text-xs prof-text-muted {{ $ownedCharms->isNotEmpty() ? 'hidden' : '' }}">None owned — <button onclick="switchTab('shop');shopCat('charm')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
+                        <div id="cust-charm-slots" class="{{ $ownedCharms->isEmpty() ? 'hidden' : '' }}">
+                            <div class="grid grid-cols-3 gap-2 mb-3">
+                                @foreach(['charm_1','charm_2','charm_3'] as $slot)
+                                @php $eq=$equippedRows->get($slot); $cm=$eq?json_decode($eq->meta,true):null; @endphp
+                                <div id="charm-slot-{{ $slot }}" class="prof-card rounded-xl border p-3 text-center {{ $eq?'border-emerald-500/40 bg-emerald-500/5':'' }}">
+                                    <p class="mn text-[10px] prof-text-muted mb-1">{{ strtoupper(str_replace('_',' ',$slot)) }}</p>
+                                    <div class="text-2xl mb-1.5 charm-emoji">{{ $cm?$cm['emoji']:'—' }}</div>
+                                    <button onclick="equipCharm('{{ $slot }}',null)" class="charm-remove mn text-[10px] text-red-500 hover:text-red-400 transition-colors" {{ $eq?'':'style=display:none' }}>remove</button>
+                                </div>
+                                @endforeach
                             </div>
-                            @endforeach
+                            <div id="cust-charm-palette" class="flex gap-2 flex-wrap">
+                                @foreach($ownedCharms as $item)
+                                @php $m=$item->meta??[]; @endphp
+                                <button onclick="pickCharm({{ $item->id }},'{{ $m['emoji']??'?' }}')"
+                                        class="prof-card w-10 h-10 rounded-xl border hover:border-emerald-500/40 transition-all text-xl flex items-center justify-center"
+                                        title="{{ $item->name }}">{{ $m['emoji']??'?' }}</button>
+                                @endforeach
+                            </div>
+                            <p class="mn text-xs prof-text-muted mt-2">Tap to fill next empty slot</p>
                         </div>
-                        <div class="flex gap-2 flex-wrap">
-                            @foreach($ownedCharms as $item)
-                            @php $m=$item->meta??[]; @endphp
-                            <button onclick="pickCharm({{ $item->id }},'{{ $m['emoji']??'?' }}')"
-                                    class="prof-card w-10 h-10 rounded-xl border hover:border-emerald-500/40 transition-all text-xl flex items-center justify-center"
-                                    title="{{ $item->name }}">{{ $m['emoji']??'?' }}</button>
-                            @endforeach
-                        </div>
-                        <p class="mn text-xs prof-text-muted mt-2">Tap to fill next empty slot</p>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -716,18 +707,116 @@ function markEquippedCard(id, type) {
     if (btn) { btn.classList.add('eq-on'); btn.classList.remove('eq-off'); btn.textContent = '✓ Equipped'; }
 }
 
-async function buyItem(id, name, price, btn) {
-    if (!confirm(`Buy "${name}" for 🪙 ${price.toLocaleString()} coins?`)) return;
-    btn.disabled = true; btn.textContent = '...';
-    const data = await post('/cosmetics/buy', {cosmetic_id:id});
+let pendingBuy = null;
+
+function buyItem(id, name, price, btn) {
+    if (pendingBuy) {
+        if (pendingBuy.id === id) {
+            clearBuyConfirm();
+            executeBuy(id, price, btn);
+            return;
+        }
+        clearBuyConfirm();
+    }
+    pendingBuy = { id, btn, html: btn.innerHTML, cls: btn.className };
+    btn.innerHTML = `✓ Confirm — <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" class="w-3.5 h-3.5 inline align-middle"> ${Number(price).toLocaleString()}`;
+    btn.className = btn.className
+        .replace('bg-amber-500/10','bg-emerald-500/10')
+        .replace('border-amber-500/20','border-emerald-500/40')
+        .replace('text-amber-600','text-emerald-600')
+        .replace('hover:bg-amber-500/20','hover:bg-emerald-500/20');
+    setTimeout(() => document.addEventListener('click', buyOutsideClick), 0);
+}
+
+function clearBuyConfirm() {
+    if (!pendingBuy) return;
+    pendingBuy.btn.innerHTML  = pendingBuy.html;
+    pendingBuy.btn.className  = pendingBuy.cls;
+    pendingBuy = null;
+    document.removeEventListener('click', buyOutsideClick);
+}
+
+function buyOutsideClick(e) {
+    if (pendingBuy && !pendingBuy.btn.contains(e.target)) clearBuyConfirm();
+}
+
+async function executeBuy(id, price, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="opacity-50 tracking-wide">Buying…</span>';
+    const data = await post('/cosmetics/buy', {cosmetic_id: id});
     if (data.success) {
         toast('✓ ' + data.message);
         document.getElementById('bal').textContent = Number(data.balance).toLocaleString();
-        location.reload();
+        const card = btn.closest('[data-item]');
+        if (card) {
+            addToCustomize(JSON.parse(card.dataset.item));
+            card.style.transition = 'opacity .25s, transform .25s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(.92)';
+            setTimeout(() => {
+                card.remove();
+                checkShopEmpty(card.dataset.ctype);
+            }, 250);
+        }
     } else {
         toast(data.message, 'err');
-        btn.disabled = false; btn.textContent = `🪙 ${price.toLocaleString()}`;
+        btn.disabled = false;
+        btn.innerHTML = `<img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline"> ${Number(price).toLocaleString()}`;
     }
+}
+
+function addToCustomize(item) {
+    const noneEl = document.getElementById(`cust-${item.type}-none`);
+    const listEl = document.getElementById(`cust-${item.type}-list`);
+
+    if (item.type === 'charm') {
+        const slotsEl  = document.getElementById('cust-charm-slots');
+        const palette  = document.getElementById('cust-charm-palette');
+        if (noneEl) noneEl.classList.add('hidden');
+        if (slotsEl) slotsEl.classList.remove('hidden');
+        if (palette) {
+            const btn = document.createElement('button');
+            btn.className = 'prof-card w-10 h-10 rounded-xl border hover:border-emerald-500/40 transition-all text-xl flex items-center justify-center';
+            btn.title = item.name;
+            btn.textContent = item.emoji || '?';
+            btn.onclick = () => pickCharm(item.id, item.emoji);
+            palette.appendChild(btn);
+        }
+        return;
+    }
+
+    if (!listEl) return;
+    if (noneEl) noneEl.classList.add('hidden');
+    listEl.classList.remove('hidden');
+
+    const btn = document.createElement('button');
+    if (item.type === 'frame') {
+        btn.className = 'w-10 h-10 rounded-xl border-2 transition-all border-transparent hover:border-slate-300 dark:hover:border-white/20';
+        btn.style.background = item.gradient || '#333';
+        btn.title = item.name;
+        btn.onclick = function() { equipItem('frame', item.id, item.gradient, this); };
+    } else if (item.type === 'title') {
+        btn.className = `ttag ${item.bg} ${item.color} cursor-pointer hover:opacity-80 transition-all`;
+        btn.textContent = item.name;
+        btn.onclick = () => equipTitle(item.id, item.bg, item.color, item.name);
+    } else if (item.type === 'theme') {
+        btn.className = 'px-3 py-1.5 rounded-lg border-2 text-xs font-bold transition-all border-slate-200 dark:border-white/10 prof-text-muted hover:border-slate-400 dark:hover:border-white/20';
+        btn.style.background = item.gradient || '#1e293b';
+        btn.textContent = item.name;
+        btn.onclick = () => equipTheme(item.id, item.bg_class, item.gradient);
+    }
+    listEl.appendChild(btn);
+}
+
+function checkShopEmpty(type) {
+    const grid = document.getElementById('shop-grid-' + type);
+    if (!grid || grid.querySelectorAll('[data-price]').length > 0) return;
+    grid.parentElement.innerHTML = `
+        <div class="py-16 text-center">
+            <div class="text-3xl mb-3">✓</div>
+            <p class="font-bold prof-text-main mb-1">You own everything here!</p>
+            <p class="text-sm prof-text-muted">Check the Customize tab to equip your items.</p>
+        </div>`;
 }
 
 async function toggleEquip(id, type, isEquipped, btn) {
