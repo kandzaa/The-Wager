@@ -94,6 +94,42 @@ html:not(.dark) .prof-hero { background:#ffffff; border-color:#e2e8f0; box-shado
 html.dark  .prof-inner { background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.05); }
 html:not(.dark) .prof-inner { background:#f8fafc; border-color:#e2e8f0; }
 
+/* Frosted-glass cards when a custom gradient theme is active */
+#profile-root.has-theme .prof-card {
+    background: rgba(0,0,0,0.28) !important;
+    border-color: rgba(255,255,255,0.22) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+}
+#profile-root.has-theme .prof-hero {
+    background: rgba(0,0,0,0.30) !important;
+    border-color: rgba(255,255,255,0.25) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+#profile-root.has-theme .prof-inner {
+    background: rgba(0,0,0,0.18) !important;
+    border-color: rgba(255,255,255,0.12) !important;
+}
+#profile-root.has-theme .prof-text-main { color: #ffffff !important; }
+#profile-root.has-theme .prof-text-muted { color: rgba(255,255,255,0.55) !important; }
+#profile-root.has-theme .prof-text-sub { color: rgba(255,255,255,0.3) !important; }
+#profile-root.has-theme .prof-sep { border-color: rgba(255,255,255,0.08) !important; }
+#profile-root.has-theme .prof-inline-bg { background: rgba(0,0,0,0.2) !important; border-color: rgba(255,255,255,0.1) !important; }
+#profile-root.has-theme .prof-avatar-bg { background: rgba(0,0,0,0.45) !important; }
+#profile-root.has-theme .prof-charm-bg { background: rgba(0,0,0,0.35) !important; border-color: rgba(255,255,255,0.15) !important; }
+#profile-root.has-theme .prof-tab-border { border-color: rgba(255,255,255,0.2) !important; }
+#profile-root.has-theme .tb { color: rgba(255,255,255,0.6) !important; }
+#profile-root.has-theme .tb:hover { color: #fff !important; }
+#profile-root.has-theme .tb.on { color: #fff !important; }
+#profile-root.has-theme .sbar { background: rgba(255,255,255,0.12) !important; }
+#profile-root.has-theme .prof-input { background: rgba(0,0,0,0.3) !important; border-color: rgba(255,255,255,0.15) !important; color: #fff !important; }
+#profile-root.has-theme .prof-danger { background: rgba(127,29,29,0.4) !important; border-color: rgba(239,68,68,0.3) !important; }
+#profile-root.has-theme .prof-shop-cat-off { background: rgba(0,0,0,0.2) !important; border-color: rgba(255,255,255,0.12) !important; color: rgba(255,255,255,0.5) !important; }
+#profile-root.has-theme .prof-shop-cat-off:hover { color: #fff !important; }
+
 html.dark  .prof-tab-border { border-color:rgba(255,255,255,.07); }
 html:not(.dark) .prof-tab-border { border-color:#e2e8f0; }
 
@@ -188,7 +224,7 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
         ->orderByDesc('b.updated_at')->limit(5)->get();
 @endphp
 
-<div class="pf min-h-screen {{ $themeClass }} prof-text-main" id="profile-root" @if($themeGradient) style="background:{{ $themeGradient }}" @endif>
+<div class="pf min-h-screen {{ $themeClass }} prof-text-main{{ $themeGradient ? ' has-theme' : '' }}" id="profile-root" @if($themeGradient) style="background:{{ $themeGradient }}" @endif>
 
     <div class="fixed inset-0 pointer-events-none overflow-hidden">
         <div class="blob-1 absolute top-0 left-1/3 w-[600px] h-[500px] rounded-full blur-[140px]"></div>
@@ -723,8 +759,10 @@ async function equipTheme(id, bgClass, gradient) {
     Object.values(themeClassMap).forEach(c => root.classList.remove(c));
     if (gradient) {
         root.style.background = gradient;
+        root.classList.add('has-theme');
     } else {
         root.style.background = '';
+        root.classList.remove('has-theme');
         const mapped = themeClassMap[bgClass] || (bgClass ? bgClass : null);
         root.classList.add(mapped || 'bg-profile-default');
     }
