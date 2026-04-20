@@ -10,9 +10,21 @@ class AdminController extends Controller
 {
     public function index()
     {
-        $users = User::orderBy('id')->get();
-        $wager = Wager::with('creator')->orderBy('id')->get();
-        return view('Admin.admin', compact('users', 'wager'));
+        $stats = [
+            'total_users'      => User::count(),
+            'new_users_week'   => User::where('created_at', '>=', now()->subDays(7))->count(),
+            'total_wagers'     => Wager::count(),
+            'active_wagers'    => Wager::where('status', 'active')->count(),
+            'ended_wagers'     => Wager::where('status', 'ended')->count(),
+            'total_pot'        => Wager::sum('pot'),
+            'total_cosmetics'  => Cosmetic::count(),
+            'coins_in_circ'    => User::sum('balance'),
+        ];
+
+        $recentUsers  = User::orderByDesc('created_at')->limit(5)->get();
+        $recentWagers = Wager::with('creator')->orderByDesc('created_at')->limit(5)->get();
+
+        return view('Admin.admin', compact('stats', 'recentUsers', 'recentWagers'));
     }
 
     public function users()
