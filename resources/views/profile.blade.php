@@ -365,33 +365,37 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
 
         {{-- ═══ SHOP ═══ --}}
         <div class="tc" id="tc-shop">
-            <div class="flex gap-2 mb-6 flex-wrap">
+            <div class="flex items-center gap-2 mb-6 flex-wrap">
                 @foreach(['frame'=>'🖼 Frames','title'=>'👑 Titles','theme'=>'🎨 Themes','charm'=>'✨ Charms'] as $cat=>$lbl)
                 <button onclick="shopCat('{{ $cat }}')" id="sc-{{ $cat }}"
                     class="px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-200 {{ $cat==='frame'?'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400':'prof-shop-cat-off' }}">
                     {{ $lbl }}
                 </button>
                 @endforeach
+                <div class="ml-auto flex items-center gap-1 p-1 bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.07] rounded-xl">
+                    <button onclick="sortShop('asc')" id="sort-asc"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-white/[0.08] text-slate-700 dark:text-white border border-slate-200 dark:border-white/[0.1] shadow-sm"
+                        title="Cheapest first">↑ Price</button>
+                    <button onclick="sortShop('desc')" id="sort-desc"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-white"
+                        title="Most expensive first">↓ Price</button>
+                </div>
             </div>
 
             @foreach(['frame','title','theme','charm'] as $type)
+            @php $availableItems = $shop->get($type, collect())->filter(fn($i) => !in_array($i->id, $ownedIds)); @endphp
             <div id="sc-c-{{ $type }}" class="{{ $type!=='frame'?'hidden':'' }}">
-                <div class="grid {{ $type==='charm'?'grid-cols-3 md:grid-cols-6':($type==='title'?'grid-cols-1 md:grid-cols-2':'grid-cols-2 md:grid-cols-4') }} gap-4">
-                    @foreach($shop->get($type,collect()) as $item)
-                    @php
-                        $m        = $item->meta ?? [];
-                        $owned    = in_array($item->id,$ownedIds);
-                        $equipped = collect($equippedRows)->contains('id',$item->id);
-                    @endphp
-                    <div class="ccard prof-card rounded-2xl p-4 relative {{ $equipped?'is-equipped':'' }}"
-                         style="{{ $equipped ? 'border-color:rgba(16,185,129,.6);box-shadow:0 0 0 2px #10b981,0 0 18px rgba(16,185,129,.2);' : ($owned ? '' : '') }}"
-                         id="card-{{ $item->id }}" data-ctype="{{ $type }}">
-
-                        @if($equipped)
-                        <div class="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                        </div>
-                        @endif
+                @if($availableItems->isEmpty())
+                <div class="py-16 text-center">
+                    <div class="text-3xl mb-3">✓</div>
+                    <p class="font-bold prof-text-main mb-1">You own everything here!</p>
+                    <p class="text-sm prof-text-muted">Check the Customize tab to equip your items.</p>
+                </div>
+                @else
+                <div class="grid {{ $type==='charm'?'grid-cols-3 md:grid-cols-6':($type==='title'?'grid-cols-1 md:grid-cols-2':'grid-cols-2 md:grid-cols-4') }} gap-4" id="shop-grid-{{ $type }}">
+                    @foreach($availableItems->sortBy('price') as $item)
+                    @php $m = $item->meta ?? []; @endphp
+                    <div class="ccard prof-card rounded-2xl p-4 relative" data-price="{{ $item->price }}" data-ctype="{{ $type }}">
 
                         @if($type==='frame')
                         <div class="w-14 h-14 mx-auto mb-3 p-[3px]" style="background:{{ $m['gradient']??'#333' }}; border-radius:16px;">
@@ -410,20 +414,14 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
                         <p class="font-bold text-sm prof-text-main text-center mb-0.5">{{ $item->name }}</p>
                         <p class="mn text-xs text-center r-{{ $item->rarity }} mb-3">{{ ucfirst($item->rarity) }}</p>
 
-                        @if($owned)
-                        <button class="eq-btn {{ $equipped?'eq-on':'eq-off' }}"
-                                onclick="toggleEquip({{ $item->id }},'{{ $type }}',{{ $equipped?'true':'false' }},this)">
-                            {{ $equipped ? '✓ Equipped' : 'Equip' }}
-                        </button>
-                        @else
                         <button class="w-full py-2 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all active:scale-95"
                                 onclick="buyItem({{ $item->id }},'{{ addslashes($item->name) }}',{{ $item->price }},this)">
                             <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline"> {{ number_format($item->price) }}
                         </button>
-                        @endif
                     </div>
                     @endforeach
                 </div>
+                @endif
             </div>
             @endforeach
         </div>
@@ -627,6 +625,22 @@ function shopCat(cat) {
             ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
             : 'prof-shop-cat-off'}`;
         document.getElementById('sc-c-'+c).classList.toggle('hidden',!on);
+    });
+}
+
+let shopSortOrder = 'asc';
+function sortShop(order) {
+    shopSortOrder = order;
+    document.getElementById('sort-asc').className  = `px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${order==='asc'  ? 'bg-white dark:bg-white/[0.08] text-slate-700 dark:text-white border border-slate-200 dark:border-white/[0.1] shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-white'}`;
+    document.getElementById('sort-desc').className = `px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${order==='desc' ? 'bg-white dark:bg-white/[0.08] text-slate-700 dark:text-white border border-slate-200 dark:border-white/[0.1] shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-white'}`;
+    ['frame','title','theme','charm'].forEach(type => {
+        const grid = document.getElementById('shop-grid-'+type);
+        if (!grid) return;
+        const cards = Array.from(grid.querySelectorAll('[data-price]'));
+        cards.sort((a, b) => order === 'asc'
+            ? parseInt(a.dataset.price) - parseInt(b.dataset.price)
+            : parseInt(b.dataset.price) - parseInt(a.dataset.price));
+        cards.forEach(c => grid.appendChild(c));
     });
 }
 
