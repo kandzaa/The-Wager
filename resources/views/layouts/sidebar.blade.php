@@ -11,7 +11,8 @@
      style="display:none">
 </div>
 
-<aside class="select-none fixed inset-y-0 left-0 z-40 w-64 flex flex-col
+<aside x-cloak
+       class="select-none fixed inset-y-0 left-0 z-40 w-64 flex flex-col
               bg-white dark:bg-[#080b0f]
               border-r border-slate-200/80 dark:border-white/[0.06]
               transform transition-transform duration-300 ease-in-out lg:translate-x-0"
