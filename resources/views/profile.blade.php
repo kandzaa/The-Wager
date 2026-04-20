@@ -169,7 +169,6 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
     $themeMeta  = $eTheme ? json_decode($eTheme->meta, true) : null;
     $frameStyle = ($frameMeta && isset($frameMeta['gradient'])) ? "background:{$frameMeta['gradient']}" : '';
     $themeKey   = $themeMeta['bg_class'] ?? null;
-    // Map old bg_class values to new prefixed ones
     $themeClassMap = [
         'bg-default'  => 'bg-profile-default',
         'bg-midnight' => 'bg-profile-midnight',
@@ -177,6 +176,7 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
         'bg-void'     => 'bg-profile-void',
     ];
     $themeClass = isset($themeKey) ? ($themeClassMap[$themeKey] ?? 'bg-profile-default') : 'bg-profile-default';
+    $themeGradient = $themeMeta['gradient'] ?? null;
 
     $shop = \App\Models\Cosmetic::all()->groupBy('type');
 
@@ -188,7 +188,7 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
         ->orderByDesc('b.updated_at')->limit(5)->get();
 @endphp
 
-<div class="pf min-h-screen {{ $themeClass }} prof-text-main" id="profile-root">
+<div class="pf min-h-screen {{ $themeClass }} prof-text-main" id="profile-root" @if($themeGradient) style="background:{{ $themeGradient }}" @endif>
 
     <div class="fixed inset-0 pointer-events-none overflow-hidden">
         <div class="blob-1 absolute top-0 left-1/3 w-[600px] h-[500px] rounded-full blur-[140px]"></div>
@@ -475,10 +475,10 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
                         <p class="text-xs prof-text-muted">None owned — <button onclick="switchTab('shop');shopCat('theme')" class="text-emerald-600 dark:text-emerald-500 hover:underline">browse shop</button></p>
                         @else
                         <div class="flex gap-2 flex-wrap">
-                            <button onclick="equipTheme(null,null)" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-xs prof-text-muted font-bold hover:border-slate-400 dark:hover:border-white/20 transition-all">Default</button>
+                            <button onclick="equipTheme(null,null,null)" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-xs prof-text-muted font-bold hover:border-slate-400 dark:hover:border-white/20 transition-all">Default</button>
                             @foreach($ownedThemes as $item)
                             @php $m=$item->meta??[]; $eq=collect($equippedRows)->contains('id',$item->id); @endphp
-                            <button onclick="equipTheme({{ $item->id }},'{{ $m['bg_class']??'' }}')"
+                            <button onclick="equipTheme({{ $item->id }},'{{ $m['bg_class']??'' }}','{{ addslashes($m['gradient']??'') }}')"
                                     class="px-3 py-1.5 rounded-lg border-2 text-xs font-bold transition-all {{ $eq?'border-emerald-500 text-emerald-600 dark:text-emerald-400':'border-slate-200 dark:border-white/10 prof-text-muted hover:border-slate-400 dark:hover:border-white/20' }}"
                                     style="background:{{ $m['gradient']??'#1e293b' }}">{{ $item->name }}</button>
                             @endforeach
@@ -570,7 +570,7 @@ const themeClassMap = {
 let state = {
     frame:   { id: {{ $eFrame ? $eFrame->id : 'null' }}, gradient: '{{ $frameMeta ? ($frameMeta["gradient"] ?? "") : "" }}' },
     title:   { id: {{ $eTitle ? $eTitle->id : 'null' }}, bg: '{{ $titleMeta ? ($titleMeta["bg"] ?? "") : "" }}', color: '{{ $titleMeta ? ($titleMeta["color"] ?? "") : "" }}', name: '{{ $eTitle ? addslashes($eTitle->name) : "" }}' },
-    theme:   { id: {{ $eTheme ? $eTheme->id : 'null' }}, bgClass: '{{ $themeClass }}' },
+    theme:   { id: {{ $eTheme ? $eTheme->id : 'null' }}, bgClass: '{{ $themeClass }}', gradient: '{{ $themeGradient ?? '' }}' },
     charm_1: { id: {{ $equippedRows->get('charm_1') ? $equippedRows->get('charm_1')->id : 'null' }}, emoji: '{{ optional($equippedRows->get('charm_1') ? json_decode($equippedRows->get('charm_1')->meta,true) : null)["emoji"] ?? "" }}' },
     charm_2: { id: {{ $equippedRows->get('charm_2') ? $equippedRows->get('charm_2')->id : 'null' }}, emoji: '{{ optional($equippedRows->get('charm_2') ? json_decode($equippedRows->get('charm_2')->meta,true) : null)["emoji"] ?? "" }}' },
     charm_3: { id: {{ $equippedRows->get('charm_3') ? $equippedRows->get('charm_3')->id : 'null' }}, emoji: '{{ optional($equippedRows->get('charm_3') ? json_decode($equippedRows->get('charm_3')->meta,true) : null)["emoji"] ?? "" }}' },
@@ -714,15 +714,20 @@ async function equipTitle(id, bg, color, name) {
     applyEquippedSidebar();
 }
 
-async function equipTheme(id, bgClass) {
+async function equipTheme(id, bgClass, gradient) {
     const data = await post('/cosmetics/equip', {slot:'theme', cosmetic_id:id});
     if (!data.success) { toast(data.message,'err'); return; }
     toast('✓ '+data.message);
-    state.theme = {id, bgClass};
+    state.theme = {id, bgClass, gradient};
     const root = document.getElementById('profile-root');
     Object.values(themeClassMap).forEach(c => root.classList.remove(c));
-    const mapped = themeClassMap[bgClass] || (bgClass ? bgClass : null);
-    root.classList.add(mapped || 'bg-profile-default');
+    if (gradient) {
+        root.style.background = gradient;
+    } else {
+        root.style.background = '';
+        const mapped = themeClassMap[bgClass] || (bgClass ? bgClass : null);
+        root.classList.add(mapped || 'bg-profile-default');
+    }
     markEquippedCard(id, 'theme');
     applyEquippedSidebar();
 }
