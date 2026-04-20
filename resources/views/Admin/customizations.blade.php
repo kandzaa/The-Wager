@@ -36,17 +36,39 @@ $titlePresets = [
             id: null, key: '', name: '', type: 'frame', rarity: 'common', price: 100,
             meta_gradient: 'linear-gradient(135deg,#10b981,#059669)',
             meta_color: 'text-emerald-400', meta_bg: 'bg-emerald-500/10 border-emerald-500/30',
-            meta_bg_class: '', meta_emoji: '⭐'
+            meta_bg_class: '', meta_emoji: '⭐',
+            meta_hex_color: '#34d399', meta_hex_bg: ''
         },
+        gradAngle: 135,
+        gradColor1: '#10b981',
+        gradColor2: '#059669',
+        gradTarget: 1,
+        swatches: ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#94a3b8','#475569','#ffffff'],
         blank() {
             return {
                 id: null, key: '', name: '', type: 'frame', rarity: 'common', price: 100,
                 meta_gradient: 'linear-gradient(135deg,#10b981,#059669)',
                 meta_color: 'text-emerald-400', meta_bg: 'bg-emerald-500/10 border-emerald-500/30',
-                meta_bg_class: '', meta_emoji: '⭐'
+                meta_bg_class: '', meta_emoji: '⭐',
+                meta_hex_color: '#34d399', meta_hex_bg: ''
             };
         },
-        openCreate() { this.isEdit = false; this.form = this.blank(); this.open = true; },
+        buildGrad() {
+            this.form.meta_gradient = `linear-gradient(${this.gradAngle}deg, ${this.gradColor1}, ${this.gradColor2})`;
+        },
+        syncGradFromText() {
+            const m = this.form.meta_gradient.match(/linear-gradient\(\s*(\d+)deg\s*,\s*(#[\da-fA-F]{3,8})\s*,\s*(#[\da-fA-F]{3,8})\s*\)/);
+            if (m) { this.gradAngle = parseInt(m[1]); this.gradColor1 = m[2]; this.gradColor2 = m[3]; }
+        },
+        swatchClick(color) {
+            if (this.gradTarget === 1) this.gradColor1 = color; else this.gradColor2 = color;
+            this.buildGrad();
+        },
+        openCreate() {
+            this.isEdit = false; this.form = this.blank();
+            this.gradAngle = 135; this.gradColor1 = '#10b981'; this.gradColor2 = '#059669';
+            this.open = true;
+        },
         openEdit(c) {
             this.isEdit = true;
             this.form = {
@@ -57,7 +79,13 @@ $titlePresets = [
                 meta_bg: c.bg || 'bg-emerald-500/10 border-emerald-500/30',
                 meta_bg_class: c.bg_class || '',
                 meta_emoji: c.emoji || '⭐',
+                meta_hex_color: c.hex_color || '#34d399',
+                meta_hex_bg: c.hex_bg || '',
             };
+            const grad = c.gradient || '';
+            const m = grad.match(/linear-gradient\(\s*(\d+)deg\s*,\s*(#[\da-fA-F]{3,8})\s*,\s*(#[\da-fA-F]{3,8})\s*\)/);
+            if (m) { this.gradAngle = parseInt(m[1]); this.gradColor1 = m[2]; this.gradColor2 = m[3]; }
+            else { this.gradAngle = 135; this.gradColor1 = '#10b981'; this.gradColor2 = '#059669'; }
             this.open = true;
         },
         autoKey() {
@@ -129,9 +157,16 @@ $titlePresets = [
                                     <div class="w-full h-full rounded-full bg-slate-100 dark:bg-[#080b0f]"></div>
                                 </div>
                             @elseif($c->type === 'title')
-                                <span class="px-2 py-0.5 rounded-md text-xs font-bold border {{ $meta['bg'] ?? '' }} {{ $meta['color'] ?? 'text-slate-400' }}">
-                                    {{ mb_strimwidth($c->name, 0, 10, '…') }}
-                                </span>
+                                @if(!empty($meta['hex_color']))
+                                    <span class="px-2 py-0.5 rounded-md text-xs font-bold border"
+                                        style="color: {{ $meta['hex_color'] }}; background: {{ $meta['hex_bg'] ?? 'transparent' }}; border-color: {{ $meta['hex_color'] }}40">
+                                        {{ mb_strimwidth($c->name, 0, 10, '…') }}
+                                    </span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded-md text-xs font-bold border {{ $meta['bg'] ?? '' }} {{ $meta['color'] ?? 'text-slate-400' }}">
+                                        {{ mb_strimwidth($c->name, 0, 10, '…') }}
+                                    </span>
+                                @endif
                             @elseif($c->type === 'theme')
                                 <div class="w-8 h-8 rounded-lg" style="background: {{ $meta['gradient'] ?? '#333' }}"></div>
                             @elseif($c->type === 'charm')
@@ -168,7 +203,7 @@ $titlePresets = [
                         <td class="px-5 py-3.5 text-right">
                             <div class="flex items-center justify-end gap-1">
                                 <button
-                                    @click="openEdit({{ json_encode(['id'=>$c->id,'key'=>$c->key,'name'=>$c->name,'type'=>$c->type,'rarity'=>$c->rarity,'price'=>$c->price,'gradient'=>$meta['gradient']??'','color'=>$meta['color']??'','bg'=>$meta['bg']??'','bg_class'=>$meta['bg_class']??'','emoji'=>$meta['emoji']??'']) }})"
+                                    @click="openEdit({{ json_encode(['id'=>$c->id,'key'=>$c->key,'name'=>$c->name,'type'=>$c->type,'rarity'=>$c->rarity,'price'=>$c->price,'gradient'=>$meta['gradient']??'','color'=>$meta['color']??'','bg'=>$meta['bg']??'','bg_class'=>$meta['bg_class']??'','emoji'=>$meta['emoji']??'','hex_color'=>$meta['hex_color']??'','hex_bg'=>$meta['hex_bg']??'']) }})"
                                     class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-all">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
@@ -282,34 +317,104 @@ $titlePresets = [
 
                 {{-- ── Meta: Frame ── --}}
                 <div x-show="form.type === 'frame'" class="space-y-3">
+                    {{-- Color swatches --}}
                     <div>
-                        <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-1.5">Gradient CSS</label>
-                        <input type="text" name="meta_gradient" x-model="form.meta_gradient"
-                            placeholder="linear-gradient(135deg,#f59e0b,#d97706)"
-                            class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white font-mono placeholder-slate-400 focus:outline-none focus:border-emerald-500/50 transition-all"/>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500">Color Swatches</label>
+                            <div class="flex items-center gap-1 text-[0.6rem] font-semibold">
+                                <button type="button" @click="gradTarget = 1"
+                                    :class="gradTarget === 1 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/30' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
+                                    class="px-2 py-0.5 rounded-md uppercase tracking-wide transition-all">Start</button>
+                                <button type="button" @click="gradTarget = 2"
+                                    :class="gradTarget === 2 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/30' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
+                                    class="px-2 py-0.5 rounded-md uppercase tracking-wide transition-all">End</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-10 gap-1.5 p-3 bg-slate-50 dark:bg-black/30 rounded-xl border border-slate-200 dark:border-white/[0.06]">
+                            <template x-for="sw in swatches" :key="sw">
+                                <button type="button" @click="swatchClick(sw)"
+                                    :style="`background:${sw}`"
+                                    :class="(gradTarget===1 && gradColor1===sw) || (gradTarget===2 && gradColor2===sw) ? 'ring-2 ring-offset-1 ring-slate-600 dark:ring-white scale-110' : 'ring-1 ring-black/10'"
+                                    class="w-full aspect-square rounded-md transition-all duration-100 hover:scale-110">
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                    {{-- Color pickers + angle --}}
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[0.6rem] uppercase tracking-widest text-slate-400 mb-1.5">Start Color</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" x-model="gradColor1" @input="buildGrad()"
+                                    class="w-9 h-9 rounded-lg cursor-pointer border-0 bg-transparent p-0.5"/>
+                                <span class="text-[0.6rem] font-mono text-slate-400 tabular-nums" x-text="gradColor1"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[0.6rem] uppercase tracking-widest text-slate-400 mb-1.5">End Color</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" x-model="gradColor2" @input="buildGrad()"
+                                    class="w-9 h-9 rounded-lg cursor-pointer border-0 bg-transparent p-0.5"/>
+                                <span class="text-[0.6rem] font-mono text-slate-400 tabular-nums" x-text="gradColor2"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[0.6rem] uppercase tracking-widest text-slate-400 mb-1.5">Angle <span x-text="gradAngle + '°'"></span></label>
+                            <input type="range" x-model="gradAngle" @input="buildGrad()" min="0" max="360"
+                                class="w-full accent-emerald-500 mt-2"/>
+                        </div>
+                    </div>
+                    {{-- Raw CSS (advanced) --}}
+                    <div>
+                        <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-1.5">Gradient CSS <span class="normal-case font-normal text-slate-400">(auto-updated)</span></label>
+                        <input type="text" name="meta_gradient" x-model="form.meta_gradient" @change="syncGradFromText()"
+                            class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white font-mono placeholder-slate-400 focus:outline-none focus:border-emerald-500/50 transition-all"/>
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full flex-shrink-0 ring-2 ring-slate-200 dark:ring-white/10" :style="`background: ${form.meta_gradient}; padding: 3px`">
                             <div class="w-full h-full rounded-full bg-slate-100 dark:bg-[#0d1117]"></div>
                         </div>
-                        <p class="text-xs text-slate-400">Live frame preview</p>
+                        <div class="h-5 flex-1 rounded-full" :style="`background: ${form.meta_gradient}`"></div>
                     </div>
                 </div>
 
                 {{-- ── Meta: Title ── --}}
                 <div x-show="form.type === 'title'" class="space-y-3">
+                    <input type="hidden" name="meta_hex_color" x-model="form.meta_hex_color">
+                    <input type="hidden" name="meta_hex_bg" x-model="form.meta_hex_bg">
                     <div>
-                        <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-2">Color Preset</label>
-                        <div class="flex flex-wrap gap-2">
+                        <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-2">Quick Presets</label>
+                        <div class="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-black/30 rounded-xl border border-slate-200 dark:border-white/[0.06]">
                             @foreach($titlePresets as $p)
                             <button type="button"
-                                @click="applyPreset('{{ $p['color'] }}', '{{ $p['bg'] }}')"
-                                :class="form.meta_color === '{{ $p['color'] }}' ? 'ring-2 ring-slate-600 dark:ring-white/40 scale-110' : 'ring-1 ring-slate-300 dark:ring-white/10'"
-                                class="w-6 h-6 rounded-full transition-all duration-150"
+                                @click="applyPreset('{{ $p['color'] }}', '{{ $p['bg'] }}'); form.meta_hex_color = '{{ $p['dot'] }}'; form.meta_hex_bg = '';"
+                                :class="form.meta_color === '{{ $p['color'] }}' ? 'ring-2 ring-offset-1 ring-slate-600 dark:ring-white/60 scale-110' : 'ring-1 ring-black/10 hover:scale-105'"
+                                class="w-7 h-7 rounded-full transition-all duration-150"
                                 style="background: {{ $p['dot'] }}"
                                 title="{{ $p['label'] }}">
                             </button>
                             @endforeach
+                        </div>
+                    </div>
+                    {{-- Custom color pickers --}}
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[0.6rem] uppercase tracking-widest text-slate-400 mb-1.5">Custom Text Color</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" x-model="form.meta_hex_color"
+                                    @input="form.meta_color = 'custom'; form.meta_bg = form.meta_bg || '';"
+                                    class="w-9 h-9 rounded-lg cursor-pointer border-0 bg-transparent p-0.5"/>
+                                <span class="text-[0.6rem] font-mono text-slate-400 tabular-nums" x-text="form.meta_hex_color"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[0.6rem] uppercase tracking-widest text-slate-400 mb-1.5">Custom Badge BG</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" x-model="form.meta_hex_bg"
+                                    @input="form.meta_color = 'custom';"
+                                    class="w-9 h-9 rounded-lg cursor-pointer border-0 bg-transparent p-0.5"/>
+                                <span class="text-[0.6rem] font-mono text-slate-400 tabular-nums" x-text="form.meta_hex_bg || '#—'"></span>
+                            </div>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
@@ -324,29 +429,81 @@ $titlePresets = [
                                 class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white font-mono placeholder-slate-400 focus:outline-none focus:border-emerald-500/50 transition-all"/>
                         </div>
                     </div>
+                    {{-- Live preview: class-based vs hex --}}
                     <div class="flex items-center gap-3">
-                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold border" :class="[form.meta_bg, form.meta_color]" x-text="form.name || 'Preview'"></span>
+                        <template x-if="form.meta_color === 'custom' && form.meta_hex_color">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold border"
+                                :style="`color: ${form.meta_hex_color}; background: ${form.meta_hex_bg || 'transparent'}; border-color: ${form.meta_hex_color}40`"
+                                x-text="form.name || 'Preview'"></span>
+                        </template>
+                        <template x-if="form.meta_color !== 'custom'">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold border" :class="[form.meta_bg, form.meta_color]" x-text="form.name || 'Preview'"></span>
+                        </template>
                         <p class="text-xs text-slate-400">Live title preview</p>
                     </div>
                 </div>
 
                 {{-- ── Meta: Theme ── --}}
                 <div x-show="form.type === 'theme'" class="space-y-3">
+                    {{-- Color swatches --}}
                     <div>
-                        <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-1.5">Gradient CSS</label>
-                        <input type="text" name="meta_gradient" x-model="form.meta_gradient"
-                            placeholder="linear-gradient(135deg,#0f0c29,#302b63)"
-                            class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white font-mono placeholder-slate-400 focus:outline-none focus:border-emerald-500/50 transition-all"/>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500">Color Swatches</label>
+                            <div class="flex items-center gap-1 text-[0.6rem] font-semibold">
+                                <button type="button" @click="gradTarget = 1"
+                                    :class="gradTarget === 1 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/30' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
+                                    class="px-2 py-0.5 rounded-md uppercase tracking-wide transition-all">Start</button>
+                                <button type="button" @click="gradTarget = 2"
+                                    :class="gradTarget === 2 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/30' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'"
+                                    class="px-2 py-0.5 rounded-md uppercase tracking-wide transition-all">End</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-10 gap-1.5 p-3 bg-slate-50 dark:bg-black/30 rounded-xl border border-slate-200 dark:border-white/[0.06]">
+                            <template x-for="sw in swatches" :key="sw">
+                                <button type="button" @click="swatchClick(sw)"
+                                    :style="`background:${sw}`"
+                                    :class="(gradTarget===1 && gradColor1===sw) || (gradTarget===2 && gradColor2===sw) ? 'ring-2 ring-offset-1 ring-slate-600 dark:ring-white scale-110' : 'ring-1 ring-black/10'"
+                                    class="w-full aspect-square rounded-md transition-all duration-100 hover:scale-110">
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                    {{-- Color pickers + angle --}}
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[0.6rem] uppercase tracking-widest text-slate-400 mb-1.5">Start Color</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" x-model="gradColor1" @input="buildGrad()"
+                                    class="w-9 h-9 rounded-lg cursor-pointer border-0 bg-transparent p-0.5"/>
+                                <span class="text-[0.6rem] font-mono text-slate-400 tabular-nums" x-text="gradColor1"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[0.6rem] uppercase tracking-widest text-slate-400 mb-1.5">End Color</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" x-model="gradColor2" @input="buildGrad()"
+                                    class="w-9 h-9 rounded-lg cursor-pointer border-0 bg-transparent p-0.5"/>
+                                <span class="text-[0.6rem] font-mono text-slate-400 tabular-nums" x-text="gradColor2"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[0.6rem] uppercase tracking-widest text-slate-400 mb-1.5">Angle <span x-text="gradAngle + '°'"></span></label>
+                            <input type="range" x-model="gradAngle" @input="buildGrad()" min="0" max="360"
+                                class="w-full accent-emerald-500 mt-2"/>
+                        </div>
+                    </div>
+                    {{-- Raw CSS --}}
+                    <div>
+                        <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-1.5">Gradient CSS <span class="normal-case font-normal text-slate-400">(auto-updated)</span></label>
+                        <input type="text" name="meta_gradient" x-model="form.meta_gradient" @change="syncGradFromText()"
+                            class="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white font-mono placeholder-slate-400 focus:outline-none focus:border-emerald-500/50 transition-all"/>
                     </div>
                     <div>
                         <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-1.5">BG Class <span class="normal-case font-normal text-slate-400">(CSS class for profile bg)</span></label>
                         <input type="text" name="meta_bg_class" x-model="form.meta_bg_class" placeholder="bg-midnight"
                             class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white font-mono placeholder-slate-400 focus:outline-none focus:border-emerald-500/50 transition-all"/>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <div class="w-16 h-8 rounded-lg flex-shrink-0 ring-1 ring-slate-200 dark:ring-white/10" :style="`background: ${form.meta_gradient}`"></div>
-                        <p class="text-xs text-slate-400">Live theme preview</p>
-                    </div>
+                    <div class="h-12 rounded-xl ring-1 ring-slate-200 dark:ring-white/10" :style="`background: ${form.meta_gradient}`"></div>
                 </div>
 
                 {{-- ── Meta: Charm ── --}}

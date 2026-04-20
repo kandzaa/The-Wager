@@ -236,7 +236,7 @@ class AdminController extends Controller
     {
         return match ($request->type) {
             'frame' => ['gradient' => $request->input('meta_gradient', '')],
-            'title' => ['color' => $request->input('meta_color', ''), 'bg' => $request->input('meta_bg', '')],
+            'title' => ['color' => $request->input('meta_color', ''), 'bg' => $request->input('meta_bg', ''), 'hex_color' => $request->input('meta_hex_color', ''), 'hex_bg' => $request->input('meta_hex_bg', '')],
             'theme' => ['gradient' => $request->input('meta_gradient', ''), 'bg_class' => $request->input('meta_bg_class', '')],
             'charm' => ['emoji' => $request->input('meta_emoji', '⭐')],
             default => [],
