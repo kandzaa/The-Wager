@@ -18,8 +18,7 @@ class HistoryController extends Controller
         try {
             $userId = Auth::id();
 
-            // User's wagers (participated in)
-            $userWagers = Wager::where('status', 'ended')
+            $wagers = Wager::where('status', 'ended')
                 ->where(function ($q) use ($userId) {
                     $q->where('creator_id', $userId)
                       ->orWhereHas('players', fn($q) => $q->where('user_id', $userId));
@@ -27,24 +26,13 @@ class HistoryController extends Controller
                 ->with('creator')
                 ->withCount('players')
                 ->latest('updated_at')
-                ->paginate(9, ['*'], 'user_wagers');
+                ->paginate(12);
 
-            // Public wagers (not participated in)
-            $publicWagers = Wager::where('status', 'ended')
-                ->where('privacy', 'public')
-                ->where('creator_id', '!=', $userId)
-                ->whereDoesntHave('players', fn($q) => $q->where('user_id', $userId))
-                ->with('creator')
-                ->withCount('players')
-                ->latest('updated_at')
-                ->paginate(9, ['*'], 'public_wagers');
-
-            return view('history', compact('userWagers', 'publicWagers'));
+            return view('history', compact('wagers'));
         } catch (\Exception $e) {
             Log::error('History index error', ['error' => $e->getMessage()]);
             return view('history', [
-                'userWagers' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 9),
-                'publicWagers' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 9),
+                'wagers' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12),
             ]);
         }
     }
