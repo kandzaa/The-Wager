@@ -757,12 +757,20 @@ async function executeBuy(id, price, btn) {
             if (balEl) balEl.textContent = Number(data.balance).toLocaleString();
             const card = btn.closest('[data-item]');
             if (card) {
-                try { addToCustomize(JSON.parse(card.dataset.item)); } catch(_) {}
+                let itemData = null;
+                try { itemData = JSON.parse(card.dataset.item); } catch(_) {}
                 card.style.transition = 'opacity .25s, transform .25s';
                 card.style.opacity = '0';
                 card.style.transform = 'scale(.92)';
                 const ctype = card.dataset.ctype;
-                setTimeout(() => { card.remove(); checkShopEmpty(ctype); }, 250);
+                setTimeout(() => {
+                    card.remove();
+                    checkShopEmpty(ctype);
+                    if (itemData) {
+                        addToCustomize(itemData);
+                        switchTab('customize');
+                    }
+                }, 280);
             }
         } else {
             toast(data.message || 'Purchase failed.', 'err');
