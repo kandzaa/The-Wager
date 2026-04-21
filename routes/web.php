@@ -47,13 +47,32 @@ Route::get('/dashboard', function () {
         ->get()
         ->sortByDesc('wager.ending_time');
 
+    // Pending incoming money transfers (always shown until acted on)
+    $incomingTransfers = \App\Models\MoneyTransfer::with('sender')
+        ->where('recipient_id', auth()->id())
+        ->where('status', 'pending')
+        ->latest()
+        ->get();
+
+    // Toast notifications: sent transfers that were resolved since last visit
+    $seenIds      = session('seen_transfer_ids', []);
+    $resolvedToasts = \App\Models\MoneyTransfer::with('recipient')
+        ->where('sender_id', auth()->id())
+        ->whereIn('status', ['accepted', 'declined'])
+        ->whereNotIn('id', $seenIds)
+        ->latest()
+        ->get();
+    session(['seen_transfer_ids' => array_merge($seenIds, $resolvedToasts->pluck('id')->toArray())]);
+
     return view('dashboard', compact(
         'wagersCount',
         'usersCount',
         'betsCount',
         'pendingInvitations',
         'pendingFriendRequests',
-        'joinedWagers'
+        'joinedWagers',
+        'incomingTransfers',
+        'resolvedToasts'
     ));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
