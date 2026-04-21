@@ -349,6 +349,14 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
             return back()->with('error', 'This wager has already ended.');
         }
 
+        $playerCount = DB::table('wager_players')->where('wager_id', $wager->id)->count();
+        if ($playerCount < 2) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Cannot end a wager with fewer than 2 players.'], 400);
+            }
+            return back()->with('error', 'Cannot end a wager with fewer than 2 players.');
+        }
+
         $wager->load('choices');
 
         if ($wager->choices->isEmpty()) {
@@ -373,6 +381,11 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
 
         if ($wager->status === 'ended') {
             return response()->json(['success' => false, 'message' => 'Wager already ended.'], 400);
+        }
+
+        $playerCount = DB::table('wager_players')->where('wager_id', $wager->id)->count();
+        if ($playerCount < 2) {
+            return response()->json(['success' => false, 'message' => 'Cannot end a wager with fewer than 2 players.'], 400);
         }
 
         $validated = $request->validate([
