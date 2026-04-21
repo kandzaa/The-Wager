@@ -281,7 +281,7 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
 
                 <div class="shrink-0 text-right">
                     <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 bpulse">
-                        <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-6 h-6">
+                        <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-6 h-6 dark:invert">
                         <span class="dsp text-2xl text-amber-600 dark:text-amber-400" id="bal">{{ number_format($user->balance,0) }}</span>
                     </div>
                     <p class="mn text-xs prof-text-muted mt-1">coins</p>
@@ -417,7 +417,7 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
 
                         <button class="w-full py-2 rounded-xl text-xs font-bold bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all active:scale-95"
                                 onclick="buyItem({{ $item->id }},'{{ addslashes($item->name) }}',{{ $item->price }},this)">
-                            <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline"> {{ number_format($item->price) }}
+                            <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline dark:invert"> {{ number_format($item->price) }}
                         </button>
                     </div>
                     @endforeach
@@ -719,7 +719,7 @@ function buyItem(id, name, price, btn) {
         clearBuyConfirm();
     }
     pendingBuy = { id, btn, html: btn.innerHTML, cls: btn.className };
-    btn.innerHTML = `✓ Confirm — <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" class="w-3.5 h-3.5 inline align-middle"> ${Number(price).toLocaleString()}`;
+    btn.innerHTML = `✓ Confirm — <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" class="w-3.5 h-3.5 inline align-middle dark:invert"> ${Number(price).toLocaleString()}`;
     btn.className = btn.className
         .replace('bg-amber-500/10','bg-emerald-500/10')
         .replace('border-amber-500/20','border-emerald-500/40')
@@ -761,7 +761,7 @@ async function executeBuy(id, price, btn) {
     } else {
         toast(data.message, 'err');
         btn.disabled = false;
-        btn.innerHTML = `<img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline"> ${Number(price).toLocaleString()}`;
+        btn.innerHTML = `<img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline dark:invert"> ${Number(price).toLocaleString()}`;
     }
 }
 
