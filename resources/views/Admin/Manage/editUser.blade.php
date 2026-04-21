@@ -43,6 +43,7 @@
                     <div>
                         <label class="block text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-slate-500 mb-1.5">Balance</label>
                         <input type="number" name="balance" value="{{ old('balance', $user->balance) }}" required
+                            min="0" max="2147483647"
                             class="w-full h-11 px-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm outline-none transition-all duration-200 focus:border-emerald-500/50 focus:bg-emerald-500/[0.02] focus:shadow-[0_0_0_3px_rgba(16,185,129,0.08)]" />
                         @error('balance') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
                     </div>
@@ -50,6 +51,13 @@
                     {{-- Role --}}
                     <div>
                         <label class="block text-[0.65rem] font-semibold tracking-[0.12em] uppercase text-slate-500 mb-1.5">Role</label>
+                        @if($user->id === auth()->id())
+                            <div class="w-full h-11 px-4 bg-white/[0.02] border border-white/[0.05] rounded-xl text-slate-500 text-sm flex items-center">
+                                {{ ucfirst($user->role) }}
+                            </div>
+                            <input type="hidden" name="role" value="{{ $user->role }}" />
+                            <p class="mt-1.5 text-xs text-slate-600">You cannot change your own role.</p>
+                        @else
                         <div class="relative">
                             <select name="role"
                                 class="w-full h-11 px-4 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-sm outline-none transition-all duration-200 focus:border-emerald-500/50 appearance-none cursor-pointer">
@@ -60,6 +68,8 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </div>
                         </div>
+                        @endif
+                        @error('role') <p class="mt-1.5 text-xs text-red-400">{{ $message }}</p> @enderror
                     </div>
 
                 </div>

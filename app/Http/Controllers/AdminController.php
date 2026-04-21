@@ -52,9 +52,13 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name'    => 'required|string|max:255',
             'email'   => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'balance' => 'required|numeric',
+            'balance' => 'required|integer|min:0|max:2147483647',
             'role'    => 'required|in:user,admin,moderator',
         ]);
+
+        if ((int) $id === auth()->id()) {
+            unset($validated['role']);
+        }
 
         $user->update($validated);
 
