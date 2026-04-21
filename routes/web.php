@@ -5,6 +5,7 @@ use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\FriendsController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TransferController;
 use App\Http\Controllers\WagerController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Models\FriendRequest;
@@ -61,10 +62,27 @@ Route::get('/balance', function () {
     $last           = $user->last_daily_claim_at;
     $nextEligibleAt = $last ? $last->copy()->addHours(3) : now()->subSecond();
     $canClaim       = now()->greaterThanOrEqualTo($nextEligibleAt);
-    return view('balance', compact('canClaim', 'nextEligibleAt'));
+    $friends        = $user->friends()->orderBy('name')->get();
+    $incoming       = \App\Models\MoneyTransfer::with('sender')
+                        ->where('recipient_id', $user->id)
+                        ->where('status', 'pending')
+                        ->latest()
+                        ->get();
+    $sent           = \App\Models\MoneyTransfer::with('recipient')
+                        ->where('sender_id', $user->id)
+                        ->latest()
+                        ->limit(10)
+                        ->get();
+    return view('balance', compact('canClaim', 'nextEligibleAt', 'friends', 'incoming', 'sent'));
 })->middleware(['auth', 'verified'])->name('balance');
 
 Route::post('/dailyBalance', [BalanceController::class, 'dailyBalance'])->middleware(['auth', 'verified'])->name('balance.daily');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/transfers/send', [TransferController::class, 'send'])->name('transfers.send');
+    Route::post('/transfers/{transfer}/accept', [TransferController::class, 'accept'])->name('transfers.accept');
+    Route::post('/transfers/{transfer}/decline', [TransferController::class, 'decline'])->name('transfers.decline');
+});
 
 // Profile routes
 Route::get('/profile', [ProfileController::class, 'index'])->middleware(['auth', 'verified'])->name('profile');
