@@ -14,7 +14,7 @@ class BalanceController extends Controller
 
         // Check cooldown
         if ($user->last_daily_claim_at) {
-            $nextEligible = $user->last_daily_claim_at->addDay();
+            $nextEligible = $user->last_daily_claim_at->addHours(3);
             if (now()->lt($nextEligible)) {
                 return response()->json([
                     'message' => 'Already claimed today.',
@@ -28,7 +28,7 @@ class BalanceController extends Controller
             DB::table('users')
                 ->where('id', $user->id)
                 ->update([
-                    'balance' => DB::raw('balance + 10'),
+                    'balance' => DB::raw('balance + 100'),
                     'last_daily_claim_at' => now(),
                     'updated_at' => now(),
                 ]);

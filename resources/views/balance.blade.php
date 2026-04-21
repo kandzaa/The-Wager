@@ -99,7 +99,7 @@
     function startCountdown(untilISO) {
         if (!untilISO) return;
         const until = new Date(untilISO);
-        const totalDuration = 24 * 60 * 60 * 1000;
+        const totalDuration = 3 * 60 * 60 * 1000;
         function tick() {
             const diff = until - new Date();
             if (diff <= 0) {

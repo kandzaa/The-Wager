@@ -57,7 +57,7 @@ Route::get('/dashboard', function () {
 Route::get('/balance', function () {
     $user           = Auth::user();
     $last           = $user->last_daily_claim_at;
-    $nextEligibleAt = $last ? $last->copy()->addDay() : now()->subSecond();
+    $nextEligibleAt = $last ? $last->copy()->addHours(3) : now()->subSecond();
     $canClaim       = now()->greaterThanOrEqualTo($nextEligibleAt);
     return view('balance', compact('canClaim', 'nextEligibleAt'));
 })->middleware(['auth', 'verified'])->name('balance');
