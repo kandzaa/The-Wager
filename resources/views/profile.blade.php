@@ -606,7 +606,15 @@ function switchTab(t) {
     document.querySelectorAll('.tc').forEach(c => c.classList.remove('on'));
     document.getElementById('tb-'+t).classList.add('on');
     document.getElementById('tc-'+t).classList.add('on');
+    localStorage.setItem('profile_tab', t);
 }
+
+// Restore tab on page load
+(function() {
+    const saved = localStorage.getItem('profile_tab');
+    const valid = ['stats','shop','customize','settings'];
+    if (saved && valid.includes(saved)) switchTab(saved);
+})();
 
 function shopCat(cat) {
     ['frame','title','theme','charm'].forEach(c => {
@@ -757,20 +765,13 @@ async function executeBuy(id, price, btn) {
             if (balEl) balEl.textContent = Number(data.balance).toLocaleString();
             const card = btn.closest('[data-item]');
             if (card) {
-                let itemData = null;
-                try { itemData = JSON.parse(card.dataset.item); } catch(_) {}
-                card.style.transition = 'opacity .25s, transform .25s';
+                card.style.transition = 'opacity .3s, transform .3s';
                 card.style.opacity = '0';
                 card.style.transform = 'scale(.92)';
-                const ctype = card.dataset.ctype;
                 setTimeout(() => {
-                    card.remove();
-                    checkShopEmpty(ctype);
-                    if (itemData) {
-                        addToCustomize(itemData);
-                        switchTab('customize');
-                    }
-                }, 280);
+                    localStorage.setItem('profile_tab', 'customize');
+                    window.location.reload();
+                }, 320);
             }
         } else {
             toast(data.message || 'Purchase failed.', 'err');
