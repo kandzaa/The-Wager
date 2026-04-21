@@ -140,7 +140,6 @@
             <div class="min-w-0 flex-1">
                 <p class="text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">{{ Auth::user()->name }}</p>
                 <div class="flex items-center gap-1 mt-0.5">
-                    <svg class="w-3 h-3 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path fill="white" d="M12 6v2m0 8v2M9 12h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
                     <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 tabular-nums">{{ number_format(Auth::user()->balance) }}</span>
                     <span class="text-[10px] text-slate-400 dark:text-slate-600">coins</span>
                 </div>
