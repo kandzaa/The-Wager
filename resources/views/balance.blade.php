@@ -19,6 +19,7 @@
             <div class="relative">
                 <p class="text-xs uppercase tracking-[0.2em] text-emerald-100/70 dark:text-emerald-500/70 font-semibold mb-3">Available</p>
                 <div class="flex items-end gap-3 mb-2">
+                    <img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-10 h-10 mb-1 shrink-0">
                     <span class="text-6xl font-black text-white leading-none">{{ Auth::user()->balance }}</span>
                     <span class="text-emerald-200 dark:text-emerald-400 font-semibold text-lg mb-1">coins</span>
                 </div>
