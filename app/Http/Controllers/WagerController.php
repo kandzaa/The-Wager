@@ -76,6 +76,21 @@ class WagerController extends Controller
         return response()->json(['message' => 'Wager created successfully', 'id' => $wagerId], 201);
     }
 
+    public function destroy(Wager $wager)
+    {
+        if ($wager->creator_id !== Auth::id()) {
+            return back()->with('error', 'Not authorized to delete this wager.');
+        }
+
+        DB::table('wager_bets')->where('wager_id', $wager->id)->delete();
+        DB::table('wager_players')->where('wager_id', $wager->id)->delete();
+        DB::table('wager_choices')->where('wager_id', $wager->id)->delete();
+        DB::table('wager_invitations')->where('wager_id', $wager->id)->delete();
+        DB::table('wagers')->where('id', $wager->id)->delete();
+
+        return redirect()->route('wagers.index')->with('success', 'Wager deleted.');
+    }
+
     public function edit(Wager $wager)
     {
         if ($wager->creator_id !== Auth::id()) {
