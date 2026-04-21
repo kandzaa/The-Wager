@@ -22,7 +22,7 @@ class User extends Authenticatable
 
     protected $attributes = [
         'role'    => 'user',
-        'balance' => 0, // Optional: Set default balance
+        'balance' => 1000,
     ];
 
     protected $hidden = [
