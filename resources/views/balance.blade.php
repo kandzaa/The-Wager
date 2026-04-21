@@ -32,7 +32,7 @@
             <div class="px-6 py-5 border-b border-slate-100 dark:border-white/[0.05] flex items-center justify-between">
                 <div>
                     <p class="text-xs uppercase tracking-[0.15em] text-slate-500 font-semibold">Daily Bonus</p>
-                    <p class="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Free coins every 24 hours</p>
+                    <p class="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Free 100 coins every 3 hours</p>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center">
                     <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +45,7 @@
                  data-next-eligible-at="{{ optional($nextEligibleAt)->toIso8601String() }}"
                  data-can-claim="{{ $canClaim ? '1' : '0' }}">
                 <div class="flex items-center justify-between">
-                    <div>
+                    <div id="claim-status">
                         @if(!$canClaim)
                             <p class="text-xs text-slate-500 mb-0.5">Next claim in</p>
                             <p id="cooldownText" class="text-lg font-black text-slate-700 dark:text-slate-300 tabular-nums">--:--:--</p>
@@ -62,13 +62,11 @@
                         {{ $canClaim ? '+ Claim coins' : 'Claimed' }}
                     </button>
                 </div>
-                @if(!$canClaim)
-                <div class="mt-4">
+                <div id="progress-wrap" class="mt-4 {{ $canClaim ? 'hidden' : '' }}">
                     <div class="w-full h-1 bg-slate-100 dark:bg-white/[0.05] rounded-full overflow-hidden">
                         <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000" style="width:0%"></div>
                     </div>
                 </div>
-                @endif
             </div>
         </div>
 
@@ -131,9 +129,14 @@
             const res = await fetch(form.action, { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRF-TOKEN':csrf,'Accept':'application/json'} });
             const data = await res.json();
             if (res.ok) {
-                if (balanceEl && typeof data.balance === 'number') balanceEl.textContent = data.balance;
+                if (balanceEl && typeof data.balance === 'number') balanceEl.textContent = Number(data.balance).toLocaleString();
+                btn.disabled = true;
                 btn.textContent = 'Claimed';
-                startCountdown(new Date(data.last_daily_claim_at).toISOString());
+                btn.className = 'relative px-6 py-3 rounded-xl font-bold text-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed bg-slate-100 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-400';
+                const statusDiv = document.getElementById('claim-status');
+                if (statusDiv) statusDiv.innerHTML = `<p class="text-xs text-slate-500 mb-0.5">Next claim in</p><p id="cooldownText" class="text-lg font-black text-slate-700 dark:text-slate-300 tabular-nums">--:--:--</p>`;
+                document.getElementById('progress-wrap')?.classList.remove('hidden');
+                startCountdown(data.next_eligible_at);
             } else if (res.status === 429) {
                 btn.textContent = 'Claimed';
                 if (data.next_eligible_at) startCountdown(data.next_eligible_at);

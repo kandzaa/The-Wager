@@ -38,7 +38,7 @@ class BalanceController extends Controller
             return response()->json([
                 'message' => 'Daily balance added.',
                 'balance' => $user->balance,
-                'last_daily_claim_at' => $user->last_daily_claim_at->toIso8601String(),
+                'next_eligible_at' => $user->last_daily_claim_at->addHours(3)->toIso8601String(),
             ]);
         } catch (\Exception $e) {
             Log::error('Daily balance claim failed', ['error' => $e->getMessage()]);
