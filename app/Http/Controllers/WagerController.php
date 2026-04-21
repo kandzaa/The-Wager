@@ -14,7 +14,7 @@ class WagerController extends Controller
 {
     public function index()
     {
-        $wagers     = Wager::where('status', '!=', 'ended')->get();
+        $wagers     = Wager::where('status', '!=', 'ended')->where('privacy', 'public')->get();
         $userWagers = auth()->check()
             ? auth()->user()->wagers()->where('status', '!=', 'ended')->get()
             : collect([]);

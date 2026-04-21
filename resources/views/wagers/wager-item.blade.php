@@ -23,7 +23,7 @@
                 <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20">
                     Ended
                 </span>
-            @elseif($wager->status === 'public')
+            @elseif(($wager->privacy ?? 'public') === 'public')
                 <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
                     Public
                 </span>
