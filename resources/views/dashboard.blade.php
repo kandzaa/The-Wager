@@ -6,6 +6,25 @@
         <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-emerald-950/30 rounded-full blur-[120px]"></div>
     </div>
 
+    {{-- Activity banner (hidden until polling detects new activity) --}}
+    <div id="activity-banner" style="display:none" class="fixed top-0 left-0 right-0 z-50 justify-center pt-4 px-4 pointer-events-none">
+        <div class="pointer-events-auto flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl border
+                    bg-white dark:bg-[#0d1117] border-emerald-400/40 dark:border-emerald-500/30
+                    text-slate-900 dark:text-white"
+             style="animation: bannerIn .4s cubic-bezier(.16,1,.3,1) both">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+            <p class="text-sm font-semibold" id="activity-banner-text">You have new activity</p>
+            <button onclick="window.location.reload()"
+                class="ml-1 px-3 py-1 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white transition-colors">
+                Refresh
+            </button>
+            <button onclick="document.getElementById('activity-banner').style.display='none'"
+                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+    </div>
+
     <div class="relative z-10 max-w-7xl mx-auto px-6 py-14">
 
         {{-- Greeting --}}
@@ -257,6 +276,7 @@
 @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 .toast-item { animation: toastIn 0.4s cubic-bezier(0.16,1,0.3,1) both; }
 @keyframes toastIn { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+@keyframes bannerIn { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
 </style>
 
 <script>
@@ -324,5 +344,46 @@ function declineFriendRequest(requestId) {
 function checkEmptySections() {
     document.querySelectorAll('[id^="friend-req-"]').length === 0 && location.reload();
 }
+
+// ── Activity polling ─────────────────────────────────────────────────────────
+const baseline = {
+    friend_requests: {{ $pendingFriendRequests->count() }},
+    transfers:       {{ $incomingTransfers->count() }},
+    invitations:     {{ $pendingInvitations->count() }},
+    resolved:        0,
+};
+
+const banner     = document.getElementById('activity-banner');
+const bannerText = document.getElementById('activity-banner-text');
+let bannerShown  = false;
+
+function showBanner(label) {
+    if (bannerShown) return;
+    bannerShown = true;
+    bannerText.textContent = label;
+    banner.style.display = 'flex';
+    banner.firstElementChild.style.animation = 'bannerIn .4s cubic-bezier(.16,1,.3,1) both';
+}
+
+async function pollActivity() {
+    try {
+        const res  = await fetch('/dashboard/activity', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const labels = [];
+        if (data.friend_requests > baseline.friend_requests) labels.push('friend request');
+        if (data.transfers       > baseline.transfers)       labels.push('coin transfer');
+        if (data.invitations     > baseline.invitations)     labels.push('wager invitation');
+        if (data.resolved        > baseline.resolved)        labels.push('transfer response');
+
+        if (labels.length) {
+            const noun = labels.length === 1 ? `a new ${labels[0]}` : `${labels.length} new notifications`;
+            showBanner(`You have ${noun} — refresh to see it`);
+        }
+    } catch (_) {}
+}
+
+setInterval(pollActivity, 30_000);
 </script>
 </x-app-layout>

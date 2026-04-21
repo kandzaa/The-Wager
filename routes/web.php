@@ -109,6 +109,17 @@ Route::post('/profile/change-username', [ProfileController::class, 'changeUserna
 Route::post('/profile/change-email', [ProfileController::class, 'changeEmail'])->middleware(['auth', 'verified'])->name('profile.change-email');
 Route::post('/profile/change-password', [ProfileController::class, 'changePassword'])->middleware(['auth', 'verified'])->name('profile.change-password');
 
+// Dashboard activity polling endpoint
+Route::get('/dashboard/activity', function () {
+    $user = auth()->user();
+    return response()->json([
+        'friend_requests' => \App\Models\FriendRequest::where('recipient_id', $user->id)->where('status', 'pending')->count(),
+        'transfers'       => \App\Models\MoneyTransfer::where('recipient_id', $user->id)->where('status', 'pending')->count(),
+        'invitations'     => $user->wagerInvitations()->where('status', \App\Models\WagerInvitation::STATUS_PENDING)->where('expires_at', '>', now())->count(),
+        'resolved'        => \App\Models\MoneyTransfer::where('sender_id', $user->id)->whereIn('status', ['accepted', 'declined'])->whereNotIn('id', session('seen_transfer_ids', []))->count(),
+    ]);
+})->middleware(['auth', 'verified'])->name('dashboard.activity');
+
 // Wager routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/wagers', [WagerController::class, 'index'])->name('wagers.index');
