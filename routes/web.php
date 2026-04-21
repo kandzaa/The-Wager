@@ -20,6 +20,7 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     $wagersCount = Wager::count();
     $usersCount  = User::count();
+    $betsCount   = \App\Models\WagerBet::count();
 
     // Pending wager invitations for this user
     $pendingInvitations = auth()->user()->wagerInvitations()
@@ -48,6 +49,7 @@ Route::get('/dashboard', function () {
     return view('dashboard', compact(
         'wagersCount',
         'usersCount',
+        'betsCount',
         'pendingInvitations',
         'pendingFriendRequests',
         'joinedWagers'
