@@ -184,7 +184,6 @@ class AdminController extends Controller
     public function storeCosmetic(Request $request)
     {
         $request->validate([
-            'key'    => 'required|string|max:255|unique:cosmetics,key',
             'name'   => 'required|string|max:255',
             'type'   => 'required|in:frame,title,theme,charm',
             'rarity' => 'required|in:common,uncommon,rare,epic,legendary',
@@ -192,7 +191,6 @@ class AdminController extends Controller
         ]);
 
         Cosmetic::create([
-            'key'    => $request->key,
             'name'   => $request->name,
             'type'   => $request->type,
             'rarity' => $request->rarity,
@@ -208,7 +206,6 @@ class AdminController extends Controller
         $cosmetic = Cosmetic::findOrFail($id);
 
         $request->validate([
-            'key'    => 'required|string|max:255|unique:cosmetics,key,' . $id,
             'name'   => 'required|string|max:255',
             'type'   => 'required|in:frame,title,theme,charm',
             'rarity' => 'required|in:common,uncommon,rare,epic,legendary',
@@ -216,7 +213,6 @@ class AdminController extends Controller
         ]);
 
         $cosmetic->update([
-            'key'    => $request->key,
             'name'   => $request->name,
             'type'   => $request->type,
             'rarity' => $request->rarity,

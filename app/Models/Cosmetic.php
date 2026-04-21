@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cosmetic extends Model
 {
-    protected $fillable = ['key', 'name', 'type', 'rarity', 'price', 'meta'];
+    protected $fillable = ['name', 'type', 'rarity', 'price', 'meta'];
 
     public function getMetaAttribute($value): array
     {

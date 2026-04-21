@@ -33,7 +33,7 @@ $titlePresets = [
         open: false,
         isEdit: false,
         form: {
-            id: null, key: '', name: '', type: 'frame', rarity: 'common', price: 100,
+            id: null, name: '', type: 'frame', rarity: 'common', price: 100,
             meta_gradient: 'linear-gradient(135deg,#10b981,#059669)',
             meta_color: 'text-emerald-400', meta_bg: 'bg-emerald-500/10 border-emerald-500/30',
             meta_bg_class: '', meta_emoji: '⭐',
@@ -46,7 +46,7 @@ $titlePresets = [
         swatches: ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#94a3b8','#475569','#ffffff'],
         blank() {
             return {
-                id: null, key: '', name: '', type: 'frame', rarity: 'common', price: 100,
+                id: null, name: '', type: 'frame', rarity: 'common', price: 100,
                 meta_gradient: 'linear-gradient(135deg,#10b981,#059669)',
                 meta_color: 'text-emerald-400', meta_bg: 'bg-emerald-500/10 border-emerald-500/30',
                 meta_bg_class: '', meta_emoji: '⭐',
@@ -72,7 +72,7 @@ $titlePresets = [
         openEdit(c) {
             this.isEdit = true;
             this.form = {
-                id: c.id, key: c.key, name: c.name, type: c.type,
+                id: c.id, name: c.name, type: c.type,
                 rarity: c.rarity, price: c.price,
                 meta_gradient: c.gradient || 'linear-gradient(135deg,#10b981,#059669)',
                 meta_color: c.color || 'text-emerald-400',
@@ -87,11 +87,6 @@ $titlePresets = [
             if (m) { this.gradAngle = parseInt(m[1]); this.gradColor1 = m[2]; this.gradColor2 = m[3]; }
             else { this.gradAngle = 135; this.gradColor1 = '#10b981'; this.gradColor2 = '#059669'; }
             this.open = true;
-        },
-        autoKey() {
-            if (!this.isEdit) {
-                this.form.key = this.form.type + '_' + this.form.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-            }
         },
         applyPreset(color, bg) { this.form.meta_color = color; this.form.meta_bg = bg; },
         get formAction() {
@@ -139,7 +134,6 @@ $titlePresets = [
                         <th class="px-4 py-3 text-left font-semibold hidden sm:table-cell">Type</th>
                         <th class="px-4 py-3 text-left font-semibold hidden md:table-cell">Rarity</th>
                         <th class="px-4 py-3 text-left font-semibold">Price</th>
-                        <th class="px-4 py-3 text-left font-semibold hidden lg:table-cell">Key</th>
                         <th class="px-5 py-3 text-right font-semibold">Actions</th>
                     </tr>
                 </thead>
@@ -195,15 +189,11 @@ $titlePresets = [
                             <span class="font-bold text-amber-600 dark:text-amber-400">{{ number_format($c->price) }}</span>
                             <span class="text-slate-400 text-xs ml-0.5">c</span>
                         </td>
-                        {{-- Key --}}
-                        <td class="px-4 py-3.5 hidden lg:table-cell">
-                            <code class="text-xs text-slate-400 font-mono">{{ $c->key }}</code>
-                        </td>
                         {{-- Actions --}}
                         <td class="px-5 py-3.5 text-right">
                             <div class="flex items-center justify-end gap-1">
                                 <button
-                                    @click="openEdit({{ json_encode(['id'=>$c->id,'key'=>$c->key,'name'=>$c->name,'type'=>$c->type,'rarity'=>$c->rarity,'price'=>$c->price,'gradient'=>$meta['gradient']??'','color'=>$meta['color']??'','bg'=>$meta['bg']??'','bg_class'=>$meta['bg_class']??'','emoji'=>$meta['emoji']??'','hex_color'=>$meta['hex_color']??'','hex_bg'=>$meta['hex_bg']??'']) }})"
+                                    @click="openEdit({{ json_encode(['id'=>$c->id,'name'=>$c->name,'type'=>$c->type,'rarity'=>$c->rarity,'price'=>$c->price,'gradient'=>$meta['gradient']??'','color'=>$meta['color']??'','bg'=>$meta['bg']??'','bg_class'=>$meta['bg_class']??'','emoji'=>$meta['emoji']??'','hex_color'=>$meta['hex_color']??'','hex_bg'=>$meta['hex_bg']??'']) }})"
                                     class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-all">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
@@ -219,7 +209,7 @@ $titlePresets = [
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-5 py-16 text-center text-slate-400">
+                        <td colspan="6" class="px-5 py-16 text-center text-slate-400">
                             No cosmetics yet. Create your first one.
                         </td>
                     </tr>
@@ -273,7 +263,7 @@ $titlePresets = [
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-1.5">Type</label>
-                        <select name="type" x-model="form.type" @change="autoKey()"
+                        <select name="type" x-model="form.type"
                             class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500/50 transition-all">
                             <option value="frame">Frame</option>
                             <option value="title">Title</option>
@@ -298,7 +288,7 @@ $titlePresets = [
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-1.5">Name</label>
-                        <input type="text" name="name" x-model="form.name" @input="autoKey()" placeholder="Gold Frame" required
+                        <input type="text" name="name" x-model="form.name" placeholder="Gold Frame" required
                             class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500/50 transition-all"/>
                     </div>
                     <div>
@@ -308,12 +298,6 @@ $titlePresets = [
                     </div>
                 </div>
 
-                {{-- Key --}}
-                <div>
-                    <label class="block text-[0.65rem] uppercase tracking-[0.15em] font-bold text-slate-500 mb-1.5">Key <span class="normal-case font-normal text-slate-400">(unique identifier)</span></label>
-                    <input type="text" name="key" x-model="form.key" required
-                        class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500/50 transition-all"/>
-                </div>
 
                 {{-- ── Meta: Frame ── --}}
                 <div x-show="form.type === 'frame'" class="space-y-3">
