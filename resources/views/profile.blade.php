@@ -743,25 +743,36 @@ function buyOutsideClick(e) {
 async function executeBuy(id, price, btn) {
     btn.disabled = true;
     btn.innerHTML = '<span class="opacity-50 tracking-wide">Buying…</span>';
-    const data = await post('/cosmetics/buy', {cosmetic_id: id});
-    if (data.success) {
-        toast('✓ ' + data.message);
-        document.getElementById('bal').textContent = Number(data.balance).toLocaleString();
-        const card = btn.closest('[data-item]');
-        if (card) {
-            addToCustomize(JSON.parse(card.dataset.item));
-            card.style.transition = 'opacity .25s, transform .25s';
-            card.style.opacity = '0';
-            card.style.transform = 'scale(.92)';
-            setTimeout(() => {
-                card.remove();
-                checkShopEmpty(card.dataset.ctype);
-            }, 250);
+    const originalHtml = `<img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline dark:invert"> ${Number(price).toLocaleString()}`;
+    try {
+        const r = await fetch('/cosmetics/buy', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
+            body: JSON.stringify({cosmetic_id: id})
+        });
+        const data = await r.json();
+        if (data.success) {
+            toast('✓ ' + data.message);
+            const balEl = document.getElementById('bal');
+            if (balEl) balEl.textContent = Number(data.balance).toLocaleString();
+            const card = btn.closest('[data-item]');
+            if (card) {
+                try { addToCustomize(JSON.parse(card.dataset.item)); } catch(_) {}
+                card.style.transition = 'opacity .25s, transform .25s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(.92)';
+                const ctype = card.dataset.ctype;
+                setTimeout(() => { card.remove(); checkShopEmpty(ctype); }, 250);
+            }
+        } else {
+            toast(data.message || 'Purchase failed.', 'err');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
         }
-    } else {
-        toast(data.message, 'err');
+    } catch (e) {
+        toast('Something went wrong. Please refresh.', 'err');
         btn.disabled = false;
-        btn.innerHTML = `<img src="https://img.icons8.com/?size=100&id=59840&format=png&color=000000" alt="coins" class="w-4 h-4 inline dark:invert"> ${Number(price).toLocaleString()}`;
+        btn.innerHTML = originalHtml;
     }
 }
 
