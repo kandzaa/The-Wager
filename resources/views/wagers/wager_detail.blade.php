@@ -51,21 +51,45 @@
                 @endif
             </div>
 
+            @php $buyIn = (int)($wager->buy_in ?? 0); @endphp
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                @php
-                $buyIn = (int)($wager->buy_in ?? 0);
-                $stats = [
-                    ['label' => 'Ends', 'value' => optional($wager->ending_time)?->diffForHumans() ?? 'N/A', 'accent' => false],
-                    ['label' => 'Status', 'value' => ucfirst($wager->status), 'accent' => false],
-                    ['label' => 'Buy-in', 'value' => $buyIn > 0 ? number_format($buyIn) . ' coins' : 'Free', 'accent' => $buyIn > 0],
-                    ['label' => 'Total Pot', 'value' => number_format($wager->pot, 0), 'accent' => true],
-                ]; @endphp
-                @foreach($stats as $stat)
-                <div class="rounded-xl p-3 {{ $stat['accent'] ? 'bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-500/20' : 'bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05]' }}">
-                    <p class="text-xs uppercase tracking-[0.12em] {{ $stat['accent'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500' }} font-semibold mb-1">{{ $stat['label'] }}</p>
-                    <p class="text-base font-black {{ $stat['accent'] ? 'text-emerald-800 dark:text-emerald-200' : 'text-slate-900 dark:text-white' }}" id="{{ $stat['label'] === 'Total Pot' ? 'pot-display' : '' }}">{{ $stat['value'] }}</p>
+
+                {{-- Ends: live countdown --}}
+                <div class="rounded-xl p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05]">
+                    <p class="text-xs uppercase tracking-[0.12em] text-slate-500 font-semibold mb-1">Ends</p>
+                    @if($wager->status === 'ended')
+                        <p class="text-base font-black text-red-500 dark:text-red-400">Ended</p>
+                    @else
+                        <p class="text-base font-black text-slate-900 dark:text-white font-mono"
+                           id="detail-countdown"
+                           data-ends="{{ optional($wager->ending_time)?->timestamp ?? 0 }}">
+                            {{ optional($wager->ending_time)?->diffForHumans() ?? 'N/A' }}
+                        </p>
+                    @endif
                 </div>
-                @endforeach
+
+                {{-- Players --}}
+                <div class="rounded-xl p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05]">
+                    <p class="text-xs uppercase tracking-[0.12em] text-slate-500 font-semibold mb-1">Players</p>
+                    <p class="text-base font-black text-slate-900 dark:text-white">
+                        {{ $wager->players()->count() }}<span class="text-slate-400 dark:text-slate-600 font-medium text-sm">/{{ $wager->max_players }}</span>
+                    </p>
+                </div>
+
+                {{-- Buy-in --}}
+                <div class="rounded-xl p-3 {{ $buyIn > 0 ? 'bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-500/20' : 'bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05]' }}">
+                    <p class="text-xs uppercase tracking-[0.12em] {{ $buyIn > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500' }} font-semibold mb-1">Buy-in</p>
+                    <p class="text-base font-black {{ $buyIn > 0 ? 'text-emerald-800 dark:text-emerald-200' : 'text-slate-900 dark:text-white' }}">
+                        {{ $buyIn > 0 ? number_format($buyIn) . ' coins' : 'Free' }}
+                    </p>
+                </div>
+
+                {{-- Total Pot --}}
+                <div class="rounded-xl p-3 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-500/20">
+                    <p class="text-xs uppercase tracking-[0.12em] text-emerald-600 dark:text-emerald-400 font-semibold mb-1">Total Pot</p>
+                    <p class="text-base font-black text-emerald-800 dark:text-emerald-200" id="pot-display">{{ number_format($wager->pot, 0) }}</p>
+                </div>
+
             </div>
 
             <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/[0.05] flex items-center gap-2 text-xs text-slate-500">
@@ -238,6 +262,27 @@
 .fade-up { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 </style>
+
+<script>
+(function () {
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function tick() {
+        const el = document.getElementById('detail-countdown');
+        if (!el) return;
+        const ends = parseInt(el.getAttribute('data-ends'), 10);
+        const left = ends - Math.floor(Date.now() / 1000);
+        if (left <= 0) { el.textContent = 'Ended'; el.classList.add('text-red-500', 'dark:text-red-400'); return; }
+        const d = Math.floor(left / 86400);
+        const h = Math.floor((left % 86400) / 3600);
+        const m = Math.floor((left % 3600) / 60);
+        const s = left % 60;
+        el.textContent = d > 0 ? `${d}d ${pad(h)}h ${pad(m)}m` : `${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { tick(); setInterval(tick, 1000); });
+})();
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
