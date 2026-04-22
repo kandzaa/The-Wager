@@ -301,13 +301,24 @@
         } catch { return null; }
     }
 
+    let lastDistHash = null;
+
+    function distHash(dist) {
+        return dist.map(i => `${i.id}:${parseFloat(i.total_bet)||0}`).join('|');
+    }
+
     function updateUIWithServerData(data) {
         if (!data) return;
         const pot = document.getElementById('pot-display');
         if (pot && data.pot !== undefined) pot.textContent = Math.round(data.pot).toLocaleString();
         if (data.distribution) {
-            initialData = data.distribution.map(i => ({ id: i.id, label: i.label, total_bet: parseFloat(i.amount)||0 }));
-            renderChart(initialData);
+            const newData = data.distribution.map(i => ({ id: i.id, label: i.label, total_bet: parseFloat(i.amount)||0 }));
+            const hash = distHash(newData);
+            if (hash !== lastDistHash) {
+                lastDistHash = hash;
+                initialData = newData;
+                renderChart(initialData);
+            }
         }
     }
 
@@ -350,6 +361,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        lastDistHash = distHash(initialData);
         renderChart(initialData);
         document.querySelectorAll('.bet-input').forEach(i => i.addEventListener('input', updateChartWithUserBets));
         pollInterval = setInterval(async () => { const d = await fetchWagerStats(); if (d) updateUIWithServerData(d); }, 10000);
