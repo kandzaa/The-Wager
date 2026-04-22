@@ -191,7 +191,7 @@ html.dark        .blob-2 { background:rgba(15,23,42,.30); }
         ->leftJoin('cosmetics as c', 'e.cosmetic_id', '=', 'c.id')
         ->where('e.user_id', $user->id)
         ->whereNotNull('c.id')
-        ->select('e.slot','c.id','c.key','c.name','c.type','c.meta')
+        ->select('e.slot','c.id','c.name','c.type','c.meta')
         ->get()
         ->keyBy('slot');
 
