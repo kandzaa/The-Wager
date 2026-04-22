@@ -136,6 +136,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/wagers/{wager}/join', [WagerController::class, 'join'])->name('wagers.join');
     Route::post('/wagers/{wager}/bet', [WagerController::class, 'bet'])->name('wagers.bet');
     Route::get('/wagers/{wager}/stats', [WagerController::class, 'stats'])->name('wagers.stats');
+    Route::get('/wagers/{wager}/chat', [\App\Http\Controllers\WagerChatController::class, 'messages'])->name('wagers.chat.messages');
+    Route::post('/wagers/{wager}/chat', [\App\Http\Controllers\WagerChatController::class, 'store'])->name('wagers.chat.store');
     Route::get('/wagers/{wager}/end', [WagerController::class, 'showEndForm'])->name('wagers.end.form');
     Route::post('/wagers/{wager}/end', [WagerController::class, 'end'])->name('wagers.end');
 

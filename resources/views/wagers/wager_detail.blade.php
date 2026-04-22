@@ -309,6 +309,37 @@
             @endif
         @endif
 
+        {{-- Chat --}}
+        <div class="fade-up rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] shadow-sm dark:shadow-none overflow-hidden mt-4" style="animation-delay:220ms">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 dark:border-white/[0.05]">
+                <div class="w-1.5 h-5 bg-blue-500 rounded-full shrink-0"></div>
+                <h2 class="text-sm uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400 flex-1">Wager Chat</h2>
+                <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+            </div>
+
+            <div id="chat-messages" class="h-72 overflow-y-auto px-4 py-4 space-y-3 flex flex-col scroll-smooth">
+                <p id="chat-empty" class="text-xs text-slate-400 dark:text-slate-600 text-center my-auto">No messages yet — start the trash talk 🗑️</p>
+            </div>
+
+            @php $canChat = $isJoined || $wager->creator_id === Auth::id(); @endphp
+            @if($canChat && $wager->status !== 'ended')
+            <div class="border-t border-slate-100 dark:border-white/[0.05] px-4 py-3 flex gap-2">
+                <input id="chat-input" type="text" maxlength="300" placeholder="Say something..."
+                    class="flex-1 px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600">
+                <button id="chat-send" type="button"
+                    class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
+                    Send
+                </button>
+            </div>
+            @else
+            <div class="border-t border-slate-100 dark:border-white/[0.05] px-6 py-3">
+                <p class="text-xs text-slate-400 dark:text-slate-600 text-center">
+                    {{ $wager->status === 'ended' ? 'Wager ended — chat is read-only.' : 'Join the wager to chat.' }}
+                </p>
+            </div>
+            @endif
+        </div>
+
     </div>
 </div>
 
@@ -468,5 +499,122 @@
         pollInterval = setInterval(async () => { const d = await fetchWagerStats(); if (d) updateUIWithServerData(d); }, 5000);
         document.addEventListener('visibilitychange', () => { if (document.hidden) clearInterval(pollInterval); else pollInterval = setInterval(async () => { const d = await fetchWagerStats(); if (d) updateUIWithServerData(d); }, 5000); });
     });
+</script>
+<script>
+(function () {
+    const WAGER_ID  = {{ $wager->id }};
+    const MY_ID     = {{ Auth::id() }};
+    const CSRF      = document.querySelector('meta[name="csrf-token"]').content;
+    let lastId      = 0;
+    let sending     = false;
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function fmtTime(ts) {
+        const d = new Date(ts.replace(' ', 'T') + '+00:00');
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function makeRow(msg) {
+        const isMe = msg.user_id === MY_ID;
+        const wrap = document.createElement('div');
+        wrap.className = 'flex items-end gap-2 ' + (isMe ? 'flex-row-reverse' : '');
+        wrap.innerHTML = `
+            <div class="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-black
+                ${isMe
+                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400'
+                    : 'bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400'}">
+                ${escHtml(msg.name.charAt(0).toUpperCase())}
+            </div>
+            <div class="max-w-[72%] flex flex-col gap-0.5 ${isMe ? 'items-end' : 'items-start'}">
+                <span class="text-[10px] text-slate-400 dark:text-slate-600 px-1">
+                    ${isMe ? 'You' : escHtml(msg.name)} · ${fmtTime(msg.created_at)}
+                </span>
+                <div class="px-3 py-2 rounded-2xl text-sm leading-relaxed break-words
+                    ${isMe
+                        ? 'bg-blue-600 text-white rounded-br-sm'
+                        : 'bg-slate-100 dark:bg-white/[0.06] text-slate-800 dark:text-slate-200 rounded-bl-sm'}">
+                    ${escHtml(msg.message)}
+                </div>
+            </div>`;
+        return wrap;
+    }
+
+    async function fetchMessages() {
+        try {
+            const r = await fetch(`/wagers/${WAGER_ID}/chat?after=${lastId}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!r.ok) return;
+            const msgs = await r.json();
+            if (!msgs.length) return;
+
+            const box   = document.getElementById('chat-messages');
+            const empty = document.getElementById('chat-empty');
+            const atBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 60;
+
+            if (empty) empty.remove();
+
+            msgs.forEach(msg => {
+                box.appendChild(makeRow(msg));
+                if (msg.id > lastId) lastId = msg.id;
+            });
+
+            if (atBottom) box.scrollTop = box.scrollHeight;
+        } catch {}
+    }
+
+    async function sendMessage() {
+        if (sending) return;
+        const input = document.getElementById('chat-input');
+        const btn   = document.getElementById('chat-send');
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) return;
+
+        sending = true;
+        input.disabled = true;
+        btn.disabled   = true;
+
+        try {
+            const r = await fetch(`/wagers/${WAGER_ID}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ message: text }),
+            });
+            if (!r.ok) { const e = await r.json(); alert(e.error || 'Failed to send.'); return; }
+            input.value = '';
+            await fetchMessages();
+        } catch { alert('Failed to send message.'); }
+        finally {
+            sending        = false;
+            input.disabled = false;
+            btn.disabled   = false;
+            input.focus();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchMessages();
+        setInterval(fetchMessages, 2000);
+
+        const btn   = document.getElementById('chat-send');
+        const input = document.getElementById('chat-input');
+        if (btn)   btn.addEventListener('click', sendMessage);
+        if (input) input.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
+
+        // Scroll to bottom on first load after messages render
+        const box = document.getElementById('chat-messages');
+        if (box) setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
+    });
+})();
 </script>
 </x-app-layout>
