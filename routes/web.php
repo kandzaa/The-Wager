@@ -105,6 +105,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // Profile routes
 Route::get('/profile', [ProfileController::class, 'index'])->middleware(['auth', 'verified'])->name('profile');
+Route::get('/leaderboard', [\App\Http\Controllers\LeaderboardController::class, 'index'])->middleware(['auth', 'verified'])->name('leaderboard');
 Route::post('/profile/change-username', [ProfileController::class, 'changeUsername'])->middleware(['auth', 'verified'])->name('profile.change-username');
 Route::post('/profile/change-email', [ProfileController::class, 'changeEmail'])->middleware(['auth', 'verified'])->name('profile.change-email');
 Route::post('/profile/change-password', [ProfileController::class, 'changePassword'])->middleware(['auth', 'verified'])->name('profile.change-password');
