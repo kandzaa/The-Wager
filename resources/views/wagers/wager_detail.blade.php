@@ -364,8 +364,8 @@
         lastDistHash = distHash(initialData);
         renderChart(initialData);
         document.querySelectorAll('.bet-input').forEach(i => i.addEventListener('input', updateChartWithUserBets));
-        pollInterval = setInterval(async () => { const d = await fetchWagerStats(); if (d) updateUIWithServerData(d); }, 10000);
-        document.addEventListener('visibilitychange', () => { if (document.hidden) clearInterval(pollInterval); else pollInterval = setInterval(async () => { const d = await fetchWagerStats(); if (d) updateUIWithServerData(d); }, 10000); });
+        pollInterval = setInterval(async () => { const d = await fetchWagerStats(); if (d) updateUIWithServerData(d); }, 5000);
+        document.addEventListener('visibilitychange', () => { if (document.hidden) clearInterval(pollInterval); else pollInterval = setInterval(async () => { const d = await fetchWagerStats(); if (d) updateUIWithServerData(d); }, 5000); });
     });
 </script>
 </x-app-layout>

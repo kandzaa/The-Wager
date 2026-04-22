@@ -57,11 +57,14 @@
 
         <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-3 border-t border-slate-100 dark:border-white/[0.05]">
             @if(isset($wager->ending_time) && $wager->ending_time instanceof \Carbon\Carbon)
-                <div class="flex items-center gap-1.5 text-xs text-slate-500">
-                    <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-center gap-1.5 text-xs">
+                    <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span class="text-amber-600 dark:text-amber-400 font-medium">{{ $wager->ending_time->diffForHumans() }}</span>
+                    <span class="wager-countdown font-mono font-semibold"
+                          data-ends="{{ $wager->ending_time->timestamp }}"
+                          data-status="{{ $wager->status }}">
+                    </span>
                 </div>
             @endif
 

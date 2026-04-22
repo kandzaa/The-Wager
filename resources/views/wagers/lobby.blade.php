@@ -90,4 +90,52 @@
 .fade-up { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 </style>
+
+<script>
+(function () {
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function formatCountdown(secondsLeft) {
+        if (secondsLeft <= 0) return { text: 'Ended', cls: 'text-red-500 dark:text-red-400' };
+
+        const d = Math.floor(secondsLeft / 86400);
+        const h = Math.floor((secondsLeft % 86400) / 3600);
+        const m = Math.floor((secondsLeft % 3600) / 60);
+        const s = secondsLeft % 60;
+
+        let text, cls;
+        if (d > 0) {
+            text = `${d}d ${pad(h)}h ${pad(m)}m`;
+            cls  = 'text-slate-500 dark:text-slate-400';
+        } else if (h > 0) {
+            text = `${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+            cls  = secondsLeft < 3600 ? 'text-amber-500 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400';
+        } else {
+            text = `${pad(m)}m ${pad(s)}s`;
+            cls  = secondsLeft < 300 ? 'text-red-500 dark:text-red-400' : 'text-amber-500 dark:text-amber-400';
+        }
+        return { text, cls };
+    }
+
+    function tick() {
+        const now = Math.floor(Date.now() / 1000);
+        document.querySelectorAll('.wager-countdown').forEach(el => {
+            if (el.getAttribute('data-status') === 'ended') {
+                el.textContent = 'Ended';
+                el.className = 'wager-countdown font-mono font-semibold text-red-500 dark:text-red-400';
+                return;
+            }
+            const ends = parseInt(el.getAttribute('data-ends'), 10);
+            const { text, cls } = formatCountdown(ends - now);
+            el.textContent = text;
+            el.className = `wager-countdown font-mono font-semibold ${cls}`;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        tick();
+        setInterval(tick, 1000);
+    });
+})();
+</script>
 </x-app-layout>
