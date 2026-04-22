@@ -64,7 +64,7 @@
                                   onsubmit="return confirm('Zero {{ $user->name }}\'s balance?')">
                                 @csrf
                                 <button type="submit" class="p-1.5 rounded-lg text-slate-500 hover:text-amber-400 hover:bg-amber-500/[0.08] transition-all" title="Zero Balance">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </button>
                             </form>
 
