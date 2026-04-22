@@ -17,6 +17,7 @@ class Wager extends Model
         'status',
         'privacy',
         'pot',
+        'buy_in',
         'starting_time',
         'winning_choice_id',
         'ended_at',
@@ -26,6 +27,7 @@ class Wager extends Model
         'ending_time'   => 'datetime',
         'starting_time' => 'datetime',
         'pot'           => 'integer',
+        'buy_in'        => 'integer',
         'ended_at'      => 'datetime',
     ];
 

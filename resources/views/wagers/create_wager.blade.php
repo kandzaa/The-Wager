@@ -80,6 +80,14 @@
                     </div>
                 </div>
 
+                {{-- Buy-in --}}
+                <div>
+                    <label class="block text-xs uppercase tracking-[0.12em] font-bold text-slate-500 dark:text-slate-400 mb-1.5">Buy-in <span class="normal-case font-normal">(0 = free to join)</span></label>
+                    <input type="number" x-model.number="form.buy_in" min="0" max="2147483647" placeholder="0"
+                        :class="getFieldClass('buy_in')" />
+                    <p class="text-xs text-slate-400 mt-1">Coins deducted from each player on join — goes straight to the pot.</p>
+                </div>
+
                 {{-- Ending time --}}
                 <div>
                     <label class="block text-xs uppercase tracking-[0.12em] font-bold text-slate-500 dark:text-slate-400 mb-1.5">End Time *</label>
@@ -145,8 +153,8 @@ function createWagerForm() {
         isSubmitting: false,
         globalError: '',
         successMessage: '',
-        form: { name:'', description:'', max_players:2, status:'public', starting_time:'', ending_time:'', choices:[{label:''},{label:''}] },
-        errors: { name:'', description:'', max_players:'', ending_time:'', choices:'' },
+        form: { name:'', description:'', max_players:2, status:'public', buy_in:0, starting_time:'', ending_time:'', choices:[{label:''},{label:''}] },
+        errors: { name:'', description:'', max_players:'', buy_in:'', ending_time:'', choices:'' },
         init() {
             this.resetFormTimes();
             window.addEventListener('close-create-wager-modal', () => this.showModal = false);
@@ -161,6 +169,7 @@ function createWagerForm() {
             this.errors[field] = '';
             if (field==='name' && !this.form.name.trim()) this.errors.name = 'Theme is required';
             if (field==='max_players' && (this.form.max_players < 2 || this.form.max_players > 100)) this.errors.max_players = 'Must be 2–100';
+            if (field==='buy_in' && (this.form.buy_in < 0 || this.form.buy_in > 2147483647)) this.errors.buy_in = 'Must be 0 or more';
             if (field==='ending_time' && (!this.form.ending_time || new Date(this.form.ending_time) <= new Date())) this.errors.ending_time = 'Must be at least 1 hour from now';
             if (field==='choices') {
                 const v = this.getValidChoices();
@@ -192,7 +201,7 @@ function createWagerForm() {
         },
         async submitForm() {
             this.globalError = ''; this.successMessage = '';
-            ['name','description','max_players','ending_time','choices'].forEach(f => this.validateField(f));
+            ['name','description','max_players','buy_in','ending_time','choices'].forEach(f => this.validateField(f));
             if (!this.isFormValid()) { this.globalError = 'Please fix validation errors.'; return; }
             this.isSubmitting = true;
             try {
@@ -203,6 +212,7 @@ function createWagerForm() {
                 fd.append('description', this.form.description.trim());
                 fd.append('max_players', this.form.max_players);
                 fd.append('privacy', this.form.status);
+                fd.append('buy_in', this.form.buy_in ?? 0);
                 fd.append('starting_time', new Date().toISOString());
                 fd.append('ending_time', new Date(this.form.ending_time).toISOString());
                 this.form.choices.filter(c=>c.label.trim()).forEach((c,i) => fd.append(`choices[${i}][label]`, c.label.trim()));

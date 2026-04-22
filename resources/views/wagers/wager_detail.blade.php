@@ -52,10 +52,12 @@
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                @php $stats = [
+                @php
+                $buyIn = (int)($wager->buy_in ?? 0);
+                $stats = [
                     ['label' => 'Ends', 'value' => optional($wager->ending_time)?->diffForHumans() ?? 'N/A', 'accent' => false],
                     ['label' => 'Status', 'value' => ucfirst($wager->status), 'accent' => false],
-                    ['label' => 'Max Players', 'value' => $wager->max_players, 'accent' => false],
+                    ['label' => 'Buy-in', 'value' => $buyIn > 0 ? number_format($buyIn) . ' coins' : 'Free', 'accent' => $buyIn > 0],
                     ['label' => 'Total Pot', 'value' => number_format($wager->pot, 0), 'accent' => true],
                 ]; @endphp
                 @foreach($stats as $stat)
@@ -135,16 +137,37 @@
                     <p class="font-bold text-slate-900 dark:text-white mb-1">Max Players Reached</p>
                     <p class="text-sm text-slate-500">This wager has reached its maximum capacity of {{ $wager->max_players }} players.</p>
                 @else
+                    @php $buyIn = (int)($wager->buy_in ?? 0); $canAfford = auth()->user()->balance >= $buyIn; @endphp
                     <div class="w-12 h-12 mx-auto mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center">
                         <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                     </div>
                     <p class="font-bold text-slate-900 dark:text-white mb-1">Join to participate</p>
-                    <p class="text-sm text-slate-500 mb-5">You must join before placing a bet.</p>
+                    @if($buyIn > 0)
+                        <p class="text-sm text-slate-500 mb-1">Entry costs <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ number_format($buyIn) }} coins</span> — added directly to the pot.</p>
+                        @if(!$canAfford)
+                            <p class="text-xs text-red-500 dark:text-red-400 mb-4">You need {{ number_format($buyIn - auth()->user()->balance) }} more coins to join.</p>
+                        @else
+                            <p class="text-xs text-slate-400 mb-4">Your balance: {{ number_format(auth()->user()->balance) }} coins</p>
+                        @endif
+                    @else
+                        <p class="text-sm text-slate-500 mb-5">You must join before placing a bet.</p>
+                    @endif
                     <form method="POST" action="{{ route('wagers.join', $wager) }}" class="inline-block">
                         @csrf
-                        <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all duration-200 active:scale-95">
-                            Join Wager
-                        </button>
+                        @if($buyIn > 0 && !$canAfford)
+                            <button type="button" disabled class="px-6 py-2.5 bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-bold rounded-xl cursor-not-allowed opacity-60">
+                                Can't Afford
+                            </button>
+                        @else
+                            <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all duration-200 active:scale-95 inline-flex items-center gap-2">
+                                @if($buyIn > 0)
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Join — {{ number_format($buyIn) }} coins
+                                @else
+                                    Join Wager
+                                @endif
+                            </button>
+                        @endif
                     </form>
                 @endif
             </div>

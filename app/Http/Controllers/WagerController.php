@@ -39,6 +39,7 @@ class WagerController extends Controller
             'privacy'         => 'required|in:public,private',
             'starting_time'   => 'required|date',
             'ending_time'     => 'required|date|after:starting_time',
+            'buy_in'          => 'nullable|integer|min:0|max:2147483647',
             'choices.*.label' => 'required|string|max:255',
         ]);
 
@@ -60,6 +61,7 @@ class WagerController extends Controller
             'max_players'   => $validated['max_players'],
             'status'        => $status,
             'privacy'       => $validated['privacy'],
+            'buy_in'        => $validated['buy_in'] ?? 0,
             'starting_time' => $validated['starting_time'],
             'ending_time'   => $validated['ending_time'],
             'creator_id'    => auth()->id(),
@@ -229,17 +231,35 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
             return back()->with('error', 'This wager is already full.');
         }
 
+        $buyIn = (int) ($wager->buy_in ?? 0);
+        $user  = Auth::user();
+
+        if ($buyIn > 0 && $user->balance < $buyIn) {
+            return back()->with('error', "You need at least " . number_format($buyIn) . " coins to join this wager.");
+        }
+
         try {
-            $wager->players()->create([
-                'user_id'    => Auth::id(),
-                'bet_amount' => 0,
-            ]);
+            DB::transaction(function () use ($wager, $user, $buyIn) {
+                if ($buyIn > 0) {
+                    DB::table('users')->where('id', $user->id)->decrement('balance', $buyIn);
+                    DB::table('wagers')->where('id', $wager->id)->increment('pot', $buyIn);
+                }
 
-            if ($wager->status !== 'active' && now()->greaterThanOrEqualTo($wager->starting_time)) {
-                $wager->update(['status' => 'active']);
-            }
+                $wager->players()->create([
+                    'user_id'    => $user->id,
+                    'bet_amount' => $buyIn,
+                ]);
 
-            return back()->with('success', 'You have joined the wager!');
+                if ($wager->status !== 'active' && now()->greaterThanOrEqualTo($wager->starting_time)) {
+                    DB::table('wagers')->where('id', $wager->id)->update(['status' => 'active']);
+                }
+            });
+
+            $msg = $buyIn > 0
+                ? 'You joined the wager! ' . number_format($buyIn) . ' coins added to the pot.'
+                : 'You have joined the wager!';
+
+            return back()->with('success', $msg);
 
         } catch (\Exception $e) {
             Log::error('Error joining wager: ' . $e->getMessage());
