@@ -639,14 +639,25 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         $pendingInvitations = $wager->invitations()->where('status', 'pending')->get();
         $isJoined           = $wager->players()->where('user_id', Auth::id())->exists();
 
-        $playersByChoice = DB::table('wager_bets as b')
+        // All bets for this wager with user info, grouped by choice then user
+        $allBets = DB::table('wager_bets as b')
             ->join('wager_players as p', 'b.wager_player_id', '=', 'p.id')
             ->join('users as u', 'p.user_id', '=', 'u.id')
             ->where('b.wager_id', $wager->id)
-            ->select('b.wager_choice_id', 'u.id as user_id', 'u.name', DB::raw('SUM(b.amount) as total'))
-            ->groupBy('b.wager_choice_id', 'u.id', 'u.name')
-            ->get()
-            ->groupBy('wager_choice_id');
+            ->whereNotNull('b.wager_choice_id')
+            ->select('b.wager_choice_id', 'u.id as user_id', 'u.name', 'b.bet_amount')
+            ->get();
+
+        // Group by choice, then sum per user within that choice
+        $playersByChoice = $allBets
+            ->groupBy('wager_choice_id')
+            ->map(fn($bets) =>
+                $bets->groupBy('user_id')->map(fn($userBets) => (object)[
+                    'user_id' => $userBets->first()->user_id,
+                    'name'    => $userBets->first()->name,
+                    'total'   => $userBets->sum('bet_amount'),
+                ])->values()
+            );
 
         return view('wagers.wager_detail', compact('wager', 'friends', 'pendingInvitations', 'isJoined', 'playersByChoice'));
     }
