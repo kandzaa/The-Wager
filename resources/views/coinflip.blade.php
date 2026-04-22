@@ -175,10 +175,11 @@ function coinflip() {
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Error');
 
-                // After spin, settle on correct face
+                // After spin, snap to correct face with no transition to avoid heads→tails flash
                 setTimeout(() => {
-                    coin.className = 'w-32 h-32 relative ' + (data.result === 'heads' ? 'coin-heads' : 'coin-tails');
-                    coin.style.transition = 'transform 0.3s ease';
+                    coin.style.transition = 'none';
+                    coin.style.transform = data.result === 'tails' ? 'rotateY(180deg)' : 'rotateY(0deg)';
+                    coin.className = 'w-32 h-32 relative';
 
                     // Show result
                     const banner  = document.getElementById('result-banner');
