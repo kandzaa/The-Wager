@@ -639,7 +639,16 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         $pendingInvitations = $wager->invitations()->where('status', 'pending')->get();
         $isJoined           = $wager->players()->where('user_id', Auth::id())->exists();
 
-        return view('wagers.wager_detail', compact('wager', 'friends', 'pendingInvitations', 'isJoined'));
+        $playersByChoice = DB::table('wager_bets as b')
+            ->join('wager_players as p', 'b.wager_player_id', '=', 'p.id')
+            ->join('users as u', 'p.user_id', '=', 'u.id')
+            ->where('b.wager_id', $wager->id)
+            ->select('b.wager_choice_id', 'u.id as user_id', 'u.name', DB::raw('SUM(b.amount) as total'))
+            ->groupBy('b.wager_choice_id', 'u.id', 'u.name')
+            ->get()
+            ->groupBy('wager_choice_id');
+
+        return view('wagers.wager_detail', compact('wager', 'friends', 'pendingInvitations', 'isJoined', 'playersByChoice'));
     }
 
     protected function getWagerResults(Wager $wager)

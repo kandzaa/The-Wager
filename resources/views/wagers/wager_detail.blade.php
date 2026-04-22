@@ -150,6 +150,62 @@
             </div>
         </div>
 
+        {{-- Players per choice --}}
+        @if($playersByChoice->isNotEmpty())
+        <div class="fade-up rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] shadow-sm dark:shadow-none mb-4 overflow-hidden" style="animation-delay:160ms"
+             x-data="{ open: false }">
+            <button @click="open = !open" type="button"
+                class="w-full flex items-center gap-3 px-6 py-4 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+                <div class="w-1.5 h-5 bg-slate-400 dark:bg-slate-600 rounded-full shrink-0"></div>
+                <h2 class="text-sm uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400 flex-1 text-left">Who Bet What</h2>
+                <span class="text-xs text-slate-400 dark:text-slate-600 font-medium mr-1" x-text="open ? 'Hide' : 'Show'"></span>
+                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+
+            <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                 class="border-t border-slate-100 dark:border-white/[0.05] divide-y divide-slate-100 dark:divide-white/[0.04]">
+                @foreach($wager->choices as $choice)
+                @php $bettors = $playersByChoice->get($choice->id, collect()); @endphp
+                <div class="px-6 py-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-bold text-slate-900 dark:text-white">{{ $choice->label }}</span>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400">
+                            {{ $bettors->count() }} {{ Str::plural('player', $bettors->count()) }}
+                        </span>
+                    </div>
+                    @if($bettors->isEmpty())
+                        <p class="text-xs text-slate-400 dark:text-slate-600 italic">No bets yet</p>
+                    @else
+                        <div class="space-y-2">
+                            @foreach($bettors as $bettor)
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-black
+                                    {{ $bettor->user_id === Auth::id()
+                                        ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30'
+                                        : 'bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/[0.07]' }}">
+                                    {{ strtoupper(substr($bettor->name, 0, 1)) }}
+                                </div>
+                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300 flex-1 truncate">
+                                    {{ $bettor->name }}
+                                    @if($bettor->user_id === Auth::id())
+                                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 ml-1">You</span>
+                                    @endif
+                                </span>
+                                <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0">
+                                    {{ number_format((int) $bettor->total) }} coins
+                                </span>
+                            </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         {{-- Betting area --}}
         @if($wager->status !== 'ended')
             @if(!$isJoined)
