@@ -5,6 +5,7 @@ use App\Models\Cosmetic;
 use App\Models\User;
 use App\Models\Wager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -169,7 +170,60 @@ class AdminController extends Controller
             ->with('success', 'Wager updated successfully.');
     }
 
-    // ── Customizations ──────────────────────────────────────────────────────
+    // ── Moderation ───────────────────────────────────────────────────────────
+
+    public function banUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        if ((int) $id === auth()->id()) {
+            return back()->with('error', 'You cannot ban yourself.');
+        }
+
+        $request->validate([
+            'duration' => 'required|integer|min:1|max:365',
+            'reason'   => 'nullable|string|max:500',
+        ]);
+
+        $user->update([
+            'banned_until' => now()->addDays((int) $request->duration),
+            'ban_reason'   => $request->reason,
+        ]);
+
+        return back()->with('success', "{$user->name} banned for {$request->duration} day(s).");
+    }
+
+    public function unbanUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update(['banned_until' => null, 'ban_reason' => null]);
+        return back()->with('success', "{$user->name} has been unbanned.");
+    }
+
+    public function zeroBalance($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update(['balance' => 0]);
+        return back()->with('success', "{$user->name}'s balance has been zeroed.");
+    }
+
+    public function forceEndWager($id)
+    {
+        $wager = Wager::findOrFail($id);
+
+        if ($wager->status === 'ended') {
+            return back()->with('error', 'Wager is already ended.');
+        }
+
+        DB::table('wagers')->where('id', $wager->id)->update([
+            'status'   => 'ended',
+            'ended_at' => now(),
+        ]);
+
+        return back()->with('success', "Wager \"{$wager->name}\" force-ended.");
+    }
+
+    // ── Customizations ───────────────────────────────────────────────────────
 
     public function customizations()
     {

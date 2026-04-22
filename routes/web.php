@@ -180,13 +180,18 @@ Route::prefix('admin/Manage')->middleware(['auth', 'verified', AdminMiddleware::
         Route::put('/{id}', [AdminController::class, 'updateUser'])->name('admin.Manage.users.update');
         Route::delete('/{id}', [AdminController::class, 'deleteUser'])->name('admin.Manage.users.destroy');
         Route::get('/{id}', [AdminController::class, 'showUser'])->name('admin.Manage.users.show');
+        // Moderation
+        Route::post('/{id}/ban', [AdminController::class, 'banUser'])->name('admin.Manage.users.ban');
+        Route::post('/{id}/unban', [AdminController::class, 'unbanUser'])->name('admin.Manage.users.unban');
+        Route::post('/{id}/zero-balance', [AdminController::class, 'zeroBalance'])->name('admin.Manage.users.zeroBalance');
     });
-    
+
     // Wager management routes
     Route::prefix('wagers')->group(function () {
         Route::get('/edit/{id}', [AdminController::class, 'editWager'])->name('admin.Manage.wagers.edit');
         Route::put('/{id}', [AdminController::class, 'updateWager'])->name('admin.Manage.wagers.update');
         Route::delete('/{id}', [AdminController::class, 'deleteWager'])->name('admin.Manage.wagers.destroy');
+        Route::post('/{id}/force-end', [AdminController::class, 'forceEndWager'])->name('admin.Manage.wagers.forceEnd');
     });
 
     // Customizations routes

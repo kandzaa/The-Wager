@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Security headers
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
+        // Ban check — runs on all authenticated web requests
+        $middleware->appendToGroup('web', \App\Http\Middleware\CheckBanned::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

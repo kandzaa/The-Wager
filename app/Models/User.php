@@ -18,6 +18,8 @@ class User extends Authenticatable
         'balance',
         'role',
         'last_daily_claim_at',
+        'banned_until',
+        'ban_reason',
     ];
 
     protected $attributes = [
@@ -46,6 +48,7 @@ class User extends Authenticatable
             'password'            => 'hashed',
             'balance'             => 'integer',
             'last_daily_claim_at' => 'datetime',
+            'banned_until'        => 'datetime',
         ];
     }
 

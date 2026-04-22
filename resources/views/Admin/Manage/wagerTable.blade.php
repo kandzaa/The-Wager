@@ -59,6 +59,16 @@
                                class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/[0.08] transition-all" title="Edit">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </a>
+                            @if($wagerItem->status !== 'ended')
+                            <form action="{{ route('admin.Manage.wagers.forceEnd', $wagerItem->id) }}" method="POST" class="inline"
+                                  onsubmit="return confirm('Force-end this wager?')">
+                                @csrf
+                                <button type="submit"
+                                    class="p-1.5 rounded-lg text-slate-500 hover:text-amber-400 hover:bg-amber-500/[0.08] transition-all" title="Force End">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+                                </button>
+                            </form>
+                            @endif
                             <form action="{{ route('admin.Manage.wagers.destroy', $wagerItem->id) }}" method="POST" class="inline"
                                   onsubmit="return confirm('Delete this wager?')">
                                 @csrf @method('DELETE')
