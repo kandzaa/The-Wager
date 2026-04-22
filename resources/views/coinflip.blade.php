@@ -133,13 +133,16 @@
 .fade-up { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
-@keyframes spin-coin {
+@keyframes spin-to-heads {
     0%   { transform: rotateY(0deg); }
     100% { transform: rotateY(1440deg); }
 }
-.coin-spinning { animation: spin-coin 0.9s cubic-bezier(.4,0,.2,1) forwards; }
-.coin-heads    { transform: rotateY(0deg); }
-.coin-tails    { transform: rotateY(180deg); }
+@keyframes spin-to-tails {
+    0%   { transform: rotateY(0deg); }
+    100% { transform: rotateY(1620deg); }
+}
+.coin-spinning-heads { animation: spin-to-heads 0.9s cubic-bezier(.4,0,.2,1) forwards; }
+.coin-spinning-tails { animation: spin-to-tails 0.9s cubic-bezier(.4,0,.2,1) forwards; }
 </style>
 
 <script>
@@ -154,12 +157,9 @@ function coinflip() {
             if (this.flipping || !this.pick || this.amount < 1 || this.amount > this.balance) return;
             this.flipping = true;
 
-            // Hide previous result
             document.getElementById('result-banner').style.display = 'none';
 
-            // Spin animation
             const coin = document.getElementById('coin');
-            coin.className = 'w-32 h-32 relative coin-spinning';
 
             try {
                 const res = await fetch('{{ route('coinflip.flip') }}', {
@@ -175,13 +175,13 @@ function coinflip() {
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Error');
 
-                // After spin, snap to correct face with no transition to avoid heads→tails flash
-                setTimeout(() => {
-                    coin.style.transition = 'none';
-                    coin.style.transform = data.result === 'tails' ? 'rotateY(180deg)' : 'rotateY(0deg)';
-                    coin.className = 'w-32 h-32 relative';
+                // Reset to base state, force reflow, then play the correct animation
+                coin.className = 'w-32 h-32 relative';
+                coin.style.transform = '';
+                void coin.offsetWidth;
+                coin.className = 'w-32 h-32 relative ' + (data.result === 'heads' ? 'coin-spinning-heads' : 'coin-spinning-tails');
 
-                    // Show result
+                setTimeout(() => {
                     const banner  = document.getElementById('result-banner');
                     const text    = document.getElementById('result-text');
                     const sub     = document.getElementById('result-sub');
@@ -200,15 +200,12 @@ function coinflip() {
                     banner.style.display = 'block';
                     this.balance = data.new_balance;
                     display.textContent  = data.new_balance.toLocaleString();
-
-                    // Reset coin style for next flip
-                    setTimeout(() => { coin.style.transition = ''; }, 300);
                     this.flipping = false;
                 }, 950);
 
             } catch (err) {
-                coin.className  = 'w-32 h-32 relative coin-heads';
-                this.flipping   = false;
+                coin.className = 'w-32 h-32 relative';
+                this.flipping  = false;
                 alert(err.message);
             }
         }
