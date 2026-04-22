@@ -131,7 +131,10 @@ function wagerFilter() {
                 const itemBuyin = parseInt(item.getAttribute('data-buyin') || '0', 10);
 
                 const matchText  = !term || name.includes(term) || creator.includes(term);
-                const matchBuyin = this.maxBuyin === 0 || itemBuyin <= this.buyin;
+                const matchBuyin = this.maxBuyin === 0
+                    || this.buyin >= this.maxBuyin          // slider at max → show all
+                    || (this.buyin === 0 && itemBuyin === 0) // slider at 0 → free only
+                    || (this.buyin > 0 && itemBuyin > 0 && itemBuyin <= this.buyin); // paid range
 
                 const show = matchText && matchBuyin;
                 item.style.display = show ? '' : 'none';
