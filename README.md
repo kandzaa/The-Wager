@@ -54,46 +54,99 @@ A social wagering platform where friends create prediction markets, place bets o
 | Database | PostgreSQL (SQLite compatible) |
 | Testing | Pest 4 |
 | Dev tooling | Laravel Sail, Laravel Pint, Laravel Pail |
-s
 
-## Setup
+---
 
-**Requirements:** PHP 8.2+, Composer, Node 18+, PostgreSQL (or SQLite for local dev)
+## How to Run Locally
 
+### Requirements
+
+- PHP 8.2+
+- Node.js 18+
+- Composer 2+
+- PostgreSQL (or SQLite for local dev)
+
+---
+
+### Installation Steps
+
+**1. Clone the repository**
 ```bash
 git clone <repo-url>
+```
+
+**2. Navigate to the project directory**
+```bash
 cd The-Wager
+```
 
-composer install
-npm install
-
+**3. Copy the example environment file**
+```bash
 cp .env.example .env
+```
+
+**4. Install dependencies**
+
+PHP packages:
+```bash
+composer install
+```
+
+Node packages:
+```bash
+npm install
+```
+
+**5. Generate an application key**
+```bash
 php artisan key:generate
 ```
 
-Edit `.env` and set your database credentials, then:
+**6. Configure your database credentials**
 
-```bash
-php artisan migrate
-php artisan db:seed --class=CosmeticsSeeder
+Open the `.env` file and fill in your database details:
+
+```
+DB_CONNECTION=pgsql
+DB_HOST=
+DB_PORT=5432
+DB_DATABASE=
+DB_USERNAME=
+DB_PASSWORD=
 ```
 
-**Run locally:**
+**7. Run migrations and seed the database**
 
+This will create all tables and populate the cosmetics shop with initial data:
+```bash
+php artisan migrate --seed
+```
+
+**8. Start the development server**
 ```bash
 composer run dev
 ```
 
-This starts the Laravel dev server, queue worker, and Vite hot-reload concurrently.
+This starts the Laravel server, queue worker, and Vite hot-reload concurrently.
 
-Or separately:
+> If the above doesn't work, run these separately:
+> ```bash
+> php artisan serve
+> npm run dev
+> ```
 
-```bash
-php artisan serve
-npm run dev
+Open [http://localhost:8000](http://localhost:8000)
+
+---
+
+## Admin Access
+
+```
+Email:    Admin@gmail.com
+Password: admin123
 ```
 
-Open [http://localhost:8000](http://localhost:8000).
+The admin panel is available at `/admin`.
 
 ---
 
@@ -103,7 +156,7 @@ Open [http://localhost:8000](http://localhost:8000).
 composer run test
 ```
 
-Uses Pest with the Laravel plugin. Test files are in `tests/Feature/`.
+Uses Pest with the Laravel plugin. Test files live in `tests/Feature/`.
 
 ---
 
@@ -116,7 +169,7 @@ app/
     Middleware/        # AdminMiddleware, CheckBanned
   Models/              # Wager, User, WagerBet, Cosmetic, ...
 database/
-  migrations/          # 18 migrations, ordered chronologically
+  migrations/          # All migrations, ordered chronologically
   seeders/             # CosmeticsSeeder — populates the shop
 resources/
   views/
@@ -129,10 +182,3 @@ routes/
 tests/
   Feature/             # WagerCreatingTest, FriendTest, SidebarTest, ...
 ```
-
----
-
-## Admin Access
-
-Email: Admin@gmail.com
-password: admin123
