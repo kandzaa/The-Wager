@@ -182,3 +182,9 @@ routes/
 tests/
   Feature/             # WagerCreatingTest, FriendTest, SidebarTest, ...
 ```
+<<<<<<< HEAD
+=======
+
+---
+
+>>>>>>> 8ae84cc24ca7ddd88efe57a9558fd370ca1d0727
