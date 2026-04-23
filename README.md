@@ -139,12 +139,7 @@ Open [http://localhost:8000](http://localhost:8000)
 
 ---
 
-## Admin Access
 
-```
-Email:    Admin@gmail.com
-Password: admin123
-```
 
 The admin panel is available at `/admin`.
 
@@ -182,9 +177,4 @@ routes/
 tests/
   Feature/             # WagerCreatingTest, FriendTest, SidebarTest, ...
 ```
-<<<<<<< HEAD
-=======
 
----
-
->>>>>>> 8ae84cc24ca7ddd88efe57a9558fd370ca1d0727
