@@ -507,6 +507,7 @@
     const CSRF      = document.querySelector('meta[name="csrf-token"]').content;
     let lastId      = 0;
     let sending     = false;
+    const rendered  = new Set();
 
     function escHtml(s) {
         return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -558,6 +559,8 @@
             if (empty) empty.remove();
 
             msgs.forEach(msg => {
+                if (rendered.has(msg.id)) return;
+                rendered.add(msg.id);
                 box.appendChild(makeRow(msg));
                 if (msg.id > lastId) lastId = msg.id;
             });
