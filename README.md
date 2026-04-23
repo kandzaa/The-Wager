@@ -132,7 +132,3 @@ tests/
 
 ---
 
-## Admin Access
-
-Email: Admin@gmail.com
-password: admin123
