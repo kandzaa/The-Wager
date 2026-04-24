@@ -7,11 +7,13 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
+    // Atgriež lietotāja profila lapu
     public function index()
     {
         return view('profile');
     }
 
+    // Maina lietotāja vārdu
     public function changeUsername()
     {
 
@@ -21,6 +23,7 @@ class ProfileController extends Controller
         return redirect()->route('profile');
     }
 
+    // Maina lietotāja e-pasta adresi
     public function changeEmail()
     {
         $user        = Auth::user();

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class FriendsController extends Controller
 {
+    // Atgriež draugu sarakstu un ienākošos draudzības pieprasījumus
     public function index()
     {
         $friends          = Auth::user()->friends()->get();
@@ -18,6 +19,7 @@ class FriendsController extends Controller
         return view('Friends.friends', compact('friends', 'incomingRequests'));
     }
 
+    // Meklē lietotājus pēc vārda vai e-pasta, izslēdzot esošos draugus
     public function searchUsers(Request $request)
     {
         $query = trim($request->get('query', ''));
@@ -51,6 +53,7 @@ class FriendsController extends Controller
         }));
     }
 
+    // Atgriež draugu sarakstu JSON formātā
     public function listFriends()
     {
         $friends = Auth::user()->friends()->get();
@@ -68,6 +71,7 @@ class FriendsController extends Controller
         ]);
     }
 
+    // Pievieno lietotāju kā draugu abpusēji
     public function addFriend(Request $request)
     {
         $request->validate(['friend_id' => 'required|exists:users,id']);
@@ -91,6 +95,7 @@ class FriendsController extends Controller
         }
     }
 
+    // Atgriež cita lietotāja profila lapu
     public function showUser($id)
     {
         $user = User::find($id);
@@ -102,6 +107,7 @@ class FriendsController extends Controller
         return view('Friends.user-show', compact('user'));
     }
 
+    // Noņem lietotāju no draugu saraksta abpusēji
     public function removeFriend(Request $request)
     {
         $request->validate(['friend_id' => 'required|exists:users,id']);
@@ -121,6 +127,7 @@ class FriendsController extends Controller
         return response()->json(['message' => 'This user is not your friend.'], 400);
     }
 
+    // Izsūta draudzības pieprasījumu norādītajam lietotājam
     public function requestFriend(Request $request)
     {
         $request->validate(['recipient_id' => 'required|exists:users,id']);
@@ -160,6 +167,7 @@ class FriendsController extends Controller
         return response()->json(['message' => 'Friend request sent.']);
     }
 
+    // Apstiprina draudzības pieprasījumu un pievieno abus lietotājus kā draugus
     public function acceptRequest(Request $request)
     {
         $request->validate(['request_id' => 'required|exists:friend_requests,id']);
@@ -192,10 +200,7 @@ class FriendsController extends Controller
         return response()->json(['message' => 'Friend request accepted.']);
     }
 
-    /**
-     * Decline a pending friend request.
-     * Called from the dashboard decline button via POST /friends/decline
-     */
+    // Noraida ienākošo draudzības pieprasījumu
     public function declineRequest(Request $request)
     {
         $request->validate(['request_id' => 'required|exists:friend_requests,id']);

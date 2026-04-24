@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class CoinflipController extends Controller
 {
+    // Atgriež monētas mešanas lapu ar pēdējo 10 spēļu vēsturi
     public function index()
     {
         $history = DB::table('coinflip_games')
@@ -19,6 +20,7 @@ class CoinflipController extends Controller
         return view('coinflip', compact('history'));
     }
 
+    // Apstrādā monētas mešanu un atjaunina lietotāja bilanci
     public function flip(Request $request)
     {
         $request->validate([

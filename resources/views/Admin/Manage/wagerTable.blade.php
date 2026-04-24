@@ -1,7 +1,7 @@
 <div class="flex items-center justify-between mb-6">
     <div>
         <p class="text-[0.6rem] font-semibold tracking-[0.2em] uppercase text-emerald-500 mb-1">Management</p>
-        <h2 class="text-xl font-black tracking-tight text-white">Wagers</h2>
+        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Wagers</h2>
     </div>
     <div class="flex items-center gap-2 text-xs text-slate-500">
         <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -12,7 +12,7 @@
 <div class="overflow-x-auto">
     <table class="w-full text-sm">
         <thead>
-            <tr class="border-b border-white/[0.06]">
+            <tr class="border-b border-slate-200 dark:border-white/[0.06]">
                 <th class="pb-3 text-left text-[0.65rem] font-semibold tracking-[0.15em] uppercase text-slate-500 px-3">ID</th>
                 <th class="pb-3 text-left text-[0.65rem] font-semibold tracking-[0.15em] uppercase text-slate-500 px-3">Name</th>
                 <th class="pb-3 text-left text-[0.65rem] font-semibold tracking-[0.15em] uppercase text-slate-500 px-3">Creator</th>
@@ -23,11 +23,11 @@
                 <th class="pb-3 text-left text-[0.65rem] font-semibold tracking-[0.15em] uppercase text-slate-500 px-3">Actions</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-white/[0.04]">
+        <tbody class="divide-y divide-slate-100 dark:divide-white/[0.04]">
             @forelse ($wager as $wagerItem)
-                <tr class="group hover:bg-white/[0.02] transition-colors">
+                <tr class="group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                     <td class="py-3 px-3 text-slate-600 dark:text-slate-500 font-mono text-xs">#{{ $wagerItem->id }}</td>
-                    <td class="py-3 px-3 font-semibold text-white">{{ $wagerItem->name }}</td>
+                    <td class="py-3 px-3 font-semibold text-slate-900 dark:text-white">{{ $wagerItem->name }}</td>
                     <td class="py-3 px-3 text-slate-400">{{ $wagerItem->creator?->name ?? '—' }}</td>
                     <td class="py-3 px-3 text-slate-500 max-w-[200px] truncate hidden md:table-cell">{{ $wagerItem->description ?? '—' }}</td>
                     <td class="py-3 px-3 text-slate-400">{{ $wagerItem->max_players }}</td>

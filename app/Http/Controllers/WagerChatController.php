@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class WagerChatController extends Controller
 {
+    // Atgriež derības čata ziņojumus pēc norādītā ID (inkrementāla ielāde)
     public function messages(Request $request, Wager $wager)
     {
         $after = (int) $request->query('after', 0);
@@ -25,6 +26,7 @@ class WagerChatController extends Controller
         return response()->json($messages);
     }
 
+    // Saglabā jaunu čata ziņojumu derībā (tikai pievienojušies spēlētāji)
     public function store(Request $request, Wager $wager)
     {
         $request->validate(['message' => 'required|string|max:300']);

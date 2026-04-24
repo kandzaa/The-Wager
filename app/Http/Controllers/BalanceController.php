@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class BalanceController extends Controller
 {
+    // Piešķir lietotājam ikdienas 100 monētu bonusu ar 3 stundu ierobežojumu
     public function dailyBalance(): JsonResponse
     {
         $user = Auth::user();

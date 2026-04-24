@@ -8,11 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class HistoryController extends Controller
 {
-    /**
-     * Display a listing of the user's wager history.
-     *
-     * @return \Illuminate\View\View
-     */
+    // Atgriež lietotāja noslēgto derību vēstures sarakstu ar lapošanu
     public function index()
     {
         try {
@@ -37,6 +33,7 @@ class HistoryController extends Controller
         }
     }
 
+    // Atgriež atsevišķas noslēgtas derības detalizēto vēsturi ar rezultātiem
     public function show(Wager $wager)
     {
         if ($wager->status !== 'ended') {

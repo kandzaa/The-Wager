@@ -1,14 +1,14 @@
 <div class="flex items-center justify-between mb-6">
     <div>
         <p class="text-[0.6rem] font-semibold tracking-[0.2em] uppercase text-emerald-500 mb-1">Management</p>
-        <h2 class="text-xl font-black tracking-tight text-white">Users</h2>
+        <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Users</h2>
     </div>
 </div>
 
 <div class="overflow-x-auto">
     <table class="w-full text-sm">
         <thead>
-            <tr class="border-b border-white/[0.06]">
+            <tr class="border-b border-slate-200 dark:border-white/[0.06]">
                 <th class="pb-3 text-left text-[0.65rem] font-semibold tracking-[0.15em] uppercase text-slate-500 px-3">ID</th>
                 <th class="pb-3 text-left text-[0.65rem] font-semibold tracking-[0.15em] uppercase text-slate-500 px-3">Name</th>
                 <th class="pb-3 text-left text-[0.65rem] font-semibold tracking-[0.15em] uppercase text-slate-500 px-3">Email</th>
@@ -18,16 +18,16 @@
                 <th class="pb-3 text-left text-[0.65rem] font-semibold tracking-[0.15em] uppercase text-slate-500 px-3">Actions</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-white/[0.04]">
+        <tbody class="divide-y divide-slate-100 dark:divide-white/[0.04]">
             @forelse ($users as $user)
-                <tr class="group hover:bg-white/[0.02] transition-colors">
+                <tr class="group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                     <td class="py-3 px-3 text-slate-600 font-mono text-xs">#{{ $user->id }}</td>
                     <td class="py-3 px-3">
                         <div class="flex items-center gap-2.5">
                             <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs font-bold flex-shrink-0">
                                 {{ strtoupper(substr($user->name, 0, 1)) }}
                             </div>
-                            <span class="font-semibold text-white">{{ $user->name }}</span>
+                            <span class="font-semibold text-slate-900 dark:text-white">{{ $user->name }}</span>
                         </div>
                     </td>
                     <td class="py-3 px-3 text-slate-400">{{ $user->email }}</td>
@@ -95,13 +95,13 @@
 
                         {{-- Inline ban form --}}
                         @if($user->id !== auth()->id())
-                        <div x-show="banOpen" x-cloak class="mt-2 p-3 rounded-xl bg-red-500/[0.06] border border-red-500/20">
+                        <div x-show="banOpen" x-cloak class="mt-2 p-3 rounded-xl bg-red-50 dark:bg-red-500/[0.06] border border-red-200 dark:border-red-500/20">
                             <form action="{{ route('admin.Manage.users.ban', $user->id) }}" method="POST" class="flex items-center gap-2">
                                 @csrf
                                 <input type="number" name="duration" min="1" max="365" value="1" placeholder="Days"
-                                    class="w-16 px-2 py-1.5 rounded-lg bg-black/30 border border-white/[0.08] text-white text-xs focus:outline-none focus:border-red-500/50">
+                                    class="w-16 px-2 py-1.5 rounded-lg bg-white dark:bg-black/30 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white text-xs focus:outline-none focus:border-red-500/50">
                                 <input type="text" name="reason" placeholder="Reason (optional)"
-                                    class="flex-1 px-2 py-1.5 rounded-lg bg-black/30 border border-white/[0.08] text-white text-xs placeholder-slate-600 focus:outline-none focus:border-red-500/50">
+                                    class="flex-1 px-2 py-1.5 rounded-lg bg-white dark:bg-black/30 border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-red-500/50">
                                 <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all">
                                     Ban
                                 </button>

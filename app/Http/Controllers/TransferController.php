@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class TransferController extends Controller
 {
+    // Nosūta monētas draugam kā neapstiprinātu pārskaitījumu
     public function send(Request $request)
     {
         $validated = $request->validate([
@@ -40,6 +41,7 @@ class TransferController extends Controller
         return back()->with('transfer_success', 'Transfer sent! Waiting for the recipient to accept.');
     }
 
+    // Apstiprina saņemto pārskaitījumu un pievieno monētas saņēmējam
     public function accept(MoneyTransfer $transfer)
     {
         if ($transfer->recipient_id !== Auth::id() || $transfer->status !== 'pending') {
@@ -54,6 +56,7 @@ class TransferController extends Controller
         return back()->with('transfer_success', 'You received ' . number_format($transfer->amount) . ' coins!');
     }
 
+    // Noraida pārskaitījumu un atgriež monētas sūtītājam
     public function decline(MoneyTransfer $transfer)
     {
         if ($transfer->recipient_id !== Auth::id() || $transfer->status !== 'pending') {

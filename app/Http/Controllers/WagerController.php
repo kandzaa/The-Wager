@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 
 class WagerController extends Controller
 {
+    // Atgriež publisko derību sarakstu un lietotāja aktīvās derības
     public function index()
     {
         $wagers     = Wager::where('status', '!=', 'ended')->where('privacy', 'public')->get();
@@ -25,11 +26,13 @@ class WagerController extends Controller
         ]);
     }
 
+    // Atgriež derības izveides veidlapu
     public function create()
     {
         return view('wagers.create');
     }
 
+    // Saglabā jaunu derību datubāzē
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -78,6 +81,7 @@ class WagerController extends Controller
         return response()->json(['message' => 'Wager created successfully', 'id' => $wagerId], 201);
     }
 
+    // Izdzēš derību un visus tās saistītos datus
     public function destroy(Wager $wager)
     {
         if ($wager->creator_id !== Auth::id()) {
@@ -93,6 +97,7 @@ class WagerController extends Controller
         return redirect()->route('wagers.index')->with('success', 'Wager deleted.');
     }
 
+    // Atgriež derības rediģēšanas veidlapu ar esošajām izvēlēm
     public function edit(Wager $wager)
     {
         if ($wager->creator_id !== Auth::id()) {
@@ -113,6 +118,7 @@ class WagerController extends Controller
         return view('wagers.edit', compact('wager'));
     }
 
+    // Atjaunina derības datus un tās izvēles opcijas
    public function update(Request $request, Wager $wager)
     {
         if ($wager->creator_id !== Auth::id()) {
@@ -221,6 +227,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         }
     }
 
+    // Pievienojas derībai un, ja nepieciešams, iemaksā buy-in summu
     public function join(Wager $wager)
     {
         if ($wager->hasPlayer(Auth::id())) {
@@ -267,6 +274,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         }
     }
 
+    // Pievieno lietotāja likmes uz izvēlētajām opcijām
     public function bet(Request $request, Wager $wager)
     {
         $user = Auth::user();
@@ -368,6 +376,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         }
     }
 
+    // Parāda derības noslēgšanas formu ar pieejamajām izvēlēm
     public function showEndForm(Wager $wager)
     {
         if ($wager->creator_id !== auth()->id()) {
@@ -408,6 +417,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         return view('wagers.wagers_end', compact('wager'));
     }
 
+    // Noslēdz derību un izmaksā laimētājiem x1.5 likmes
     public function end(Request $request, Wager $wager)
     {
         if ($wager->creator_id !== auth()->id()) {
@@ -498,6 +508,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         }
     }
 
+    // Izsūta ielūgumu draugam pievienoties derībai
     public function sendInvitation(Request $request, Wager $wager)
     {
         $request->validate([
@@ -546,6 +557,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         return back()->with('success', 'Invitation sent successfully!');
     }
 
+    // Apstiprina ielūgumu un pievieno lietotāju derībai
     public function acceptInvitation($token)
     {
         $invitation = WagerInvitation::where('token', $token)
@@ -581,6 +593,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
             ->with('success', 'You have successfully joined the wager!');
     }
 
+    // Noraida ielūgumu pievienoties derībai
     public function declineInvitation($token)
     {
         $invitation = WagerInvitation::where('token', $token)
@@ -599,6 +612,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
 
     // ── Other ─────────────────────────────────────────────────────────────────
 
+    // Meklē publiskās derības pēc nosaukuma vai apraksta
     public function search(Request $request)
     {
         $query = trim($request->query('q', ''));
@@ -633,6 +647,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         ]);
     }
 
+    // Atgriež atsevišķas derības detalizēto skatu ar likmēm un spēlētājiem
     public function show(Wager $wager)
     {
         $friends            = Auth::user()->friends;
@@ -662,6 +677,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         return view('wagers.wager_detail', compact('wager', 'friends', 'pendingInvitations', 'isJoined', 'playersByChoice'));
     }
 
+    // Aprēķina uzvarētāju un zaudētāju neto rezultātus
     protected function getWagerResults(Wager $wager)
     {
         $wager->load(['players.user', 'bets.wagerChoice']);
@@ -692,6 +708,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         ];
     }
 
+    // Atgriež noslēgtās derības rezultātu lapu ar izmaksām
     public function results(Wager $wager)
     {
         if ($wager->status !== 'ended') {
@@ -731,6 +748,7 @@ Log::emergency('ABOUT TO UPDATE WAGER', [
         ]);
     }
 
+    // Atgriež derības statistiku un likmju sadalījumu JSON formātā
     public function stats(Wager $wager)
     {
         $choices  = $wager->choices()->get(['id', 'label', 'total_bet']);

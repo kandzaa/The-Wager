@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
+    // Atgriež administratora galveno pārskata lapu ar statistiku
     public function index()
     {
         $stats = [
@@ -28,24 +29,28 @@ class AdminController extends Controller
         return view('Admin.admin', compact('stats', 'recentUsers', 'recentWagers'));
     }
 
+    // Atgriež visu lietotāju sarakstu
     public function users()
     {
         $users = User::orderBy('id')->get();
         return view('Admin.users', compact('users'));
     }
 
+    // Atgriež visu derību sarakstu ar to veidotājiem
     public function wagers()
     {
         $wager = Wager::with('creator')->orderBy('id')->get();
         return view('Admin.wagers', compact('wager'));
     }
 
+    // Atgriež lietotāja rediģēšanas veidlapu
     public function editUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
         return view('Admin.Manage.editUser', compact('user'));
     }
 
+    // Saglabā izmaiņas lietotāja datos
     public function updateUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -68,6 +73,7 @@ class AdminController extends Controller
             ->with('success', 'User updated successfully.');
     }
 
+    // Izdzēš lietotāju no sistēmas
     public function deleteUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -75,13 +81,14 @@ class AdminController extends Controller
         return redirect()->route('admin')->with('success', 'User deleted successfully.');
     }
 
+    // Atgriež atsevišķa lietotāja detalizēto skatu
     public function showUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
         return view('Admin.Manage.showUser', compact('user'));
     }
 
-    // derību funkcijas
+    // Izdzēš derību no sistēmas
     public function deleteWager(Request $request, $id)
     {
         $wager = Wager::findOrFail($id);
@@ -89,6 +96,7 @@ class AdminController extends Controller
         return redirect()->route('admin')->with('success', 'Wager deleted successfully.');
     }
 
+    // Atgriež derības rediģēšanas veidlapu
     public function editWager(Request $request, $id)
     {
         $wager = \App\Models\Wager::findOrFail($id);
@@ -152,6 +160,7 @@ class AdminController extends Controller
         ]);
     }
 
+    // Saglabā izmaiņas derības datos
     public function updateWager(Request $request, $id)
     {
         $wager = Wager::findOrFail($id);
@@ -172,6 +181,7 @@ class AdminController extends Controller
 
     // ── Moderation ───────────────────────────────────────────────────────────
 
+    // Aizliedz lietotāja piekļuvi uz norādīto dienu skaitu
     public function banUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -193,6 +203,7 @@ class AdminController extends Controller
         return back()->with('success', "{$user->name} banned for {$request->duration} day(s).");
     }
 
+    // Noņem lietotāja aizliegumu
     public function unbanUser($id)
     {
         $user = User::findOrFail($id);
@@ -200,6 +211,7 @@ class AdminController extends Controller
         return back()->with('success', "{$user->name} has been unbanned.");
     }
 
+    // Iestata lietotāja monētu atlikumu uz nulli
     public function zeroBalance($id)
     {
         $user = User::findOrFail($id);
@@ -207,6 +219,7 @@ class AdminController extends Controller
         return back()->with('success', "{$user->name}'s balance has been zeroed.");
     }
 
+    // Piespiedu kārtā noslēdz derību
     public function forceEndWager($id)
     {
         $wager = Wager::findOrFail($id);
@@ -223,8 +236,9 @@ class AdminController extends Controller
         return back()->with('success', "Wager \"{$wager->name}\" force-ended.");
     }
 
-    // ── Customizations ───────────────────────────────────────────────────────
+    //Customizations
 
+    // Atgriež kosmētikas priekšmetu pārvaldības lapu
     public function customizations()
     {
         $cosmetics = Cosmetic::orderByRaw("CASE type WHEN 'frame' THEN 1 WHEN 'title' THEN 2 WHEN 'theme' THEN 3 WHEN 'charm' THEN 4 ELSE 5 END")
@@ -235,6 +249,7 @@ class AdminController extends Controller
         return view('Admin.customizations', compact('cosmetics'));
     }
 
+    // Izveido jaunu kosmētikas priekšmetu
     public function storeCosmetic(Request $request)
     {
         $request->validate([
@@ -255,6 +270,7 @@ class AdminController extends Controller
         return redirect()->route('admin.Manage.customizations')->with('success', '"' . $request->name . '" created.');
     }
 
+    // Atjaunina esošā kosmētikas priekšmeta datus
     public function updateCosmetic(Request $request, $id)
     {
         $cosmetic = Cosmetic::findOrFail($id);
@@ -277,6 +293,7 @@ class AdminController extends Controller
         return redirect()->route('admin.Manage.customizations')->with('success', '"' . $request->name . '" updated.');
     }
 
+    // Izdzēš kosmētikas priekšmetu
     public function destroyCosmetic($id)
     {
         $cosmetic = Cosmetic::findOrFail($id);
@@ -286,6 +303,7 @@ class AdminController extends Controller
         return redirect()->route('admin.Manage.customizations')->with('success', '"' . $name . '" deleted.');
     }
 
+    // Sagatavo kosmētikas metadatus atkarībā no veida
     private function buildMeta(Request $request): array
     {
         return match ($request->type) {

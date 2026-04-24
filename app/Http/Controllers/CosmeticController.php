@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class CosmeticController extends Controller
 {
+    // Iegādājas kosmētikas priekšmetu par monētām un pievieno lietotāja kolekcijai
     public function buy(Request $request)
     {
         $request->validate(['cosmetic_id' => 'required|integer|exists:cosmetics,id']);
@@ -53,6 +54,7 @@ class CosmeticController extends Controller
         ]);
     }
 
+    // Pievieno vai noņem kosmētikas priekšmetu norādītajā slotā
     public function equip(Request $request)
     {
         $request->validate([

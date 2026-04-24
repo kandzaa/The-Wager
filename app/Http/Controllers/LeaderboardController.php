@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 class LeaderboardController extends Controller
 {
+    // Atgriež līderu tabulu pēc četriem rādītājiem: laimesti, uzvaras biežums, derības skaits, bilance
     public function index()
     {
         // Top by total coins won (sum of payouts)
