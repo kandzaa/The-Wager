@@ -49,7 +49,7 @@ A social wagering platform where friends create prediction markets, place bets o
 |---|---|
 | Backend | PHP 8.2+, Laravel 12 |
 | Auth | Laravel Breeze |
-| Frontend | Alpine.js 3, Tailwind CSS 4, Vite 7 |
+| Frontend | Tailwind CSS 4, Vite 7 |
 | Charts | Chart.js |
 | Database | PostgreSQL (SQLite compatible) |
 | Testing | Pest 4 |
