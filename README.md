@@ -1,6 +1,6 @@
 # The Wager
 
-A social wagering platform where friends create prediction markets, place bets on outcomes, and compete for coins. Built with Laravel 12, Alpine.js, and Tailwind CSS.
+A social wagering platform where friends create prediction markets, place bets on outcomes, and compete for coins. Built with Laravel 12 and Tailwind CSS.
 
 ---
 
